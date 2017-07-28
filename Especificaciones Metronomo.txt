@@ -18,6 +18,8 @@ Salida midi para enviar el tempo??
 
 Interfaz comoda. Ver necesidades pantalla (poner una OLED to chula por probar o es demasiado? Rueda de edicion para incrementar los tiempos rapidamente?
 
+Entrada para cambiar de memoria?
+
 Puerto serie para programar. ¿Posibilidad de enviar/recibir repertorios?
 
 INFO TECNICA
@@ -47,3 +49,10 @@ http://www.uchobby.com/index.php/2007/11/14/arduino-sound-part-2-hello-world/
 
 http://www.instructables.com/id/Arduino-Audio-Output/
 http://www.instructables.com/id/Simple-Wav-Player-Using-Arduino/
+
+Pantalla
+-------
+
+Podemos optar por un LCD, un TFT o OLED. Ya conocemos las limitaciones del LCD, y sobre las otras dos, parece mejor opcion la OLED, por precio y carga de código. EL TFT sera de colores y OLED de un solo color. Nos sobra...
+
+(http://www.prometec.net/oled/)
