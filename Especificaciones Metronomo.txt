@@ -1,0 +1,49 @@
+BeatDuino 280717
+================
+
+Metronomo con memorias programables para guardar un repetorio de tempos.
+
+Seleccion de compases distintos?
+
+ALta usabilidad tanto para insertar/mover/copiar tiempos en el repetorio, como guardar "sets" de repertorios, como para los cambios 
+de cancion en directo.
+
+Posibilidad de guardar titulos de canciones con tiempos y hacer la lista mas visual (por canciones)
+
+Salida amplificada de auriculares con volumen.
+
+Sonido del metronomo? o bien salida interna beeps del chip o bien reproducir un .wav deseado (que se encargue otro chip?)
+
+Salida midi para enviar el tempo??
+
+Interfaz comoda. Ver necesidades pantalla (poner una OLED to chula por probar o es demasiado? Rueda de edicion para incrementar los tiempos rapidamente?
+
+Puerto serie para programar. ¿Posibilidad de enviar/recibir repertorios?
+
+INFO TECNICA
+=============
+
+Parte metronomo
+---------------
+Se trata de dar un pulso de tick de una duracion corta (10ms) con un tiempo de espera entre ticks que definen el tiempo.
+1 bpm es un tiempo cada minuto, que son 60000 ms. COn lo que para obtener el delay en ms de un tempo es (60000/bpm)
+
+Evidentemente, no haremos la pausa con un delay() ya que,el tiempo de ejecucion de las instrucciones intermedias puede afectar el tiempo del delay y ademas, nos bloquearía la ejecucion del programa.
+Para ello, nos guardamos el valor de millis() y segun su variacion realizamos tareas y reseteamos millis a valor actual.
+
+Parte Audio
+------------
+Tenemos 2 opciones: generar tono via Arduino (tone()).. Habria que ver que tal se oye y el tipo de timbre que tiene.
+					reproducir un archivo de audio WAV. ¿Es mucho proceso? ¿usamos un IC dedicado?
+					
+Salida audio line: salida estándar son 0,316V. Si generamos una onda de tono cuadrado (funcion tone) por un pin,
+como oscila entre 5V, tenemos que poner un divisor resistivo. Poniendo 10K y 1K, la dejamos en 0,5V.
+
+Si queremos generar audio con datos en array de WAV, tenemos que usar una salida PMW, pero requiere configurar timers e interrupciones
+para leer y reproducir el buffer. Además, tendremos que poner a la salida de ese pin, un filtro low pass para que suavice la señal, y
+un filtro DC para centrar la señal para que oscile entre el 0V. (http://www.instructables.com/id/Arduino-Audio-Output/)
+
+http://www.uchobby.com/index.php/2007/11/14/arduino-sound-part-2-hello-world/
+
+http://www.instructables.com/id/Arduino-Audio-Output/
+http://www.instructables.com/id/Simple-Wav-Player-Using-Arduino/
