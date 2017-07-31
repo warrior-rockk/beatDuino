@@ -52,7 +52,16 @@ http://www.instructables.com/id/Simple-Wav-Player-Using-Arduino/
 
 Pantalla
 -------
+(http://www.prometec.net/oled/)
 
 Podemos optar por un LCD, un TFT o OLED. Ya conocemos las limitaciones del LCD, y sobre las otras dos, parece mejor opcion la OLED, por precio y carga de código. EL TFT sera de colores y OLED de un solo color. Nos sobra...
 
-(http://www.prometec.net/oled/)
+El de mayor uso son OLED con chip SDD1306 128x64 que puede ir por I2C o SPI. El SPI es mas rapido, pero usa mas pines. I2C(5) SPI (7)
+La libreria de Adafruit gasta 1K de Ram (32k totales arduino uno)
+
+Conversor imagenes: http://javl.github.io/image2cpp/
+
+Interfaz física
+---------------
+
+Para la parte de introducir valores usaremos un encoder rotativo con pulsador. 
