@@ -11,7 +11,7 @@ SHELL = C:\WINDOWS\system32\cmd.exe
 
 ## Tools general options
 APPFLAGS=-C pro328 -N atmega328p -F 8000000
-CCFLAGS=-Wall -gdwarf-2 -fsigned-char -MD -MP -DF_CPU=8000000 -I arduino -I .. -DARDUINO=105 @arduino/libs.inc -O1 -mmcu=atmega328p
+CCFLAGS=-Wall -gdwarf-2 -fno-exceptions -ffunction-sections -fdata-sections -DF_CPU=8000000 -I .. -DARDUINO_ARCH_AVR @arduino/libs.inc -O1 -mmcu=atmega328p -DDEBUG
 LDFLAGS=-Wl,--gc-sections -mmcu=atmega328p
 
 ## Processing Tools

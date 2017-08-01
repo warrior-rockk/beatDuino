@@ -48,18 +48,25 @@ Adafruit_SSD1306 display(OLED_RESET);
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
 #endif
 
+//division nota
+#define QUARTER		1
+#define EIGHTH		2
+#define SIXTEENTH   4
+
 //==============================================
 
 //Variables generales===========================
 
-unsigned int bpm 			= 100;	//tempo general
-unsigned long msTempo 		= 0;	//tempo en milisegundos
-unsigned int clickDuration 	= 10;	//duración pulso click
-unsigned long lastTime 		= 0;	//guarda tiempo de referencia para comparar
-boolean tick 				= true;	//flag de activar tick
-
+unsigned int bpm 			= 100;		//tempo general
+unsigned long msTempo 		= 0;		//tempo en milisegundos
+unsigned int clickDuration 	= 10;		//duración pulso click
+unsigned long lastTime 		= 0;		//memoria tiempo anterior
+boolean tick 				= true;		//flag de activar tick
+unsigned int noteDivision	= SIXTEENTH;	//subdivision nota click
+unsigned int barSignature   = 4;		//tipo compas
+unsigned int actualTick     = 1;		//tiempo actual
 //interfaz
-unsigned int encPos 		= 0;	//posicion del encoder rotativo
+unsigned int encPos 		= 0;		//posicion del encoder rotativo
 
 //configuracion
 void setup()
@@ -80,6 +87,8 @@ void setup()
 	display.begin(SSD1306_SWITCHCAPVCC, 0x3D);  // initialize with the I2C addr 0x3D (for the 128x64)
 	//Clear the buffer.
 	display.clearDisplay();
+	display.setTextSize(1);
+	display.setTextColor(WHITE);
 	
 	//Mensaje de inicio
 	#ifndef DEBUG
@@ -94,31 +103,45 @@ void setup()
 void loop()
  { 
 	
+	//conversion bpm
+	bpm = map(encPos,0,100,1,300);
+	
 	//ms of actual tempo
 	msTempo = (60000/bpm);
 	
-	//comprobamos si se cumple el siguiente tick
-	if ((millis()-lastTime) >= msTempo)
+	//comprobamos si se cumple el siguiente tick si el tiempo supera el tiempo de negra dividido entre
+	//la division de notas seleccionada
+	if ((millis()-lastTime) >= (msTempo/noteDivision))
 	{
+		//realizamos tick
 		tick = true;
+		//incrementamos el numero de tick del compas
+		actualTick == (barSignature*noteDivision) ? actualTick = 1 : actualTick++;
 		lastTime = millis();		 
 	}
 	
 	//actualizamos tick
 	if (tick){
+		//led
 		digitalWrite(LED_CLICK, HIGH);
-		tone(OUT_CLICK,NOTE_A4,clickDuration);
+		//sonido del tick según si es el primer tiempo del compás
+		if (actualTick == 1)
+			tone(OUT_CLICK,NOTE_A4,clickDuration);
+		else
+			tone(OUT_CLICK,NOTE_C4,clickDuration);
+		//desactivamos flag	
 		tick = false;
 	}
 	else{
 		digitalWrite(LED_CLICK, LOW);
 		noTone(OUT_CLICK);
 	}
-
+	
 	//actualizamos display
 	display.clearDisplay();
 	display.setCursor(0,0);
-	display.print(encPos); 
+	display.print("BMP: "); 
+	display.print(bpm); 
 	display.display();
 	
 	//reseteamos el watchdog
