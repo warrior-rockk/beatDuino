@@ -28,12 +28,13 @@ main.o: main.cpp \
   C:/Archivos\ de\ programa/Arduino/hardware/arduino/cores/arduino/Printable.h \
   C:/Archivos\ de\ programa/Arduino/hardware/arduino/cores/arduino/new.h \
   C:/Archivos\ de\ programa/Arduino/hardware/arduino/variants/standard/pins_arduino.h \
-  ../freqNotes.h C:/Archivos\ de\ programa/Arduino/libraries/SPI/SPI.h \
+  c:/archivos\ de\ programa/arduino/hardware/tools/avr/lib/gcc/../../avr/include/avr/wdt.h \
+  C:/Archivos\ de\ programa/Arduino/libraries/SPI/SPI.h \
   C:/Archivos\ de\ programa/Arduino/libraries/Wire/Wire.h \
   C:/Archivos\ de\ programa/Arduino/hardware/arduino/cores/arduino/Stream.h \
   ../Adafruit_GFX.h \
   C:/Archivos\ de\ programa/Arduino/hardware/arduino/cores/arduino/Print.h \
-  ../Adafruit_SSD1306.h
+  ../Adafruit_SSD1306.h ../freqNotes.h ../images.h
 
 C:/Archivos\ de\ programa/Arduino/hardware/arduino/cores/arduino/Arduino.h:
 
@@ -93,7 +94,7 @@ C:/Archivos\ de\ programa/Arduino/hardware/arduino/cores/arduino/new.h:
 
 C:/Archivos\ de\ programa/Arduino/hardware/arduino/variants/standard/pins_arduino.h:
 
-../freqNotes.h:
+c:/archivos\ de\ programa/arduino/hardware/tools/avr/lib/gcc/../../avr/include/avr/wdt.h:
 
 C:/Archivos\ de\ programa/Arduino/libraries/SPI/SPI.h:
 
@@ -106,3 +107,7 @@ C:/Archivos\ de\ programa/Arduino/hardware/arduino/cores/arduino/Stream.h:
 C:/Archivos\ de\ programa/Arduino/hardware/arduino/cores/arduino/Print.h:
 
 ../Adafruit_SSD1306.h:
+
+../freqNotes.h:
+
+../images.h:
