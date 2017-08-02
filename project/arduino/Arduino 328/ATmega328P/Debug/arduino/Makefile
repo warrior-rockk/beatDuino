@@ -20,7 +20,7 @@ AR=ar
 ## Build tree:
 all:	arduino/arduino.a
 
-arduino/arduino.a:	arduino/CDC.o arduino/HardwareSerial.o arduino/HID.o arduino/IPAddress.o arduino/main.o arduino/new.o arduino/Print.o arduino/Stream.o arduino/Tone.o arduino/USBCore.o arduino/WInterrupts.o arduino/wiring.o arduino/wiring_analog.o arduino/wiring_digital.o arduino/wiring_pulse.o arduino/wiring_shift.o arduino/WMath.o arduino/WString.o arduino/avr-libc/malloc.o arduino/avr-libc/realloc.o arduino/SPI/SPI.o arduino/Wire/Wire.o arduino/Wire/utility/twi.o 
+arduino/arduino.a:	arduino/CDC.o arduino/HardwareSerial.o arduino/HID.o arduino/IPAddress.o arduino/main.o arduino/new.o arduino/Print.o arduino/Stream.o arduino/Tone.o arduino/USBCore.o arduino/WInterrupts.o arduino/wiring.o arduino/wiring_analog.o arduino/wiring_digital.o arduino/wiring_pulse.o arduino/wiring_shift.o arduino/WMath.o arduino/WString.o arduino/avr-libc/malloc.o arduino/avr-libc/realloc.o arduino/EEPROM/EEPROM.o arduino/SPI/SPI.o arduino/Wire/Wire.o arduino/Wire/utility/twi.o 
 
 arduino/CDC.o:	C:/Archivos\ de\ programa/Arduino/hardware/arduino/cores/arduino/CDC.cpp
 	 $(CC) $(CCFLAGS) -o arduino/CDC.o -c "C:/Archivos de programa/Arduino/hardware/arduino/cores/arduino/CDC.cpp"
@@ -102,6 +102,10 @@ arduino/avr-libc/realloc.o:	C:/Archivos\ de\ programa/Arduino/hardware/arduino/c
 	 $(CC) $(CCFLAGS) -o arduino/avr-libc/realloc.o -c "C:/Archivos de programa/Arduino/hardware/arduino/cores/arduino/avr-libc/realloc.c"
 	 $(AR) $(ARFLAGS) arduino/arduino.a arduino/avr-libc/realloc.o
 
+arduino/EEPROM/EEPROM.o:	C:/Archivos\ de\ programa/Arduino/libraries/EEPROM/EEPROM.cpp
+	 $(CC) $(CCFLAGS) @arduino/libs.inc -I "C:/Archivos de programa/Arduino/libraries/EEPROM/utility" -I "C:/Archivos de programa/Arduino/libraries/EEPROM/avr" -I "C:/Archivos de programa/Arduino/libraries/EEPROM/utility/avr" -o arduino/EEPROM/EEPROM.o -c "C:/Archivos de programa/Arduino/libraries/EEPROM/EEPROM.cpp"
+	 $(AR) $(ARFLAGS) arduino/arduino.a arduino/EEPROM/EEPROM.o
+
 arduino/SPI/SPI.o:	C:/Archivos\ de\ programa/Arduino/libraries/SPI/SPI.cpp
 	 $(CC) $(CCFLAGS) @arduino/libs.inc -I "C:/Archivos de programa/Arduino/libraries/SPI/utility" -I "C:/Archivos de programa/Arduino/libraries/SPI/avr" -I "C:/Archivos de programa/Arduino/libraries/SPI/utility/avr" -o arduino/SPI/SPI.o -c "C:/Archivos de programa/Arduino/libraries/SPI/SPI.cpp"
 	 $(AR) $(ARFLAGS) arduino/arduino.a arduino/SPI/SPI.o
@@ -138,6 +142,7 @@ tidy:
 	 rm -f arduino/WString.o
 	 rm -f arduino/avr-libc/malloc.o
 	 rm -f arduino/avr-libc/realloc.o
+	 rm -f arduino/EEPROM/EEPROM.o
 	 rm -f arduino/SPI/SPI.o
 	 rm -f arduino/Wire/Wire.o
 	 rm -f arduino/Wire/utility/twi.o
