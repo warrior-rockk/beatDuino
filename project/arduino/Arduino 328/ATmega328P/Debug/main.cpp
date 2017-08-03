@@ -15,6 +15,7 @@
 
 #include <avr/wdt.h> 
 #include <EEPROM.h>
+#include <avr/pgmspace.h>
 //comunicacion con LCD OLED
 #include <SPI.h>
 #include <Wire.h>
@@ -31,7 +32,9 @@ void stopMetronome ();
 void wellcomeTest ();
 void doEncoder ();
 void processButton (int pin ,int buttonNum );
-#line 24
+void debugWriteSongs ();
+void readSongData ();
+#line 25
 
 //Definiciones====================================
 
@@ -66,11 +69,19 @@ Adafruit_SSD1306 display(OLED_RESET);
 #define LIVE_MODE        1
 
 //repertorios y canciones
-#define MAX_PLAYLISTS	5
-#define MAX_SONGS       30
-#define MAX_TITLE       15
+#define MAX_PLAYLISTS		3
+#define MAX_PLAYLIST_TITLE  8
+#define MAX_SONGS       	30
+#define MAX_SONG_TITLE  	10
 
 //==============================================
+
+//Constantes ===================================
+
+//definimos la estructura datos EEPROM
+
+//==============================================
+const byte EEPROM_SONGS_POS	= 0x00;		//Posicion Inicio Memoria Canciones
 
 //Estructuras===================================
 
@@ -86,26 +97,26 @@ struct button_
    unsigned int timerLong;
 }button[2];
 
-//tipo de estructura de una cancion
+//tipo de estructura de una cancion (13 bytes por cancion)
 typedef struct
 {
-	String title;
-	unsigned int tempo;
-	unsigned int noteDivision;
-	unsigned int beatSignature;
+	char title[MAX_SONG_TITLE];
+	byte tempo;
+	byte noteDivision;
+	byte barSignature;
 }song_;
 
-//estructura de repetorio
+//estructura de repetorio (398bytes por repertorio)
 struct playList_
 {
-	String title;
-	song_ song[MAX_SONGS];
+	char title[MAX_PLAYLIST_TITLE];
+	song_ song[MAX_SONGS];	
 }playList;
 
 //==============================================
 
 //Variables generales===========================
-unsigned int mode           = METRONOME_MODE;	//modo general
+unsigned int mode           = LIVE_MODE;		//modo general
 boolean refreshLCD			= false;			//refresco LCD
 unsigned int bpm 			= 100;				//tempo general
 unsigned long msTempo 		= 0;				//tempo en milisegundos
@@ -116,6 +127,7 @@ unsigned int barSignature   = 4;				//tipo compas
 unsigned int actualTick     = 1;				//tiempo actual
 boolean tick 				= true;				//flag de activar tick
 boolean play				= false;			//flag de activar metronomo
+byte actualSong				= 0;				//cancion actual del repertorio
 //interfaz
 signed int deltaEnc             = 0;			//incremento o decremento del encoder
 unsigned int buttonDelay     	= 2;			//Tiempo antirebote
@@ -155,19 +167,88 @@ void setup()
 	//activamos el watchdog a 2 segundos
 	wdt_enable(WDTO_2S);
 	
-	/*playList[0].title = "Largo";
-	playList[0].song[0].title = "De que se rie";
-	playList[0].song[0].tempo = 168;
-	playList[0].song[0].noteDivision = QUARTER;
-	playList[0].song[0].beatSignature = 4;*/
+	//prueba de elementos
+	debugWriteSongs();
+	
+	/*EEPROM.write(0x00,'L');
+	EEPROM.write(0x01,'a');
+	EEPROM.write(0x02,'r');
+	EEPROM.write(0x03,'g');
+	EEPROM.write(0x04,'0');
+	EEPROM.write(0x05,'\0');
+	playList.title[0] = EEPROM.read(0x00);
+	playList.title[1] = EEPROM.read(0x01);
+	playList.title[2] = EEPROM.read(0x02);
+	playList.title[3] = EEPROM.read(0x03);
+	playList.title[4] = EEPROM.read(0x04);
+	playList.title[5] = '\0';
+	*/
+	strncpy(playList.title,"Largo",MAX_PLAYLIST_TITLE);
+	
+	/*strncpy(playList.song[0].title,"Medolias",MAX_SONG_TITLE);
+	playList.song[0].tempo 			= 168;
+	playList.song[0].noteDivision 	= QUARTER;
+	playList.song[0].barSignature 	= 4;
+	
+	strncpy(playList.song[1].title,"Revolvien",MAX_SONG_TITLE);
+	playList.song[1].tempo 			= 140;
+	playList.song[1].noteDivision 	= EIGHTH;
+	playList.song[1].barSignature 	= 6;*/
+	
+	readSongData();
  }
 
  //bucle principal
 void loop()
  { 
+	//procesamos botones
+	processButton(START_STOP,START_STOP_BT);
+			
 	//comprobamos modo
 	switch (mode)
 	{
+		//modo directo. Eliges un repetorio y con la ruleta subes y bajas de tema.
+		case LIVE_MODE:
+			//cambio de cancion
+			if (deltaEnc > 0 && actualSong < (MAX_SONGS-1))
+			{
+				actualSong++;
+				readSongData();
+			}
+			if (deltaEnc < 0 && actualSong > 0)
+			{
+				actualSong--;
+				readSongData();
+			}
+			
+			deltaEnc = 0;
+			
+			//obtenemos datos tema
+			bpm 			= playList.song[0].tempo;
+			noteDivision 	= playList.song[0].noteDivision;
+			barSignature 	= playList.song[0].barSignature;
+			
+			//ms of actual tempo
+			msTempo = (60000/bpm);
+			
+			//arranque-paro del sonido
+			if (button[START_STOP_BT].pEdgePress)
+				play = !play;
+				
+			//si está activado el sonido del metronomo
+			if (play)
+			{
+				playMetronome();
+			}
+			else
+			{
+				stopMetronome();
+			}
+			
+			refreshLCD = true;
+			
+			break;
+			
 		//modo metronomo normal. Con la ruleta cambias el tempo.
 		case METRONOME_MODE:
 			//conversion bpm
@@ -176,9 +257,6 @@ void loop()
 			
 			//ms of actual tempo
 			msTempo = (60000/bpm);
-			
-			//procesamos botones
-			processButton(START_STOP,START_STOP_BT);
 			
 			//arranque-paro del sonido
 			if (button[START_STOP_BT].pEdgePress)
@@ -203,11 +281,17 @@ void loop()
 	if (refreshLCD) {
 		switch(mode)
 		{
-			case METRONOME_MODE:
-				//actualizamos display del modo metronomo
+			case LIVE_MODE:
+				//actualizamos display del modo directo
 				display.clearDisplay();
 				display.setCursor(0,0);
-				display.print("01.Revolviendo\n\n"); 
+				display.print("1.");
+				display.print(playList.title);
+				display.print("\n"); 
+				display.print(actualSong+1);
+				display.print(".");
+				display.print(playList.song[0].title);
+				display.print("\n\n"); 
 				display.setTextSize(2);
 				display.print(bpm); 
 				display.print(" BPM\n\n"); 
@@ -216,7 +300,22 @@ void loop()
 				display.print("/");
 				display.print(noteDivision*4);
 				display.print("      ");
-				play ? display.print("START") : display.print("STOP");
+				play ? display.print(F("START")) : display.print("STOP");
+				display.display();
+				break;
+			case METRONOME_MODE:
+				//actualizamos display del modo metronomo
+				display.clearDisplay();
+				display.setCursor(0,0);
+				display.setTextSize(2);
+				display.print(bpm); 
+				display.print(" BPM\n\n"); 
+				display.setTextSize(1);
+				display.print(barSignature);
+				display.print("/");
+				display.print(noteDivision*4);
+				display.print("      ");
+				play ? display.print(F("START")) : display.print("STOP");
 				display.display();
 				
 				break;
@@ -380,4 +479,50 @@ void processButton(int pin,int buttonNum)
 	 button[buttonNum].longPress = false;
 	 
    }
+}
+
+//funcion de prueba para rellenar el EEPROM de datos
+void debugWriteSongs()
+{	
+	unsigned int memPos = EEPROM_SONGS_POS;
+	
+	randomSeed(analogRead(0));
+	
+	for (int j=0;j<MAX_SONGS;j++)
+	{
+		for (int i=0;i<MAX_SONG_TITLE-1;i++)
+		{
+			EEPROM.write(memPos,random(97,120));
+			memPos++;
+		}
+		EEPROM.write(memPos,'\0');
+		memPos++;
+		EEPROM.write(memPos,random(100,250));
+		memPos++;
+		EEPROM.write(memPos,random(1,4));
+		memPos++;
+		EEPROM.write(memPos,random(2,8));
+		memPos++;	
+	}
+	
+}
+
+//funcion para leer la informacion de la cancion actual de EEPROM
+void readSongData()
+{
+	unsigned int memPos = EEPROM_SONGS_POS+(actualSong*13);
+
+	for (int i=0;i<MAX_SONG_TITLE;i++)
+		{
+			playList.song[0].title[i] = EEPROM.read(memPos);
+			memPos++;
+		}
+	
+	playList.song[0].tempo = EEPROM.read(memPos);
+	memPos++;
+	playList.song[0].noteDivision = EEPROM.read(memPos);
+	memPos++;
+	playList.song[0].barSignature = EEPROM.read(memPos);
+	memPos++;
+	
 }

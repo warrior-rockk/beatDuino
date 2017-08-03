@@ -66,3 +66,8 @@ Interfaz física
 
 Para la parte de introducir valores usaremos un encoder rotativo con pulsador. EL encoder genera un pulso por cada canal A y B desfasados 90 grados entre ellos segun el sentido de giro del encoder. EN un sentido, el pulso de A se da antes que el de B, y en el otro sentido, al contrario. Eso nos permite controlar que, si cuando se da el pulso de A, B ya ha cambiado, estamos en un sentido y si B es distinto, estamos en el otro sentido.
 Es importante poner unos condensadores para filtrar los ruidos y rebotes de la conmutación mecánica.
+
+Dudas:
+	-CUando cambias de tema, se para el metronomo?
+	-Hay que aceptar el cambio de metronomo con el botón?
+	
