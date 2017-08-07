@@ -47,14 +47,14 @@ void debugWritePlayLists ();
 #define START_STOP  0
 #define ENC_B   	1		
 #define ENC_A		2		
-#define TEST_PIN   	3		
+#define MENU_PIN   	3		
 #define OLED_RESET 	4
 #define OUT_CLICK 	11		
 #define LED_CLICK   13
 
 //botones
 #define START_STOP_BT 	0
-#define TEST_BT 		1
+#define MENU_BT 		1
 
 //config LCD
 Adafruit_SSD1306 display(OLED_RESET);
@@ -70,6 +70,10 @@ Adafruit_SSD1306 display(OLED_RESET);
 //modos
 #define METRONOME_MODE   0
 #define LIVE_MODE        1
+
+//estados
+#define MAIN_STATE		0
+#define MENU_STATE		1
 
 //repertorios y canciones
 #define MAX_PLAYLISTS		3
@@ -119,8 +123,9 @@ struct playList_
 //==============================================
 
 //Variables generales===========================
-unsigned int mode           = LIVE_MODE;		//modo general
-boolean refreshLCD			= false;			//refresco LCD
+byte mode          = LIVE_MODE;					//modo general
+byte state         = MAIN_STATE;				//estado general
+boolean refreshLCD			= true;				//refresco LCD
 unsigned int bpm 			= 100;				//tempo general
 unsigned long msTempo 		= 0;				//tempo en milisegundos
 unsigned int clickDuration 	= 10;				//duración pulso click
@@ -136,8 +141,9 @@ byte actualPlayListNum      = 0;				//numero de repetorio actual
 signed int deltaEnc             = 0;			//incremento o decremento del encoder
 unsigned int buttonDelay     	= 2;			//Tiempo antirebote
 unsigned int buttonLongPress 	= 60;			//Tiempo pulsacion larga para otras funciones
+//menu
+byte menuOption 			= 0;				//opcion seleccionada del menu
 
-int vartest = 0;
 //configuracion
 void setup()
  { 
@@ -148,7 +154,7 @@ void setup()
 	pinMode(ENC_A,INPUT_PULLUP);
 	pinMode(ENC_B,INPUT_PULLUP);
 	pinMode(START_STOP,INPUT_PULLUP);
-	pinMode(TEST_PIN,INPUT_PULLUP);
+	pinMode(MENU_PIN,INPUT_PULLUP);
 	
 	pinMode(OUT_CLICK,OUTPUT);
 	pinMode(LED_CLICK,OUTPUT);
@@ -176,32 +182,7 @@ void setup()
 	//prueba de elementos
 	debugWriteSongs();
 	debugWritePlayLists();
-	
-	/*EEPROM.write(0x00,'L');
-	EEPROM.write(0x01,'a');
-	EEPROM.write(0x02,'r');
-	EEPROM.write(0x03,'g');
-	EEPROM.write(0x04,'0');
-	EEPROM.write(0x05,'\0');
-	playList.title[0] = EEPROM.read(0x00);
-	playList.title[1] = EEPROM.read(0x01);
-	playList.title[2] = EEPROM.read(0x02);
-	playList.title[3] = EEPROM.read(0x03);
-	playList.title[4] = EEPROM.read(0x04);
-	playList.title[5] = '\0';
-	*/
-	//strncpy(playList.title,"Largo",MAX_PLAYLIST_TITLE);
-	
-	/*strncpy(playList.song[0].title,"Medolias",MAX_SONG_TITLE);
-	playList.song[0].tempo 			= 168;
-	playList.song[0].noteDivision 	= QUARTER;
-	playList.song[0].barSignature 	= 4;
-	
-	strncpy(playList.song[1].title,"Revolvien",MAX_SONG_TITLE);
-	playList.song[1].tempo 			= 140;
-	playList.song[1].noteDivision 	= EIGHTH;
-	playList.song[1].barSignature 	= 6;*/
-	
+		
 	readSongData();
  }
 
@@ -210,47 +191,86 @@ void loop()
  { 
 	//procesamos botones
 	processButton(START_STOP,START_STOP_BT);
-	processButton(TEST_PIN,TEST_BT);
-			
+	processButton(MENU_PIN,MENU_BT);
+	
+	//si pulsamos boton menu
+	if (button[MENU_BT].pEdgePress)
+	{
+		state = MENU_STATE;
+		refreshLCD = true;
+	}		
+	
 	//comprobamos modo
 	switch (mode)
 	{
 		//modo directo. Eliges un repetorio y con la ruleta subes y bajas de tema.
 		case LIVE_MODE:
-			//cambio de cancion
-			if (deltaEnc > 0 && actualNumSong < (MAX_SONGS-1))
+			//estado del modo directo
+			switch (state)
 			{
-				actualNumSong++;
-				readSongData();
-			}
-			if (deltaEnc < 0 && actualNumSong > 0)
-			{
-				actualNumSong--;
-				readSongData();
+				//estado principal
+				case MAIN_STATE:
+					//cambio de cancion
+					if (deltaEnc > 0 && actualNumSong < (MAX_SONGS-1))
+					{
+						actualNumSong++;
+						readSongData();
+						refreshLCD = true;
+					}
+					if (deltaEnc < 0 && actualNumSong > 0)
+					{
+						actualNumSong--;
+						readSongData();
+						refreshLCD = true;
+					}
+					
+					deltaEnc = 0;
+					
+					//cambio de playlist
+					/*if (button[MENU_BT].pEdgePress)
+					{
+						actualPlayListNum < (MAX_PLAYLISTS-1) ? actualPlayListNum++ : actualPlayListNum = 0;
+						actualNumSong=0;
+						readSongData();
+						refreshLCD = true;
+					}*/
+					
+					//obtenemos datos tema
+					bpm 			= actualSong.tempo;
+					noteDivision 	= actualSong.noteDivision;
+					barSignature 	= actualSong.barSignature;
+			
+					//ms of actual tempo
+					msTempo = (60000/bpm);
+					break;
+					
+				//estado menu
+				case MENU_STATE:
+					//cambio de opcion
+					if (deltaEnc > 0 )
+					{
+						menuOption < 3 ? menuOption++ : menuOption=0;
+						refreshLCD = true;
+					}
+					if (deltaEnc < 0 )
+					{
+						menuOption > 0 ? menuOption-- : menuOption = 3;
+						refreshLCD = true;
+					}
+					
+					deltaEnc = 0;
+					break;
 			}
 			
-			deltaEnc = 0;
-			
-			//cambio de playlist
-			if (button[TEST_BT].pEdgePress)
-			{
-				actualPlayListNum < (MAX_PLAYLISTS-1) ? actualPlayListNum++ : actualPlayListNum = 0;
-				actualNumSong=0;
-				readSongData();
-			}
-			
-			//obtenemos datos tema
-			bpm 			= actualSong.tempo;
-			noteDivision 	= actualSong.noteDivision;
-			barSignature 	= actualSong.barSignature;
-	
-			//ms of actual tempo
-			msTempo = (60000/bpm);
+			//en todos los estados del modo LIVE:
 			
 			//arranque-paro del sonido
 			if (button[START_STOP_BT].pEdgePress)
+			{
 				play = !play;
-				
+				refreshLCD = true;
+			}
+			
 			//si está activado el sonido del metronomo
 			if (play)
 			{
@@ -260,9 +280,7 @@ void loop()
 			{
 				stopMetronome();
 			}
-			
-			refreshLCD = true;
-			
+						
 			break;
 			
 		//modo metronomo normal. Con la ruleta cambias el tempo.
@@ -298,27 +316,46 @@ void loop()
 		switch(mode)
 		{
 			case LIVE_MODE:
-				//actualizamos display del modo directo
-				display.clearDisplay();
-				display.setCursor(0,0);
-				display.print(actualPlayListNum+1);
-				display.print(".");
-				display.print(actualPlayList.title);
-				display.print("\n"); 
-				display.print(actualNumSong+1);
-				display.print(".");
-				display.print(actualSong.title);
-				display.print("\n\n"); 
-				display.setTextSize(2);
-				display.print(bpm); 
-				display.print(" BPM\n\n"); 
-				display.setTextSize(1);
-				display.print(barSignature);
-				display.print("/");
-				display.print(noteDivision*4);
-				display.print("      ");
-				play ? display.print(F("START")) : display.print("STOP");
-				display.display();
+				switch (state)
+				{
+					case MAIN_STATE:
+						//actualizamos display del modo directo
+						display.clearDisplay();
+						display.setCursor(0,0);
+						display.print(actualPlayListNum+1);
+						display.print(".");
+						display.print(actualPlayList.title);
+						display.print("\n"); 
+						display.print(actualNumSong+1);
+						display.print(".");
+						display.print(actualSong.title);
+						display.print("\n\n"); 
+						display.setTextSize(2);
+						display.print(bpm); 
+						display.print(" BPM\n\n"); 
+						display.setTextSize(1);
+						display.print(barSignature);
+						display.print("/");
+						display.print(noteDivision*4);
+						display.print("      ");
+						play ? display.print(F("START")) : display.print("STOP");
+						display.display();
+						break;
+					case MENU_STATE:
+						//actualizamos display del modo directo en menu
+						display.clearDisplay();
+						display.setCursor(0,0);
+						menuOption == 0 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+						display.println("Cambiar Repertorio");
+						menuOption == 1 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+						display.println("Cambiar Cancion");
+						menuOption == 2 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+						display.println("Insertar Cancion");
+						menuOption == 3 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+						display.println("Eliminar Cancion");
+						display.display();
+						break;
+				}		
 				break;
 			case METRONOME_MODE:
 				//actualizamos display del modo metronomo
