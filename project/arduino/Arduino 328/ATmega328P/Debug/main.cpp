@@ -34,6 +34,7 @@ void doEncoder ();
 void processButton (int pin ,int buttonNum );
 void debugWriteSongs ();
 void readSongData ();
+void debugWritePlayLists ();
 #line 25
 
 //Definiciones====================================
@@ -43,15 +44,17 @@ void readSongData ();
 #define minorVersion 0
 
 //pines IO
-#define ENC_A		2		
+#define START_STOP  0
 #define ENC_B   	1		
+#define ENC_A		2		
+#define TEST_PIN   	3		
+#define OLED_RESET 	4
 #define OUT_CLICK 	11		
 #define LED_CLICK   13
-#define OLED_RESET 	4
-#define START_STOP  0
 
 //botones
-#define START_STOP_BT 0
+#define START_STOP_BT 	0
+#define TEST_BT 		1
 
 //config LCD
 Adafruit_SSD1306 display(OLED_RESET);
@@ -81,8 +84,8 @@ Adafruit_SSD1306 display(OLED_RESET);
 //definimos la estructura datos EEPROM
 
 //==============================================
-const byte EEPROM_SONGS_POS	= 0x00;		//Posicion Inicio Memoria Canciones
-
+const byte EEPROM_SONGS_POS		= 0x00;			//Posicion Inicio Memoria Canciones
+const unsigned int EEPROM_PLAYLIST_POS	= 0x186;		//Posicion Inicio Memoria Canciones
 //Estructuras===================================
 
 //Estructura estado botones
@@ -98,20 +101,20 @@ struct button_
 }button[2];
 
 //tipo de estructura de una cancion (13 bytes por cancion)
-typedef struct
+struct song_
 {
 	char title[MAX_SONG_TITLE];
 	byte tempo;
 	byte noteDivision;
 	byte barSignature;
-}song_;
+}actualSong;
 
 //estructura de repetorio (398bytes por repertorio)
 struct playList_
 {
 	char title[MAX_PLAYLIST_TITLE];
-	song_ song[MAX_SONGS];	
-}playList;
+	byte numSong;
+}actualPlayList;
 
 //==============================================
 
@@ -127,12 +130,14 @@ unsigned int barSignature   = 4;				//tipo compas
 unsigned int actualTick     = 1;				//tiempo actual
 boolean tick 				= true;				//flag de activar tick
 boolean play				= false;			//flag de activar metronomo
-byte actualSong				= 0;				//cancion actual del repertorio
+byte actualNumSong			= 0;				//cancion actual del repertorio
+byte actualPlayListNum      = 0;				//numero de repetorio actual
 //interfaz
 signed int deltaEnc             = 0;			//incremento o decremento del encoder
 unsigned int buttonDelay     	= 2;			//Tiempo antirebote
 unsigned int buttonLongPress 	= 60;			//Tiempo pulsacion larga para otras funciones
 
+int vartest = 0;
 //configuracion
 void setup()
  { 
@@ -143,6 +148,7 @@ void setup()
 	pinMode(ENC_A,INPUT_PULLUP);
 	pinMode(ENC_B,INPUT_PULLUP);
 	pinMode(START_STOP,INPUT_PULLUP);
+	pinMode(TEST_PIN,INPUT_PULLUP);
 	
 	pinMode(OUT_CLICK,OUTPUT);
 	pinMode(LED_CLICK,OUTPUT);
@@ -169,6 +175,7 @@ void setup()
 	
 	//prueba de elementos
 	debugWriteSongs();
+	debugWritePlayLists();
 	
 	/*EEPROM.write(0x00,'L');
 	EEPROM.write(0x01,'a');
@@ -183,7 +190,7 @@ void setup()
 	playList.title[4] = EEPROM.read(0x04);
 	playList.title[5] = '\0';
 	*/
-	strncpy(playList.title,"Largo",MAX_PLAYLIST_TITLE);
+	//strncpy(playList.title,"Largo",MAX_PLAYLIST_TITLE);
 	
 	/*strncpy(playList.song[0].title,"Medolias",MAX_SONG_TITLE);
 	playList.song[0].tempo 			= 168;
@@ -203,6 +210,7 @@ void loop()
  { 
 	//procesamos botones
 	processButton(START_STOP,START_STOP_BT);
+	processButton(TEST_PIN,TEST_BT);
 			
 	//comprobamos modo
 	switch (mode)
@@ -210,24 +218,32 @@ void loop()
 		//modo directo. Eliges un repetorio y con la ruleta subes y bajas de tema.
 		case LIVE_MODE:
 			//cambio de cancion
-			if (deltaEnc > 0 && actualSong < (MAX_SONGS-1))
+			if (deltaEnc > 0 && actualNumSong < (MAX_SONGS-1))
 			{
-				actualSong++;
+				actualNumSong++;
 				readSongData();
 			}
-			if (deltaEnc < 0 && actualSong > 0)
+			if (deltaEnc < 0 && actualNumSong > 0)
 			{
-				actualSong--;
+				actualNumSong--;
 				readSongData();
 			}
 			
 			deltaEnc = 0;
 			
-			//obtenemos datos tema
-			bpm 			= playList.song[0].tempo;
-			noteDivision 	= playList.song[0].noteDivision;
-			barSignature 	= playList.song[0].barSignature;
+			//cambio de playlist
+			if (button[TEST_BT].pEdgePress)
+			{
+				actualPlayListNum < (MAX_PLAYLISTS-1) ? actualPlayListNum++ : actualPlayListNum = 0;
+				actualNumSong=0;
+				readSongData();
+			}
 			
+			//obtenemos datos tema
+			bpm 			= actualSong.tempo;
+			noteDivision 	= actualSong.noteDivision;
+			barSignature 	= actualSong.barSignature;
+	
 			//ms of actual tempo
 			msTempo = (60000/bpm);
 			
@@ -285,12 +301,13 @@ void loop()
 				//actualizamos display del modo directo
 				display.clearDisplay();
 				display.setCursor(0,0);
-				display.print("1.");
-				display.print(playList.title);
-				display.print("\n"); 
-				display.print(actualSong+1);
+				display.print(actualPlayListNum+1);
 				display.print(".");
-				display.print(playList.song[0].title);
+				display.print(actualPlayList.title);
+				display.print("\n"); 
+				display.print(actualNumSong+1);
+				display.print(".");
+				display.print(actualSong.title);
 				display.print("\n\n"); 
 				display.setTextSize(2);
 				display.print(bpm); 
@@ -497,7 +514,7 @@ void debugWriteSongs()
 		}
 		EEPROM.write(memPos,'\0');
 		memPos++;
-		EEPROM.write(memPos,random(100,250));
+		EEPROM.write(memPos,random(10,250));
 		memPos++;
 		EEPROM.write(memPos,random(1,4));
 		memPos++;
@@ -510,19 +527,60 @@ void debugWriteSongs()
 //funcion para leer la informacion de la cancion actual de EEPROM
 void readSongData()
 {
-	unsigned int memPos = EEPROM_SONGS_POS+(actualSong*13);
-
+	//nos posicionamos en el inicio de memoria del playList actual
+	int actualPlayListPos = EEPROM_PLAYLIST_POS+(38*actualPlayListNum);
+	
+	unsigned int memPos = actualPlayListPos;
+	
+	//obtenemos el titulo del playlist
+	for (int i=0;i<MAX_PLAYLIST_TITLE;i++)
+		{
+			actualPlayList.title[i] = EEPROM.read(memPos);
+			memPos++;
+		}
+		
+	//obtenemos el numero de cancion de la posicion actual del playlist
+	byte actualSongPos = EEPROM.read(actualPlayListPos+8+actualNumSong);
+	
+	//nos posicionamos en el inicio del numero de cancion obtenido
+	memPos = EEPROM_SONGS_POS+(actualSongPos*13);
+	
+	//leemos el titulo
 	for (int i=0;i<MAX_SONG_TITLE;i++)
 		{
-			playList.song[0].title[i] = EEPROM.read(memPos);
+			actualSong.title[i] = EEPROM.read(memPos);
 			memPos++;
 		}
 	
-	playList.song[0].tempo = EEPROM.read(memPos);
+	actualSong.tempo = EEPROM.read(memPos);
 	memPos++;
-	playList.song[0].noteDivision = EEPROM.read(memPos);
+	actualSong.noteDivision = EEPROM.read(memPos);
 	memPos++;
-	playList.song[0].barSignature = EEPROM.read(memPos);
+	actualSong.barSignature = EEPROM.read(memPos);
 	memPos++;
+		
+}
+
+//funcion de prueba para escribir unos setlist en memoria eepprom
+void debugWritePlayLists()
+{
+	unsigned int memPos = EEPROM_PLAYLIST_POS;
 	
+	randomSeed(analogRead(0));
+	
+	for (int j=0;j<MAX_PLAYLISTS;j++)
+	{
+		for (int i=0;i<MAX_PLAYLIST_TITLE-1;i++)
+		{
+			EEPROM.write(memPos,random(97,120));
+			memPos++;
+		}
+		EEPROM.write(memPos,'\0');
+		memPos++;
+		for (int i=0;i<MAX_SONGS;i++)
+		{
+			EEPROM.write(memPos,random(0,29));
+			memPos++;
+		}
+	}
 }
