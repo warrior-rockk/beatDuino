@@ -36,6 +36,8 @@ void debugWritePlayLists ();
 void debugWriteSongs ();
 void readSongData ();
 char *readPlayListTitle (byte numPlayList );
+char *readSongTitle (byte numSong );
+void WritePlayListSong (byte playListNum ,byte playListPos ,byte songNum );
 #line 25
 
 //Definiciones====================================
@@ -87,8 +89,10 @@ Adafruit_SSD1306 display(OLED_RESET);
 //categorias del menu
 #define MAIN_LIVE_CATEGORY 			0
 #define PLAYLIST_CHANGE_CATEGORY	1
+#define SONG_CHANGE_CATEGORY		2
 //opciones menu LIVE
 #define CHANGE_PLAYLIST_OPTION		0
+#define CHANGE_SONG_OPTION          1
 
 //==============================================
 
@@ -192,8 +196,8 @@ void setup()
 	wdt_enable(WDTO_2S);
 	
 	//prueba de elementos
-	debugWriteSongs();
-	debugWritePlayLists();
+	//debugWriteSongs();
+	//debugWritePlayLists();
 	
 	readSongData();
  }
@@ -279,12 +283,25 @@ void loop()
 										menuCategory = PLAYLIST_CHANGE_CATEGORY;
 										refreshLCD = true;
 										break;							
+									case CHANGE_SONG_OPTION:
+										menuOption = 0;
+										menuCategory = SONG_CHANGE_CATEGORY;
+										refreshLCD = true;
+										break;							
 								}
 								break;
 							case PLAYLIST_CHANGE_CATEGORY:
 								//cambio de playlist
 								actualPlayListNum = menuOption;
 								actualNumSong=0;
+								readSongData();
+								state = MAIN_STATE;
+								refreshLCD = true;
+								
+								break;
+							case SONG_CHANGE_CATEGORY:
+								//cambio de canción
+								WritePlayListSong(actualPlayListNum,actualNumSong,menuOption);
 								readSongData();
 								state = MAIN_STATE;
 								refreshLCD = true;
@@ -398,9 +415,21 @@ void loop()
 								{
 									menuOption == i ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
 									char * title = readPlayListTitle(i);
+									display.print(i+1);
+									display.print(".");
 									display.println(title);
 									free (title);
 								}
+								break;
+							case SONG_CHANGE_CATEGORY:
+								display.println(F("Escoge la cancion:"));
+								display.setTextColor(WHITE,BLACK);
+								char * title = readSongTitle(menuOption);
+								display.print(menuOption+1);
+								display.print(".");
+								display.println(title);
+								free (title);
+								
 								break;
 						}
 						//mostramos pantalla
@@ -685,11 +714,43 @@ char * readPlayListTitle(byte numPlayList)
 	
 	//obtenemos el titulo del playlist
 	for (int i=0;i<MAX_PLAYLIST_TITLE;i++)
-		{
-			buf[i] = EEPROM.read(actualPlayListPos);
-			actualPlayListPos++;
-		}
+	{
+		buf[i] = EEPROM.read(actualPlayListPos);
+		actualPlayListPos++;
+	}
 		
 	//devolvemos el puntero al string
 	return buf;
+}
+
+//funcion para leer el titulo de una cancion de memoria
+char * readSongTitle(byte numSong)
+{
+	//alocamos el espacio de memoria para el titulo de la cancion
+	char * buf = (char *) malloc (MAX_SONG_TITLE);
+	
+	//nos posicionamos en el inicio de memoria de la cancion que nos pasan por parametro
+	unsigned int memPos = EEPROM_SONGS_POS+(13*numSong);
+		
+	//obtenemos el titulo del playlist
+	for (int i=0;i<MAX_SONG_TITLE;i++)
+	{
+			
+		buf[i] = EEPROM.read(memPos);
+		memPos++;
+	}
+	
+	//devolvemos el puntero al string
+	return buf;
+}
+
+//funcion para guardar una cancion en el repertorio
+void WritePlayListSong(byte playListNum,byte playListPos,byte songNum)
+{
+	//nos posicionamos en el inicio de memoria del playList y de la posicion de cancion
+	unsigned int memPos = (EEPROM_PLAYLIST_POS+(38*playListNum))+8+playListPos;
+	
+	//escribimos el numero de cancion en la posicion recibida
+	EEPROM.write(memPos,songNum);
+		
 }
