@@ -35,12 +35,14 @@
 #define ENC_A		2		
 #define MENU_PIN   	3		
 #define OLED_RESET 	4
+#define ENTER_PIN	5
 #define OUT_CLICK 	11		
 #define LED_CLICK   13
 
 //botones
 #define START_STOP_BT 	0
 #define MENU_BT 		1
+#define ENTER_BT		2
 
 //config LCD
 Adafruit_SSD1306 display(OLED_RESET);
@@ -67,6 +69,12 @@ Adafruit_SSD1306 display(OLED_RESET);
 #define MAX_SONGS       	30
 #define MAX_SONG_TITLE  	10
 
+//categorias del menu
+#define MAIN_LIVE_CATEGORY 			0
+#define PLAYLIST_CHANGE_CATEGORY	1
+//opciones menu LIVE
+#define CHANGE_PLAYLIST_OPTION		0
+
 //==============================================
 
 //Constantes ===================================
@@ -74,8 +82,9 @@ Adafruit_SSD1306 display(OLED_RESET);
 //definimos la estructura datos EEPROM
 
 //==============================================
-const byte EEPROM_SONGS_POS		= 0x00;			//Posicion Inicio Memoria Canciones
+const byte EEPROM_SONGS_POS				= 0x00;			//Posicion Inicio Memoria Canciones
 const unsigned int EEPROM_PLAYLIST_POS	= 0x186;		//Posicion Inicio Memoria Canciones
+
 //Estructuras===================================
 
 //Estructura estado botones
@@ -88,7 +97,7 @@ struct button_
    unsigned int timerOn;
    unsigned int timerOff;
    unsigned int timerLong;
-}button[2];
+}button[3];
 
 //tipo de estructura de una cancion (13 bytes por cancion)
 struct song_
@@ -124,11 +133,12 @@ boolean play				= false;			//flag de activar metronomo
 byte actualNumSong			= 0;				//cancion actual del repertorio
 byte actualPlayListNum      = 0;				//numero de repetorio actual
 //interfaz
-signed int deltaEnc             = 0;			//incremento o decremento del encoder
-unsigned int buttonDelay     	= 2;			//Tiempo antirebote
-unsigned int buttonLongPress 	= 60;			//Tiempo pulsacion larga para otras funciones
+signed int deltaEnc         = 0;				//incremento o decremento del encoder
+unsigned int buttonDelay    = 2;				//Tiempo antirebote
+unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funciones
 //menu
-byte menuOption 			= 0;				//opcion seleccionada del menu
+byte menuCategory           = MAIN_LIVE_CATEGORY;		//Categoria del menu actual
+byte menuOption 			= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
 
 //configuracion
 void setup()
@@ -141,6 +151,7 @@ void setup()
 	pinMode(ENC_B,INPUT_PULLUP);
 	pinMode(START_STOP,INPUT_PULLUP);
 	pinMode(MENU_PIN,INPUT_PULLUP);
+	pinMode(ENTER_PIN,INPUT_PULLUP);
 	
 	pinMode(OUT_CLICK,OUTPUT);
 	pinMode(LED_CLICK,OUTPUT);
@@ -168,7 +179,7 @@ void setup()
 	//prueba de elementos
 	debugWriteSongs();
 	debugWritePlayLists();
-		
+	
 	readSongData();
  }
 
@@ -178,11 +189,14 @@ void loop()
 	//procesamos botones
 	processButton(START_STOP,START_STOP_BT);
 	processButton(MENU_PIN,MENU_BT);
+	processButton(ENTER_PIN,ENTER_BT);
 	
 	//si pulsamos boton menu
 	if (button[MENU_BT].pEdgePress)
 	{
 		state = MENU_STATE;
+		menuOption = 0;
+		menuCategory = 0;
 		refreshLCD = true;
 	}		
 	
@@ -212,15 +226,6 @@ void loop()
 					
 					deltaEnc = 0;
 					
-					//cambio de playlist
-					/*if (button[MENU_BT].pEdgePress)
-					{
-						actualPlayListNum < (MAX_PLAYLISTS-1) ? actualPlayListNum++ : actualPlayListNum = 0;
-						actualNumSong=0;
-						readSongData();
-						refreshLCD = true;
-					}*/
-					
 					//obtenemos datos tema
 					bpm 			= actualSong.tempo;
 					noteDivision 	= actualSong.noteDivision;
@@ -245,6 +250,34 @@ void loop()
 					}
 					
 					deltaEnc = 0;
+					
+					//si pulsamos enter
+					if (button[ENTER_BT].pEdgePress)
+					{
+						switch (menuCategory)
+						{
+							case MAIN_LIVE_CATEGORY:
+								switch (menuOption)
+								{
+									case CHANGE_PLAYLIST_OPTION:
+										menuOption = 0;
+										menuCategory = PLAYLIST_CHANGE_CATEGORY;
+										refreshLCD = true;
+										break;							
+								}
+								break;
+							case PLAYLIST_CHANGE_CATEGORY:
+								//cambio de playlist
+								actualPlayListNum = menuOption;
+								actualNumSong=0;
+								readSongData();
+								state = MAIN_STATE;
+								refreshLCD = true;
+								
+								break;
+						}						
+					}
+					
 					break;
 			}
 			
@@ -308,6 +341,7 @@ void loop()
 						//actualizamos display del modo directo
 						display.clearDisplay();
 						display.setCursor(0,0);
+						display.setTextColor(WHITE,BLACK);
 						display.print(actualPlayListNum+1);
 						display.print(".");
 						display.print(actualPlayList.title);
@@ -331,14 +365,30 @@ void loop()
 						//actualizamos display del modo directo en menu
 						display.clearDisplay();
 						display.setCursor(0,0);
-						menuOption == 0 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-						display.println("Cambiar Repertorio");
-						menuOption == 1 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-						display.println("Cambiar Cancion");
-						menuOption == 2 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-						display.println("Insertar Cancion");
-						menuOption == 3 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-						display.println("Eliminar Cancion");
+						//segun la categoria del menu
+						switch (menuCategory)
+						{
+							case MAIN_LIVE_CATEGORY:
+								menuOption == 0 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+								display.println(F("Cambiar Repertorio"));
+								menuOption == 1 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+								display.println(F("Cambiar Cancion"));
+								menuOption == 2 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+								display.println(F("Insertar Cancion"));
+								menuOption == 3 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+								display.println(F("Eliminar Cancion"));
+								break;
+							case PLAYLIST_CHANGE_CATEGORY:
+								for (int i=0;i<MAX_PLAYLISTS;i++)
+								{
+									menuOption == i ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+									char * title = readPlayListTitle(i);
+									display.println(title);
+									free (title);
+								}
+								break;
+						}
+						//mostramos pantalla
 						display.display();
 						break;
 				}		
@@ -347,6 +397,7 @@ void loop()
 				//actualizamos display del modo metronomo
 				display.clearDisplay();
 				display.setCursor(0,0);
+				display.setTextColor(WHITE,BLACK);
 				display.setTextSize(2);
 				display.print(bpm); 
 				display.print(" BPM\n\n"); 
@@ -521,6 +572,30 @@ void processButton(int pin,int buttonNum)
    }
 }
 
+//funcion de prueba para escribir unos setlist en memoria eepprom
+void debugWritePlayLists()
+{
+	unsigned int memPos = EEPROM_PLAYLIST_POS;
+	
+	randomSeed(analogRead(0));
+	
+	for (int j=0;j<MAX_PLAYLISTS;j++)
+	{
+		for (int i=0;i<MAX_PLAYLIST_TITLE-1;i++)
+		{
+			EEPROM.write(memPos,random(65,90));
+			memPos++;
+		}
+		EEPROM.write(memPos,'\0');
+		memPos++;
+		for (int i=0;i<MAX_SONGS;i++)
+		{
+			EEPROM.write(memPos,random(0,29));
+			memPos++;
+		}
+	}
+}
+
 //funcion de prueba para rellenar el EEPROM de datos
 void debugWriteSongs()
 {	
@@ -584,26 +659,22 @@ void readSongData()
 		
 }
 
-//funcion de prueba para escribir unos setlist en memoria eepprom
-void debugWritePlayLists()
+//funcion para leer el titulo de un playlist de memoria
+char * readPlayListTitle(byte numPlayList)
 {
-	unsigned int memPos = EEPROM_PLAYLIST_POS;
+	//alocamos el espacio de memoria para el titulo del playlist
+	char * buf = (char *) malloc (MAX_PLAYLIST_TITLE);
 	
-	randomSeed(analogRead(0));
+	//nos posicionamos en el inicio de memoria del playList que nos pasan por parametro
+	int actualPlayListPos = EEPROM_PLAYLIST_POS+(38*numPlayList);
 	
-	for (int j=0;j<MAX_PLAYLISTS;j++)
-	{
-		for (int i=0;i<MAX_PLAYLIST_TITLE-1;i++)
+	//obtenemos el titulo del playlist
+	for (int i=0;i<MAX_PLAYLIST_TITLE;i++)
 		{
-			EEPROM.write(memPos,random(97,120));
-			memPos++;
+			buf[i] = EEPROM.read(actualPlayListPos);
+			actualPlayListPos++;
 		}
-		EEPROM.write(memPos,'\0');
-		memPos++;
-		for (int i=0;i<MAX_SONGS;i++)
-		{
-			EEPROM.write(memPos,random(0,29));
-			memPos++;
-		}
-	}
+		
+	//devolvemos el puntero al string
+	return buf;
 }
