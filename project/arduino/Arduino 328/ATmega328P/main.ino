@@ -25,6 +25,8 @@
 #include <defines.h>
 //funciones datos
 #include <dataManagement.h>
+//textos
+#include <strings.h>
 
 //Definiciones====================================
 //pines IO
@@ -41,6 +43,25 @@
 #define START_STOP_BT 	0
 #define MENU_BT 		1
 #define ENTER_BT		2
+
+//páginas del menu
+#define MAIN_PAGE 				0
+	#define PLAYLIST_PAGE			1
+		#define PLAYLIST_CHANGE_PAGE	2
+		#define PLAYLIST_EDIT_PAGE		3
+			#define SONG_CHANGE_PAGE		4
+		#define PLAYLIST_DELETE_PAGE    5
+	#define SONG_PAGE				6		
+	#define SETTINGS_PAGE			7
+	
+//opciones menu
+#define PLAYLIST_OPTION				0
+	#define CHANGE_PLAYLIST_OPTION		0
+	#define EDIT_PLAYLIST_OPTION		1
+	#define DELETE_PLAYLIST_OPTION		2
+#define SONG_OPTION					1
+	#define CHANGE_SONG_OPTION          0
+#define SETTINGS_OPTION				2	
 
 //config LCD
 Adafruit_SSD1306 display(OLED_RESET);
@@ -81,6 +102,16 @@ struct playList_
 	byte numSong;
 }actualPlayList;
 
+//estructura constante opciones menu
+const struct {
+	byte numOptions;
+	byte prevPage;
+    const char* const* strTable;
+} menuPage[3] = {	3,0,mainStr,
+					3,0,playListStr,
+					0,1,NULL
+				};
+				  
 //==============================================
 
 //Variables generales===========================
@@ -103,10 +134,10 @@ signed int deltaEnc         = 0;				//incremento o decremento del encoder
 unsigned int buttonDelay    = 2;				//Tiempo antirebote
 unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funciones
 //menu
-byte menuCategory           = MAIN_LIVE_CATEGORY;		//Categoria del menu actual
-byte menuOption 			= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
-byte numMenuOptions			= 0;						//numero de opciones menu actual
-
+byte actualMenuPage         = MAIN_PAGE;				//página del menu actual
+byte actualMenuOption 		= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
+byte numMenuOptions			= 0;
+//================================
 //configuracion
 void setup()
  { 
@@ -160,14 +191,35 @@ void loop()
 	processButton(MENU_PIN,MENU_BT);
 	processButton(ENTER_PIN,ENTER_BT);
 	
-	//si pulsamos boton menu
+	//si pulsamos boton menu/cancelar-atras
 	if (button[MENU_BT].pEdgePress)
 	{
-		state = MENU_STATE;
-		menuOption = 0;
-		menuCategory = 0;
-		numMenuOptions = 4;
-		refresh = true;
+		//comprobamos estado
+		switch (state)
+		{
+			//si está en el menu
+			case MENU_STATE:
+				//si esta en la pagina inicial, sale del menu
+				if (actualMenuPage == MAIN_PAGE)
+				{
+					state = MAIN_STATE;					
+				}
+				else //si no, va a la pagina previa
+				{
+					actualMenuPage = menuPage[actualMenuPage].prevPage;
+					actualMenuOption = 0;
+				}
+				refresh = true;
+				break;
+			//si no esta en el menu, salta al menu
+			default:
+				state = MENU_STATE;
+				actualMenuOption = 0;
+				actualMenuPage = MAIN_PAGE;
+				numMenuOptions = menuPage[actualMenuPage].numOptions;
+				refresh = true;
+				break;
+		}		
 	}		
 	
 	//comprobamos estado
@@ -237,12 +289,12 @@ void loop()
 			//cambio de opcion
 			if (deltaEnc > 0 )
 			{
-				menuOption < numMenuOptions-1 ? menuOption++ : menuOption=0;
+				actualMenuOption < numMenuOptions-1 ? actualMenuOption++ : actualMenuOption=0;
 				refresh = true;
 			}
 			if (deltaEnc < 0 )
 			{
-				menuOption > 0 ? menuOption-- : menuOption = numMenuOptions-1;
+				actualMenuOption > 0 ? actualMenuOption-- : actualMenuOption = numMenuOptions-1;
 				refresh = true;
 			}
 			
@@ -251,28 +303,39 @@ void loop()
 			//si pulsamos enter
 			if (button[ENTER_BT].pEdgePress)
 			{
-				switch (menuCategory)
+				switch (actualMenuPage)
 				{
-					case MAIN_LIVE_CATEGORY:
-						switch (menuOption)
+					case MAIN_PAGE:
+						switch (actualMenuOption)
+						{
+							case PLAYLIST_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = PLAYLIST_PAGE;
+								numMenuOptions = menuPage[actualMenuPage].numOptions;
+								refresh = true;
+								break;														
+						}
+						break;
+					case PLAYLIST_PAGE:
+						switch (actualMenuOption)
 						{
 							case CHANGE_PLAYLIST_OPTION:
-								menuOption = 0;
-								menuCategory = PLAYLIST_CHANGE_CATEGORY;
+								actualMenuOption = 0;
+								actualMenuPage = PLAYLIST_CHANGE_PAGE;
 								numMenuOptions = MAX_PLAYLISTS;
 								refresh = true;
 								break;							
-							case CHANGE_SONG_OPTION:
-								menuOption = 0;
-								menuCategory = SONG_CHANGE_CATEGORY;
+							case EDIT_PLAYLIST_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = SONG_CHANGE_PAGE;
 								numMenuOptions = MAX_SONGS;
 								refresh = true;
 								break;							
 						}
 						break;
-					case PLAYLIST_CHANGE_CATEGORY:
+					case PLAYLIST_CHANGE_PAGE:
 						//cambio de playlist
-						actualPlayListNum = menuOption;
+						actualPlayListNum = actualMenuOption;
 						actualNumSong=0;
 						readPlayListData();
 						readSongData();
@@ -280,9 +343,9 @@ void loop()
 						refresh = true;
 						
 						break;
-					case SONG_CHANGE_CATEGORY:
+					case SONG_CHANGE_PAGE:
 						//cambio de canción
-						WritePlayListSong(actualPlayListNum,actualNumSong,menuOption);
+						WritePlayListSong(actualPlayListNum,actualNumSong,actualMenuOption);
 						readSongData();
 						state = MAIN_STATE;
 						refresh = true;
@@ -471,13 +534,16 @@ void processButton(int pin,int buttonNum)
 //funcion para el refresco del LCD
 void refreshLCD()
 {
-	//Segun modo
-	switch(mode)
+	//segun estado
+	switch (state)
 	{
-		case LIVE_MODE:
-			switch (state)
+		//estado principal
+		case MAIN_STATE:
+			//segun modo
+			switch (mode)
 			{
-				case MAIN_STATE:
+				//modo directo
+				case LIVE_MODE:
 					//actualizamos display del modo directo
 					display.clearDisplay();
 					display.setCursor(0,0);
@@ -492,7 +558,25 @@ void refreshLCD()
 					display.print("\n\n"); 
 					display.setTextSize(2);
 					display.print(bpm); 
-					display.print(" BPM\n\n"); 
+					display.print(F(" BPM\n\n")); 
+					display.setTextSize(1);
+					display.print(barSignature);
+					display.print("/");
+					display.print(noteDivision*4);
+					display.print("      ");
+					play ? display.print(F("START")) : display.print("STOP");
+					display.display();
+					
+					break;
+				//modo metronomo
+				case METRONOME_MODE:
+					//actualizamos display del modo metronomo
+					display.clearDisplay();
+					display.setCursor(0,0);
+					display.setTextColor(WHITE,BLACK);
+					display.setTextSize(2);
+					display.print(bpm); 
+					display.print(F(" BPM\n\n")); 
 					display.setTextSize(1);
 					display.print(barSignature);
 					display.print("/");
@@ -501,68 +585,61 @@ void refreshLCD()
 					play ? display.print(F("START")) : display.print("STOP");
 					display.display();
 					break;
-				case MENU_STATE:
-					//actualizamos display del modo directo en menu
-					display.clearDisplay();
-					display.setCursor(0,0);
-					//segun la categoria del menu
-					switch (menuCategory)
-					{
-						case MAIN_LIVE_CATEGORY:
-							menuOption == 0 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-							display.println(F("Cambiar Repertorio"));
-							menuOption == 1 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-							display.println(F("Cambiar Cancion"));
-							menuOption == 2 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-							display.println(F("Insertar Cancion"));
-							menuOption == 3 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-							display.println(F("Eliminar Cancion"));
-							break;
-						case PLAYLIST_CHANGE_CATEGORY:
-							for (int i=0;i<MAX_PLAYLISTS;i++)
-							{
-								menuOption == i ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-								char * title = readPlayListTitle(i);
-								display.print(i+1);
-								display.print(".");
-								display.println(title);
-								free (title);
-							}
-							break;
-						case SONG_CHANGE_CATEGORY:
-							display.println(F("Escoge la cancion:"));
-							display.setTextColor(WHITE,BLACK);
-							char * title = readSongTitle(menuOption);
-							display.print(menuOption+1);
-							display.print(".");
-							display.println(title);
-							free (title);
-							
-							break;
-					}
-					//mostramos pantalla
-					display.display();
-					break;
-			}		
+			}
+			
 			break;
-		case METRONOME_MODE:
-			//actualizamos display del modo metronomo
+		case MENU_STATE:
+			//actualizamos display del menu
 			display.clearDisplay();
 			display.setCursor(0,0);
-			display.setTextColor(WHITE,BLACK);
-			display.setTextSize(2);
-			display.print(bpm); 
-			display.print(" BPM\n\n"); 
-			display.setTextSize(1);
-			display.print(barSignature);
-			display.print("/");
-			display.print(noteDivision*4);
-			display.print("      ");
-			play ? display.print(F("START")) : display.print("STOP");
+			//segun la página del menu
+			switch (actualMenuPage)
+			{
+				//cambio de repertorio
+				case PLAYLIST_CHANGE_PAGE:
+					{
+					for (int i=0;i<MAX_PLAYLISTS;i++)
+					{
+						actualMenuOption == i ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+						char * title = readPlayListTitle(i);
+						display.print(i+1);
+						display.print(".");
+						display.println(title);
+						free (title);
+					}
+					}
+					break;
+				//cambio de cancion
+				case SONG_CHANGE_PAGE:
+					{
+					display.println(F("Escoge la cancion:"));
+					display.setTextColor(WHITE,BLACK);
+					char * title = readSongTitle(actualMenuOption);
+					display.print(actualMenuOption+1);
+					display.print(".");
+					display.println(title);
+					free (title);
+					}
+					break;
+				//cualquier pagina de menu que solo muestra opciones
+				default:
+					{
+					char buffer[30];
+					for (int i=0;i<menuPage[actualMenuPage].numOptions;i++)
+					{
+						actualMenuOption == i ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+						//leemos la opcion de la pagina
+						strcpy_P(buffer, (char*)pgm_read_word(&(menuPage[actualMenuPage].strTable[i])));
+						display.println(buffer);	
+					}
+					}
+			}
+			//mostramos pantalla
 			display.display();
 			
 			break;
 	}
+	
 }
 
 //funcion para leer la informacion del playlist actual de EEPROM

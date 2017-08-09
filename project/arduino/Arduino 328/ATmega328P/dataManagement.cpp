@@ -11,7 +11,6 @@
 #include <EEPROM.h>
 #include <defines.h>
 #include <dataManagement.h>
-byte general;
 
 //LECTURA
 //=================================================================
