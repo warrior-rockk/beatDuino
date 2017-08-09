@@ -105,7 +105,7 @@ unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funcion
 //menu
 byte menuCategory           = MAIN_LIVE_CATEGORY;		//Categoria del menu actual
 byte menuOption 			= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
-
+byte numMenuOptions			= 0;						//numero de opciones menu actual
 
 //configuracion
 void setup()
@@ -146,6 +146,8 @@ void setup()
 	//prueba de elementos
 	//debugWriteSongs();
 	//debugWritePlayLists();
+	
+	//leemos los datos actuales
 	readPlayListData();
 	readSongData();
  }
@@ -164,19 +166,20 @@ void loop()
 		state = MENU_STATE;
 		menuOption = 0;
 		menuCategory = 0;
+		numMenuOptions = 4;
 		refresh = true;
 	}		
 	
-	//comprobamos modo
-	switch (mode)
+	//comprobamos estado
+	switch (state)
 	{
-		//modo directo. Eliges un repetorio y con la ruleta subes y bajas de tema.
-		case LIVE_MODE:
-			//estado del modo directo
-			switch (state)
+		//estado principal
+		case MAIN_STATE: 
+			//comprobamos modo
+			switch (mode)
 			{
-				//estado principal
-				case MAIN_STATE:
+				//modo directo. Eliges un repetorio y con la ruleta subes y bajas de tema.
+				case LIVE_MODE:
 					//cambio de cancion
 					if (deltaEnc > 0 && actualNumSong < (MAX_SONGS-1))
 					{
@@ -200,117 +203,107 @@ void loop()
 			
 					//ms of actual tempo
 					msTempo = (60000/bpm);
+					
+					//arranque-paro del sonido
+					if (button[START_STOP_BT].pEdgePress)
+					{
+						play = !play;
+						refresh = true;
+					}
+					
 					break;
 					
-				//estado menu
-				case MENU_STATE:
-					//cambio de opcion
-					if (deltaEnc > 0 )
-					{
-						menuOption < 3 ? menuOption++ : menuOption=0;
-						refresh = true;
-					}
-					if (deltaEnc < 0 )
-					{
-						menuOption > 0 ? menuOption-- : menuOption = 3;
-						refresh = true;
-					}
-					
+				//modo metronomo normal. Con la ruleta cambias el tempo.
+				case METRONOME_MODE:
+					//conversion bpm
+					bpm = bpm + deltaEnc;
 					deltaEnc = 0;
 					
-					//si pulsamos enter
-					if (button[ENTER_BT].pEdgePress)
-					{
-						switch (menuCategory)
-						{
-							case MAIN_LIVE_CATEGORY:
-								switch (menuOption)
-								{
-									case CHANGE_PLAYLIST_OPTION:
-										menuOption = 0;
-										menuCategory = PLAYLIST_CHANGE_CATEGORY;
-										refresh = true;
-										break;							
-									case CHANGE_SONG_OPTION:
-										menuOption = 0;
-										menuCategory = SONG_CHANGE_CATEGORY;
-										refresh = true;
-										break;							
-								}
-								break;
-							case PLAYLIST_CHANGE_CATEGORY:
-								//cambio de playlist
-								actualPlayListNum = menuOption;
-								actualNumSong=0;
-								readPlayListData();
-								readSongData();
-								state = MAIN_STATE;
-								refresh = true;
-								
-								break;
-							case SONG_CHANGE_CATEGORY:
-								//cambio de canción
-								WritePlayListSong(actualPlayListNum,actualNumSong,menuOption);
-								readSongData();
-								state = MAIN_STATE;
-								refresh = true;
-								
-								break;
-						}						
-					}
+					//ms of actual tempo
+					msTempo = (60000/bpm);
+					
+					//arranque-paro del sonido
+					if (button[START_STOP_BT].pEdgePress)
+						play = !play;
+						
+					refresh = true;
 					
 					break;
 			}
-			
-			//en todos los estados del modo LIVE:
-			
-			//arranque-paro del sonido
-			if (button[START_STOP_BT].pEdgePress)
+			break;
+
+		//estado menu (generico para todos los modos)
+		case MENU_STATE:
+			//cambio de opcion
+			if (deltaEnc > 0 )
 			{
-				play = !play;
+				menuOption < numMenuOptions-1 ? menuOption++ : menuOption=0;
+				refresh = true;
+			}
+			if (deltaEnc < 0 )
+			{
+				menuOption > 0 ? menuOption-- : menuOption = numMenuOptions-1;
 				refresh = true;
 			}
 			
-			//si está activado el sonido del metronomo
-			if (play)
-			{
-				playMetronome();
-			}
-			else
-			{
-				stopMetronome();
-			}
-						
-			break;
-			
-		//modo metronomo normal. Con la ruleta cambias el tempo.
-		case METRONOME_MODE:
-			//conversion bpm
-			bpm = bpm + deltaEnc;
 			deltaEnc = 0;
 			
-			//ms of actual tempo
-			msTempo = (60000/bpm);
-			
-			//arranque-paro del sonido
-			if (button[START_STOP_BT].pEdgePress)
-				play = !play;
-				
-			//si está activado el sonido del metronomo
-			if (play)
+			//si pulsamos enter
+			if (button[ENTER_BT].pEdgePress)
 			{
-				playMetronome();
-			}
-			else
-			{
-				stopMetronome();
+				switch (menuCategory)
+				{
+					case MAIN_LIVE_CATEGORY:
+						switch (menuOption)
+						{
+							case CHANGE_PLAYLIST_OPTION:
+								menuOption = 0;
+								menuCategory = PLAYLIST_CHANGE_CATEGORY;
+								numMenuOptions = MAX_PLAYLISTS;
+								refresh = true;
+								break;							
+							case CHANGE_SONG_OPTION:
+								menuOption = 0;
+								menuCategory = SONG_CHANGE_CATEGORY;
+								numMenuOptions = MAX_SONGS;
+								refresh = true;
+								break;							
+						}
+						break;
+					case PLAYLIST_CHANGE_CATEGORY:
+						//cambio de playlist
+						actualPlayListNum = menuOption;
+						actualNumSong=0;
+						readPlayListData();
+						readSongData();
+						state = MAIN_STATE;
+						refresh = true;
+						
+						break;
+					case SONG_CHANGE_CATEGORY:
+						//cambio de canción
+						WritePlayListSong(actualPlayListNum,actualNumSong,menuOption);
+						readSongData();
+						state = MAIN_STATE;
+						refresh = true;
+						
+						break;
+				}						
 			}
 			
-			refresh = true;
 			break;
 	}
 	
-	
+	//si está activado el sonido del metronomo
+	if (play)
+	{
+		playMetronome();
+	}
+	else
+	{
+		stopMetronome();
+	}
+					
 	//refresco interfaz
 	if (refresh) {
 		refreshLCD();
