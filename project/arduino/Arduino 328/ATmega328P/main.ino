@@ -49,15 +49,17 @@
 	#define PLAYLIST_PAGE			1
 		#define PLAYLIST_CHANGE_PAGE	2
 		#define PLAYLIST_EDIT_PAGE		3
-			#define SONG_CHANGE_PAGE		4
-		#define PLAYLIST_DELETE_PAGE    5
-	#define SONG_PAGE				6		
-	#define SETTINGS_PAGE			7
+			#define PLAYLIST_NAME_PAGE	4
+			#define SONG_CHANGE_PAGE	5
+		#define PLAYLIST_DELETE_PAGE    6
+	#define SONG_PAGE				7	
+	#define SETTINGS_PAGE			8
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
 	#define CHANGE_PLAYLIST_OPTION		0
 	#define EDIT_PLAYLIST_OPTION		1
+		#define NAME_PLAYLIST_OPTION		0
 	#define DELETE_PLAYLIST_OPTION		2
 #define SONG_OPTION					1
 	#define CHANGE_SONG_OPTION          0
@@ -107,16 +109,18 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[3] = {	3,0,mainStr,
-					3,0,playListStr,
-					0,1,NULL
+} menuPage[5] = {	3,MAIN_PAGE,mainStr,
+					3,MAIN_PAGE,playListStr,
+					0,PLAYLIST_PAGE,NULL,
+					2,PLAYLIST_PAGE,editPlayListStr,
+					0,PLAYLIST_EDIT_PAGE,NULL
 				};
 				  
 //==============================================
 
 //Variables generales===========================
 byte mode          = LIVE_MODE;					//modo general
-byte state         = MAIN_STATE;				//estado general
+byte state         = MENU_STATE;//MAIN_STATE;				//estado general
 boolean refresh			= true;					//refresco LCD
 unsigned int bpm 			= 100;				//tempo general
 unsigned long msTempo 		= 0;				//tempo en milisegundos
@@ -134,9 +138,12 @@ signed int deltaEnc         = 0;				//incremento o decremento del encoder
 unsigned int buttonDelay    = 2;				//Tiempo antirebote
 unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funciones
 //menu
-byte actualMenuPage         = MAIN_PAGE;				//página del menu actual
+byte actualMenuPage         = PLAYLIST_EDIT_PAGE;//MAIN_PAGE;				//página del menu actual
 byte actualMenuOption 		= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
 byte numMenuOptions			= 0;
+//entrada texto
+byte editCursor             = 0;				//posicion cursor edicion
+char * editString;							//cadena a editar
 //================================
 //configuracion
 void setup()
@@ -245,9 +252,7 @@ void loop()
 						readSongData();
 						refresh = true;
 					}
-					
-					deltaEnc = 0;
-					
+										
 					//obtenemos datos tema
 					bpm 			= actualSong.tempo;
 					noteDivision 	= actualSong.noteDivision;
@@ -269,8 +274,7 @@ void loop()
 				case METRONOME_MODE:
 					//conversion bpm
 					bpm = bpm + deltaEnc;
-					deltaEnc = 0;
-					
+										
 					//ms of actual tempo
 					msTempo = (60000/bpm);
 					
@@ -297,8 +301,6 @@ void loop()
 				actualMenuOption > 0 ? actualMenuOption-- : actualMenuOption = numMenuOptions-1;
 				refresh = true;
 			}
-			
-			deltaEnc = 0;
 			
 			//si pulsamos enter
 			if (button[ENTER_BT].pEdgePress)
@@ -327,8 +329,8 @@ void loop()
 								break;							
 							case EDIT_PLAYLIST_OPTION:
 								actualMenuOption = 0;
-								actualMenuPage = SONG_CHANGE_PAGE;
-								numMenuOptions = MAX_SONGS;
+								actualMenuPage = PLAYLIST_EDIT_PAGE;
+								numMenuOptions = menuPage[actualMenuPage].numOptions;
 								refresh = true;
 								break;							
 						}
@@ -342,6 +344,24 @@ void loop()
 						state = MAIN_STATE;
 						refresh = true;
 						
+						break;
+					case PLAYLIST_EDIT_PAGE:
+						switch (actualMenuOption)
+						{
+							case NAME_PLAYLIST_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = PLAYLIST_NAME_PAGE;
+								numMenuOptions = 0;
+								
+								editString = readPlayListTitle(actualPlayListNum);
+																
+								refresh = true;
+								break;
+						}
+						break;
+					case PLAYLIST_NAME_PAGE:
+						editCursor++;
+						refresh = true;
 						break;
 					case SONG_CHANGE_PAGE:
 						//cambio de canción
@@ -372,6 +392,9 @@ void loop()
 		refreshLCD();
 		refresh = false;
 	}
+	
+	//resetemos valor encoder
+	deltaEnc = 0;
 	
 	//reseteamos el watchdog
 	wdt_reset();
@@ -598,6 +621,8 @@ void refreshLCD()
 				//cambio de repertorio
 				case PLAYLIST_CHANGE_PAGE:
 					{
+					display.setTextColor(WHITE,BLACK);
+					display.println(F("Elige repertorio:"));
 					for (int i=0;i<MAX_PLAYLISTS;i++)
 					{
 						actualMenuOption == i ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
@@ -609,10 +634,29 @@ void refreshLCD()
 					}
 					}
 					break;
+				case PLAYLIST_NAME_PAGE:
+					{
+					display.setTextColor(WHITE,BLACK);
+					display.println(F("Nombre repertorio:"));
+					if (deltaEnc > 0)
+					{
+						if (editString[editCursor] < 0x7A)
+							editString[editCursor] = editString[editCursor]+1;
+					}
+					if (deltaEnc < 0)
+					{
+						if (editString[editCursor] > 32)
+							editString[editCursor] = editString[editCursor]-1;
+					}	
+					display.println(editString);
+					//dibujamos cursor
+					display.drawFastHLine((editCursor*6), 15, 6, WHITE);
+					}
+					break;
 				//cambio de cancion
 				case SONG_CHANGE_PAGE:
 					{
-					display.println(F("Escoge la cancion:"));
+					display.println(F("Elige la cancion:"));
 					display.setTextColor(WHITE,BLACK);
 					char * title = readSongTitle(actualMenuOption);
 					display.print(actualMenuOption+1);

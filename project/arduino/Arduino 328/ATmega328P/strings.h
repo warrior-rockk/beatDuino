@@ -15,3 +15,8 @@ const char str3[] PROGMEM = "Cambiar Repertorio";
 const char str4[] PROGMEM = "Editar Repertorio";
 const char str5[] PROGMEM = "Eliminar Repertorio";
 const char* const playListStr[] PROGMEM = {str3, str4, str5};
+
+const char str6[] PROGMEM = "Cambiar Nombre";
+const char str7[] PROGMEM = "Cambiar Orden";
+
+const char* const editPlayListStr[] PROGMEM = {str6, str7};
