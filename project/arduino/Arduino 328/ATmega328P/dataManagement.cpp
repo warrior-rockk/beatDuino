@@ -11,6 +11,7 @@
 #include <EEPROM.h>
 #include <defines.h>
 #include <dataManagement.h>
+byte general;
 
 //LECTURA
 //=================================================================
@@ -24,13 +25,18 @@ char * readPlayListTitle(byte numPlayList)
 	//nos posicionamos en el inicio de memoria del playList que nos pasan por parametro
 	int actualPlayListPos = EEPROM_PLAYLIST_POS+(38*numPlayList);
 	
-	//obtenemos el titulo del playlist
-	for (int i=0;i<MAX_PLAYLIST_TITLE;i++)
+	//comprobamos si el titulo esta vacío
+	if (EEPROM.read(actualPlayListPos) == 0xFF)
+		strcpy(buf,"VACIO");
+	else
 	{
-		buf[i] = EEPROM.read(actualPlayListPos);
-		actualPlayListPos++;
+		//obtenemos el titulo del playlist
+		for (int i=0;i<MAX_PLAYLIST_TITLE;i++)
+		{
+			buf[i] = EEPROM.read(actualPlayListPos);
+			actualPlayListPos++;
+		}
 	}
-		
 	//devolvemos el puntero al string
 	return buf;
 }
@@ -44,12 +50,17 @@ char * readSongTitle(byte numSong)
 	//nos posicionamos en el inicio de memoria de la cancion que nos pasan por parametro
 	unsigned int memPos = EEPROM_SONGS_POS+(13*numSong);
 		
-	//obtenemos el titulo del playlist
-	for (int i=0;i<MAX_SONG_TITLE;i++)
+	//comprobamos si el titulo esta vacío
+	if (EEPROM.read(memPos) == 0xFF)
+		strcpy(buf,"Vacio");
+	else
 	{
-			
-		buf[i] = EEPROM.read(memPos);
-		memPos++;
+		//obtenemos el titulo de la cancion
+		for (int i=0;i<MAX_SONG_TITLE;i++)
+		{
+			buf[i] = EEPROM.read(memPos);
+			memPos++;
+		}
 	}
 	
 	//devolvemos el puntero al string
@@ -59,25 +70,46 @@ char * readSongTitle(byte numSong)
 //funcion para obtener el numero de cancion de una posicion de playlist
 byte getSongNum(byte playListNum,byte playListPos)
 {
-	return EEPROM.read(((EEPROM_PLAYLIST_POS+(38*playListNum))+8+playListPos));
+	//leemos el numero de cancion
+	byte songNum = EEPROM.read(((EEPROM_PLAYLIST_POS+(38*playListNum))+8+playListPos));
+	
+	//comprobamos si tiene valor real
+	if (songNum == 0xFF)
+		songNum = 0;
+	
+	return songNum;
 }
 
 //funcion para obtener el tempo de una cancion
 byte getSongTempo(byte songNum)
 {
-	return EEPROM.read(((EEPROM_SONGS_POS+(13*songNum))+10));
+	byte songTempo =  EEPROM.read(((EEPROM_SONGS_POS+(13*songNum))+10));
+	
+	return songTempo;
 }
 
 //funcion para obtener la division de nota de una cancion
 byte getSongNoteDivision(byte songNum)
 {
-	return EEPROM.read(((EEPROM_SONGS_POS+(13*songNum))+11));
+	byte songNoteDivision =  EEPROM.read(((EEPROM_SONGS_POS+(13*songNum))+11));
+	
+	//comprobamos si tiene valor real
+	if (songNoteDivision == 0xFF)
+		songNoteDivision = QUARTER;
+	
+	return songNoteDivision;	
 }
 
 //funcion para obtener el compas de una cancion
 byte getSongBarSignature(byte songNum)
 {
-	return EEPROM.read(((EEPROM_SONGS_POS+(13*songNum))+12));
+	byte songBarSignature = EEPROM.read(((EEPROM_SONGS_POS+(13*songNum))+12));
+	
+	//comprobamos si tiene valor real
+	if (songBarSignature == 0xFF)
+		songBarSignature = 4;
+	
+	return songBarSignature;
 }
 
 //ESCRITURA
