@@ -12,10 +12,9 @@
  v1.0	-	Release Inicial
  
  */
-
 #include <avr/wdt.h> 
-#include <EEPROM.h>
 #include <avr/pgmspace.h>
+#include <EEPROM.h>
 //comunicacion con LCD OLED
 #include <SPI.h>
 #include <Wire.h>
@@ -25,6 +24,10 @@
 #include <freqNotes.h>
 //imagenes
 #include <images.h>
+//definiciones globales
+#include <defines.h>
+//funciones datos
+#include <dataManagement.h>
 void setup ();
 void loop ();
 void playMetronome ();
@@ -32,20 +35,12 @@ void stopMetronome ();
 void wellcomeTest ();
 void doEncoder ();
 void processButton (int pin ,int buttonNum );
-void debugWritePlayLists ();
-void debugWriteSongs ();
+void refreshLCD ();
+void readPlayListData ();
 void readSongData ();
-char *readPlayListTitle (byte numPlayList );
-char *readSongTitle (byte numSong );
-void WritePlayListSong (byte playListNum ,byte playListPos ,byte songNum );
-#line 25
+#line 28
 
 //Definiciones====================================
-
-//version
-#define majorVersion 1
-#define minorVersion 0
-
 //pines IO
 #define START_STOP  0
 #define ENC_B   	1		
@@ -66,43 +61,9 @@ Adafruit_SSD1306 display(OLED_RESET);
 #if (SSD1306_LCDHEIGHT != 64)
 #error("Height incorrect, please fix Adafruit_SSD1306.h!");
 #endif
-
-//division nota
-#define QUARTER		1
-#define EIGHTH		2
-#define SIXTEENTH   4
-
-//modos
-#define METRONOME_MODE   0
-#define LIVE_MODE        1
-
-//estados
-#define MAIN_STATE		0
-#define MENU_STATE		1
-
-//repertorios y canciones
-#define MAX_PLAYLISTS		3
-#define MAX_PLAYLIST_TITLE  8
-#define MAX_SONGS       	30
-#define MAX_SONG_TITLE  	10
-
-//categorias del menu
-#define MAIN_LIVE_CATEGORY 			0
-#define PLAYLIST_CHANGE_CATEGORY	1
-#define SONG_CHANGE_CATEGORY		2
-//opciones menu LIVE
-#define CHANGE_PLAYLIST_OPTION		0
-#define CHANGE_SONG_OPTION          1
-
 //==============================================
 
 //Constantes ===================================
-
-//definimos la estructura datos EEPROM
-
-//==============================================
-const byte EEPROM_SONGS_POS				= 0x00;			//Posicion Inicio Memoria Canciones
-const unsigned int EEPROM_PLAYLIST_POS	= 0x186;		//Posicion Inicio Memoria Canciones
 
 //Estructuras===================================
 
@@ -139,7 +100,7 @@ struct playList_
 //Variables generales===========================
 byte mode          = LIVE_MODE;					//modo general
 byte state         = MAIN_STATE;				//estado general
-boolean refreshLCD			= true;				//refresco LCD
+boolean refresh			= true;					//refresco LCD
 unsigned int bpm 			= 100;				//tempo general
 unsigned long msTempo 		= 0;				//tempo en milisegundos
 unsigned int clickDuration 	= 10;				//duración pulso click
@@ -158,6 +119,7 @@ unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funcion
 //menu
 byte menuCategory           = MAIN_LIVE_CATEGORY;		//Categoria del menu actual
 byte menuOption 			= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
+
 
 //configuracion
 void setup()
@@ -198,7 +160,7 @@ void setup()
 	//prueba de elementos
 	//debugWriteSongs();
 	//debugWritePlayLists();
-	
+	readPlayListData();
 	readSongData();
  }
 
@@ -216,7 +178,7 @@ void loop()
 		state = MENU_STATE;
 		menuOption = 0;
 		menuCategory = 0;
-		refreshLCD = true;
+		refresh = true;
 	}		
 	
 	//comprobamos modo
@@ -234,13 +196,13 @@ void loop()
 					{
 						actualNumSong++;
 						readSongData();
-						refreshLCD = true;
+						refresh = true;
 					}
 					if (deltaEnc < 0 && actualNumSong > 0)
 					{
 						actualNumSong--;
 						readSongData();
-						refreshLCD = true;
+						refresh = true;
 					}
 					
 					deltaEnc = 0;
@@ -260,12 +222,12 @@ void loop()
 					if (deltaEnc > 0 )
 					{
 						menuOption < 3 ? menuOption++ : menuOption=0;
-						refreshLCD = true;
+						refresh = true;
 					}
 					if (deltaEnc < 0 )
 					{
 						menuOption > 0 ? menuOption-- : menuOption = 3;
-						refreshLCD = true;
+						refresh = true;
 					}
 					
 					deltaEnc = 0;
@@ -281,12 +243,12 @@ void loop()
 									case CHANGE_PLAYLIST_OPTION:
 										menuOption = 0;
 										menuCategory = PLAYLIST_CHANGE_CATEGORY;
-										refreshLCD = true;
+										refresh = true;
 										break;							
 									case CHANGE_SONG_OPTION:
 										menuOption = 0;
 										menuCategory = SONG_CHANGE_CATEGORY;
-										refreshLCD = true;
+										refresh = true;
 										break;							
 								}
 								break;
@@ -294,9 +256,10 @@ void loop()
 								//cambio de playlist
 								actualPlayListNum = menuOption;
 								actualNumSong=0;
+								readPlayListData();
 								readSongData();
 								state = MAIN_STATE;
-								refreshLCD = true;
+								refresh = true;
 								
 								break;
 							case SONG_CHANGE_CATEGORY:
@@ -304,7 +267,7 @@ void loop()
 								WritePlayListSong(actualPlayListNum,actualNumSong,menuOption);
 								readSongData();
 								state = MAIN_STATE;
-								refreshLCD = true;
+								refresh = true;
 								
 								break;
 						}						
@@ -319,7 +282,7 @@ void loop()
 			if (button[START_STOP_BT].pEdgePress)
 			{
 				play = !play;
-				refreshLCD = true;
+				refresh = true;
 			}
 			
 			//si está activado el sonido del metronomo
@@ -357,105 +320,15 @@ void loop()
 				stopMetronome();
 			}
 			
-			refreshLCD = true;
+			refresh = true;
 			break;
 	}
 	
 	
-	//refresco LCD
-	if (refreshLCD) {
-		switch(mode)
-		{
-			case LIVE_MODE:
-				switch (state)
-				{
-					case MAIN_STATE:
-						//actualizamos display del modo directo
-						display.clearDisplay();
-						display.setCursor(0,0);
-						display.setTextColor(WHITE,BLACK);
-						display.print(actualPlayListNum+1);
-						display.print(".");
-						display.print(actualPlayList.title);
-						display.print("\n"); 
-						display.print(actualNumSong+1);
-						display.print(".");
-						display.print(actualSong.title);
-						display.print("\n\n"); 
-						display.setTextSize(2);
-						display.print(bpm); 
-						display.print(" BPM\n\n"); 
-						display.setTextSize(1);
-						display.print(barSignature);
-						display.print("/");
-						display.print(noteDivision*4);
-						display.print("      ");
-						play ? display.print(F("START")) : display.print("STOP");
-						display.display();
-						break;
-					case MENU_STATE:
-						//actualizamos display del modo directo en menu
-						display.clearDisplay();
-						display.setCursor(0,0);
-						//segun la categoria del menu
-						switch (menuCategory)
-						{
-							case MAIN_LIVE_CATEGORY:
-								menuOption == 0 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-								display.println(F("Cambiar Repertorio"));
-								menuOption == 1 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-								display.println(F("Cambiar Cancion"));
-								menuOption == 2 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-								display.println(F("Insertar Cancion"));
-								menuOption == 3 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-								display.println(F("Eliminar Cancion"));
-								break;
-							case PLAYLIST_CHANGE_CATEGORY:
-								for (int i=0;i<MAX_PLAYLISTS;i++)
-								{
-									menuOption == i ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-									char * title = readPlayListTitle(i);
-									display.print(i+1);
-									display.print(".");
-									display.println(title);
-									free (title);
-								}
-								break;
-							case SONG_CHANGE_CATEGORY:
-								display.println(F("Escoge la cancion:"));
-								display.setTextColor(WHITE,BLACK);
-								char * title = readSongTitle(menuOption);
-								display.print(menuOption+1);
-								display.print(".");
-								display.println(title);
-								free (title);
-								
-								break;
-						}
-						//mostramos pantalla
-						display.display();
-						break;
-				}		
-				break;
-			case METRONOME_MODE:
-				//actualizamos display del modo metronomo
-				display.clearDisplay();
-				display.setCursor(0,0);
-				display.setTextColor(WHITE,BLACK);
-				display.setTextSize(2);
-				display.print(bpm); 
-				display.print(" BPM\n\n"); 
-				display.setTextSize(1);
-				display.print(barSignature);
-				display.print("/");
-				display.print(noteDivision*4);
-				display.print("      ");
-				play ? display.print(F("START")) : display.print("STOP");
-				display.display();
-				
-				break;
-		}
-		refreshLCD = false;
+	//refresco interfaz
+	if (refresh) {
+		refreshLCD();
+		refresh = false;
 	}
 	
 	//reseteamos el watchdog
@@ -616,141 +489,126 @@ void processButton(int pin,int buttonNum)
    }
 }
 
-//funcion de prueba para escribir unos setlist en memoria eepprom
-void debugWritePlayLists()
+//funcion para el refresco del LCD
+void refreshLCD()
 {
-	unsigned int memPos = EEPROM_PLAYLIST_POS;
-	
-	randomSeed(analogRead(0));
-	
-	for (int j=0;j<MAX_PLAYLISTS;j++)
+	//Segun modo
+	switch(mode)
 	{
-		for (int i=0;i<MAX_PLAYLIST_TITLE-1;i++)
-		{
-			EEPROM.write(memPos,random(65,90));
-			memPos++;
-		}
-		EEPROM.write(memPos,'\0');
-		memPos++;
-		for (int i=0;i<MAX_SONGS;i++)
-		{
-			EEPROM.write(memPos,random(0,29));
-			memPos++;
-		}
+		case LIVE_MODE:
+			switch (state)
+			{
+				case MAIN_STATE:
+					//actualizamos display del modo directo
+					display.clearDisplay();
+					display.setCursor(0,0);
+					display.setTextColor(WHITE,BLACK);
+					display.print(actualPlayListNum+1);
+					display.print(".");
+					display.print(actualPlayList.title);
+					display.print("\n"); 
+					display.print(actualNumSong+1);
+					display.print(".");
+					display.print(actualSong.title);
+					display.print("\n\n"); 
+					display.setTextSize(2);
+					display.print(bpm); 
+					display.print(" BPM\n\n"); 
+					display.setTextSize(1);
+					display.print(barSignature);
+					display.print("/");
+					display.print(noteDivision*4);
+					display.print("      ");
+					play ? display.print(F("START")) : display.print("STOP");
+					display.display();
+					break;
+				case MENU_STATE:
+					//actualizamos display del modo directo en menu
+					display.clearDisplay();
+					display.setCursor(0,0);
+					//segun la categoria del menu
+					switch (menuCategory)
+					{
+						case MAIN_LIVE_CATEGORY:
+							menuOption == 0 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+							display.println(F("Cambiar Repertorio"));
+							menuOption == 1 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+							display.println(F("Cambiar Cancion"));
+							menuOption == 2 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+							display.println(F("Insertar Cancion"));
+							menuOption == 3 ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+							display.println(F("Eliminar Cancion"));
+							break;
+						case PLAYLIST_CHANGE_CATEGORY:
+							for (int i=0;i<MAX_PLAYLISTS;i++)
+							{
+								menuOption == i ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+								char * title = readPlayListTitle(i);
+								display.print(i+1);
+								display.print(".");
+								display.println(title);
+								free (title);
+							}
+							break;
+						case SONG_CHANGE_CATEGORY:
+							display.println(F("Escoge la cancion:"));
+							display.setTextColor(WHITE,BLACK);
+							char * title = readSongTitle(menuOption);
+							display.print(menuOption+1);
+							display.print(".");
+							display.println(title);
+							free (title);
+							
+							break;
+					}
+					//mostramos pantalla
+					display.display();
+					break;
+			}		
+			break;
+		case METRONOME_MODE:
+			//actualizamos display del modo metronomo
+			display.clearDisplay();
+			display.setCursor(0,0);
+			display.setTextColor(WHITE,BLACK);
+			display.setTextSize(2);
+			display.print(bpm); 
+			display.print(" BPM\n\n"); 
+			display.setTextSize(1);
+			display.print(barSignature);
+			display.print("/");
+			display.print(noteDivision*4);
+			display.print("      ");
+			play ? display.print(F("START")) : display.print("STOP");
+			display.display();
+			
+			break;
 	}
 }
 
-//funcion de prueba para rellenar el EEPROM de datos
-void debugWriteSongs()
-{	
-	unsigned int memPos = EEPROM_SONGS_POS;
-	
-	randomSeed(analogRead(0));
-	
-	for (int j=0;j<MAX_SONGS;j++)
-	{
-		for (int i=0;i<MAX_SONG_TITLE-1;i++)
-		{
-			EEPROM.write(memPos,random(97,120));
-			memPos++;
-		}
-		EEPROM.write(memPos,'\0');
-		memPos++;
-		EEPROM.write(memPos,random(10,250));
-		memPos++;
-		EEPROM.write(memPos,random(1,4));
-		memPos++;
-		EEPROM.write(memPos,random(2,8));
-		memPos++;	
-	}
-	
+//funcion para leer la informacion del playlist actual de EEPROM
+void readPlayListData()
+{
+	//leemos el titulo del playList actual
+	char * playListTitle = readPlayListTitle(actualPlayListNum);
+	strcpy(actualPlayList.title,playListTitle);
+	free(playListTitle);	
 }
 
 //funcion para leer la informacion de la cancion actual de EEPROM
 void readSongData()
 {
-	//nos posicionamos en el inicio de memoria del playList actual
-	int actualPlayListPos = EEPROM_PLAYLIST_POS+(38*actualPlayListNum);
-	
-	unsigned int memPos = actualPlayListPos;
-	
-	//obtenemos el titulo del playlist
-	for (int i=0;i<MAX_PLAYLIST_TITLE;i++)
-		{
-			actualPlayList.title[i] = EEPROM.read(memPos);
-			memPos++;
-		}
-		
 	//obtenemos el numero de cancion de la posicion actual del playlist
-	byte actualSongPos = EEPROM.read(actualPlayListPos+8+actualNumSong);
+	byte actualSongPos = getSongNum(actualPlayListNum,actualNumSong);
 	
-	//nos posicionamos en el inicio del numero de cancion obtenido
-	memPos = EEPROM_SONGS_POS+(actualSongPos*13);
-	
-	//leemos el titulo
-	for (int i=0;i<MAX_SONG_TITLE;i++)
-		{
-			actualSong.title[i] = EEPROM.read(memPos);
-			memPos++;
-		}
-	
-	actualSong.tempo = EEPROM.read(memPos);
-	memPos++;
-	actualSong.noteDivision = EEPROM.read(memPos);
-	memPos++;
-	actualSong.barSignature = EEPROM.read(memPos);
-	memPos++;
-		
-}
-
-//funcion para leer el titulo de un playlist de memoria
-char * readPlayListTitle(byte numPlayList)
-{
-	//alocamos el espacio de memoria para el titulo del playlist
-	char * buf = (char *) malloc (MAX_PLAYLIST_TITLE);
-	
-	//nos posicionamos en el inicio de memoria del playList que nos pasan por parametro
-	int actualPlayListPos = EEPROM_PLAYLIST_POS+(38*numPlayList);
-	
-	//obtenemos el titulo del playlist
-	for (int i=0;i<MAX_PLAYLIST_TITLE;i++)
-	{
-		buf[i] = EEPROM.read(actualPlayListPos);
-		actualPlayListPos++;
-	}
-		
-	//devolvemos el puntero al string
-	return buf;
-}
-
-//funcion para leer el titulo de una cancion de memoria
-char * readSongTitle(byte numSong)
-{
-	//alocamos el espacio de memoria para el titulo de la cancion
-	char * buf = (char *) malloc (MAX_SONG_TITLE);
-	
-	//nos posicionamos en el inicio de memoria de la cancion que nos pasan por parametro
-	unsigned int memPos = EEPROM_SONGS_POS+(13*numSong);
-		
-	//obtenemos el titulo del playlist
-	for (int i=0;i<MAX_SONG_TITLE;i++)
-	{
-			
-		buf[i] = EEPROM.read(memPos);
-		memPos++;
-	}
-	
-	//devolvemos el puntero al string
-	return buf;
-}
-
-//funcion para guardar una cancion en el repertorio
-void WritePlayListSong(byte playListNum,byte playListPos,byte songNum)
-{
-	//nos posicionamos en el inicio de memoria del playList y de la posicion de cancion
-	unsigned int memPos = (EEPROM_PLAYLIST_POS+(38*playListNum))+8+playListPos;
-	
-	//escribimos el numero de cancion en la posicion recibida
-	EEPROM.write(memPos,songNum);
-		
+	//leemos el titulo de la cancion actual
+	char * songTitle = readSongTitle(actualSongPos);
+	strcpy(actualSong.title,songTitle);
+	free(songTitle);
+	//leemos el tempo de la cancion actual
+	actualSong.tempo = getSongTempo(actualSongPos);
+	//leemos la division de nota de la cancion actual
+	actualSong.noteDivision = getSongNoteDivision(actualSongPos);
+	//leemos el compas de la cancion actual
+	actualSong.barSignature = getSongBarSignature(actualSongPos);		
 }
