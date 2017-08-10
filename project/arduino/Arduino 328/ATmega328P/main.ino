@@ -50,16 +50,23 @@
 		#define PLAYLIST_CHANGE_PAGE	2
 		#define PLAYLIST_EDIT_PAGE		3
 			#define PLAYLIST_NAME_PAGE	4
-			#define SONG_CHANGE_PAGE	5
-		#define PLAYLIST_DELETE_PAGE    6
-	#define SONG_PAGE				7	
-	#define SETTINGS_PAGE			8
+			#define ORDER_PAGE			5
+				#define CHANGE_ORDER_PAGE	6
+				#define CHANGE_ORDER_PAGE_2	7
+				#define INSERT_SONG_PAGE	8
+				#define DELETE_ORDER_PAGE	9
+				#define EMPTY_ORDER_PAGE	10
+		#define PLAYLIST_DELETE_PAGE    11
+	#define SONG_PAGE				12	
+	#define SETTINGS_PAGE			13
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
 	#define CHANGE_PLAYLIST_OPTION		0
 	#define EDIT_PLAYLIST_OPTION		1
 		#define NAME_PLAYLIST_OPTION		0
+		#define ORDER_OPTION                1
+			#define CHANGE_ORDER_OPTION			0
 	#define DELETE_PLAYLIST_OPTION		2
 #define SONG_OPTION					1
 	#define CHANGE_SONG_OPTION          0
@@ -109,11 +116,13 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[5] = {	3,MAIN_PAGE,mainStr,
+} menuPage[7] = {	3,MAIN_PAGE,mainStr,
 					3,MAIN_PAGE,playListStr,
 					0,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
-					0,PLAYLIST_EDIT_PAGE,NULL
+					0,PLAYLIST_EDIT_PAGE,NULL,
+					4,PLAYLIST_PAGE,changeOrderStr,
+					MAX_SONGS,ORDER_PAGE,NULL
 				};
 				  
 //==============================================
@@ -141,9 +150,11 @@ unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funcion
 byte actualMenuPage         = PLAYLIST_EDIT_PAGE;//MAIN_PAGE;				//página del menu actual
 byte actualMenuOption 		= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
 byte numMenuOptions			= 0;
-//entrada texto
+//entrada texto o parametros
 byte editCursor             = 0;				//posicion cursor edicion
-char * editString;							//cadena a editar
+char * editString;								//cadena a editar
+byte editData				= 0;				//dato a editar
+//debug
 byte general;
 //================================
 //configuracion
@@ -359,6 +370,13 @@ void loop()
 								editCursor = 0;								
 								refresh = true;
 								break;
+							//cambio ordenes
+							case ORDER_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = ORDER_PAGE;
+								numMenuOptions = menuPage[actualMenuPage].numOptions;								
+								refresh = true;
+								break;
 						}
 						break;
 					case PLAYLIST_NAME_PAGE:
@@ -382,13 +400,35 @@ void loop()
 						}
 						refresh = true;
 						break;
-					case SONG_CHANGE_PAGE:
-						//cambio de canción
-						writePlayListSong(actualPlayListNum,actualNumSong,actualMenuOption);
-						readSongData();
-						state = MAIN_STATE;
-						refresh = true;
+					case ORDER_PAGE:
+						switch (actualMenuOption)
+						{
+							//cambiar el orden
+							case CHANGE_ORDER_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = CHANGE_ORDER_PAGE;
+								numMenuOptions = MAX_SONGS;		
+								editData = 0;
+								refresh = true;
+								break;
+						}
+						break;
+					case CHANGE_ORDER_PAGE:  //elegimos posicion del orden
+						editData = actualMenuOption;
+						actualMenuOption = 0;
+						actualMenuPage = CHANGE_ORDER_PAGE_2;
+						numMenuOptions = MAX_SONGS;	
 						
+						refresh = true;
+						break;
+					case CHANGE_ORDER_PAGE_2:
+						//aceptamos el cambio de canción
+						writePlayListSong(actualPlayListNum,editData,actualMenuOption);
+						actualMenuOption=editData;
+						editData=0;
+						actualMenuPage = CHANGE_ORDER_PAGE;
+						
+						refresh = true;						
 						break;
 				}						
 			}
@@ -681,13 +721,34 @@ void refreshLCD()
 					display.drawFastHLine((editCursor*6), 15, 6, WHITE);
 					}
 					break;
-				//cambio de cancion
-				case SONG_CHANGE_PAGE:
+				//cambio de cancion (elegimos primero el orden)
+				case CHANGE_ORDER_PAGE:
 					{
-					display.println(F("Elige la cancion:"));
+					display.println(F("Elige la posicion:"));
 					display.setTextColor(WHITE,BLACK);
-					char * title = readSongTitle(actualMenuOption);
+					//leemos el titulo de la cancion de la posicion de edicion
+					char * title = readSongTitle(getSongNum(actualPlayListNum,actualMenuOption));
+					//lo mostramos
 					display.print(actualMenuOption+1);
+					display.print(".");
+					display.println(title);
+					free (title);
+					}
+					break;
+				//cambio de cancion (elegimos la cancion)
+				case CHANGE_ORDER_PAGE_2:
+					{
+					display.println(F("Posicion a editar:"));
+					//leemos el titulo de la cancion de la posicion de edicion
+					char * title = readSongTitle(getSongNum(actualPlayListNum,editData));
+					//lo mostramos
+					display.print(editData+1);
+					display.print(".");
+					display.println(title);
+					display.println("\n");
+					display.println(F("Elige la cancion:"));
+					title = readSongTitle(actualMenuOption);
+					display.print(editData+1);
 					display.print(".");
 					display.println(title);
 					free (title);

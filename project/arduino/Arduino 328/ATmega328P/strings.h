@@ -20,3 +20,10 @@ const char str6[] PROGMEM = "Cambiar Nombre";
 const char str7[] PROGMEM = "Cambiar Orden";
 
 const char* const editPlayListStr[] PROGMEM = {str6, str7};
+
+const char str8[] PROGMEM = "Cambiar Orden";
+const char str9[] PROGMEM = "Insertar Cancion";
+const char str10[] PROGMEM = "Eliminar Cancion";
+const char str11[] PROGMEM = "Vaciar Orden";
+
+const char* const changeOrderStr[] PROGMEM = {str8, str9, str10, str11};
