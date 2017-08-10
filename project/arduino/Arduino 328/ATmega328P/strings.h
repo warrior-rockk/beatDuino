@@ -27,3 +27,9 @@ const char str10[] PROGMEM = "Eliminar Cancion";
 const char str11[] PROGMEM = "Vaciar Orden";
 
 const char* const changeOrderStr[] PROGMEM = {str8, str9, str10, str11};
+
+const char str12[] PROGMEM = "NO";
+const char str13[] PROGMEM = "SI";
+
+const char* const confirmStr[] PROGMEM = {str12, str13};
+

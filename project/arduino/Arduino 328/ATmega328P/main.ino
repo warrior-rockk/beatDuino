@@ -70,6 +70,7 @@
 			#define CHANGE_ORDER_OPTION			0
 			#define INSERT_SONG_OPTION          1
 			#define DELETE_SONG_OPTION			2
+			#define EMPTY_ORDER_OPTION			3
 	#define DELETE_PLAYLIST_OPTION		2
 #define SONG_OPTION					1
 	#define CHANGE_SONG_OPTION          0
@@ -119,7 +120,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[11] = {	3,MAIN_PAGE,mainStr,
+} menuPage[12] = {	3,MAIN_PAGE,mainStr,
 					3,MAIN_PAGE,playListStr,
 					0,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -129,7 +130,8 @@ const struct {
 					MAX_SONGS,ORDER_PAGE,NULL,
 					MAX_SONGS-1,ORDER_PAGE,NULL, 
 					MAX_SONGS,ORDER_PAGE,NULL,
-					MAX_SONGS,ORDER_PAGE,NULL
+					MAX_SONGS,ORDER_PAGE,NULL,
+					2,ORDER_PAGE,confirmStr
 				};
 				  
 //==============================================
@@ -434,6 +436,13 @@ void loop()
 								editData = 0;
 								refresh = true;
 								break;
+							//vaciar orden
+							case EMPTY_ORDER_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = EMPTY_ORDER_PAGE;
+								numMenuOptions = menuPage[actualMenuPage].numOptions;
+								refresh = true;
+								break;
 						}
 						break;
 					case CHANGE_ORDER_PAGE:  //elegimos posicion del orden
@@ -489,6 +498,22 @@ void loop()
 						
 						actualMenuOption=0;
 						editData=0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						readSongData();
+						
+						refresh = true;						
+						break;
+					case EMPTY_ORDER_PAGE: 	
+						//vaciamos el orden
+						if (actualMenuOption == 1) //SI
+						{
+							for (int i=0;i<MAX_SONGS;i++)
+							{
+								writePlayListSong(actualPlayListNum,i,0);
+							}
+						}
+												
+						actualMenuOption=0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
 						readSongData();
 						
@@ -856,7 +881,7 @@ void refreshLCD()
 					display.println(title);
 					free (title);
 					}
-					break;
+					break;				
 				//cualquier pagina de menu que solo muestra opciones
 				default:
 					{
