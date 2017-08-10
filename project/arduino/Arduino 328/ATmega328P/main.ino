@@ -144,6 +144,7 @@ byte numMenuOptions			= 0;
 //entrada texto
 byte editCursor             = 0;				//posicion cursor edicion
 char * editString;							//cadena a editar
+byte general;
 //================================
 //configuracion
 void setup()
@@ -348,24 +349,42 @@ void loop()
 					case PLAYLIST_EDIT_PAGE:
 						switch (actualMenuOption)
 						{
+							//cambio nombre playlist
 							case NAME_PLAYLIST_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = PLAYLIST_NAME_PAGE;
 								numMenuOptions = 0;
-								
+								//obtenemos el nombre para editarlo
 								editString = readPlayListTitle(actualPlayListNum);
-																
+								editCursor = 0;								
 								refresh = true;
 								break;
 						}
 						break;
 					case PLAYLIST_NAME_PAGE:
-						editCursor++;
+						//avanzamos el cursor de edicion de nombre o aceptamos cadena si el ultimo caracter es un enter
+						if ((byte)editString[editCursor] == 216)
+						{
+							//sustituimos ultimo caracter enter
+							editString[editCursor] = '\0';
+							//guardamos titulo
+							writePlayListTitle(actualPlayListNum,editString);
+							free(editString);
+							//salimos del menu
+							actualMenuPage = menuPage[actualMenuPage].prevPage;
+							actualMenuOption = 0;
+							readPlayListData();
+						}
+						else 
+						{
+							//avanzamos cursor
+							editCursor < MAX_PLAYLIST_TITLE ? editCursor++ : editCursor = 0;							
+						}
 						refresh = true;
 						break;
 					case SONG_CHANGE_PAGE:
 						//cambio de canción
-						WritePlayListSong(actualPlayListNum,actualNumSong,actualMenuOption);
+						writePlayListSong(actualPlayListNum,actualNumSong,actualMenuOption);
 						readSongData();
 						state = MAIN_STATE;
 						refresh = true;
@@ -638,18 +657,27 @@ void refreshLCD()
 					{
 					display.setTextColor(WHITE,BLACK);
 					display.println(F("Nombre repertorio:"));
+					//cambio de caracter con encoder
 					if (deltaEnc > 0)
 					{
-						if (editString[editCursor] < 0x7A)
-							editString[editCursor] = editString[editCursor]+1;
+						if ((byte)editString[editCursor] == 0) // \0'
+							editString[editCursor] = 32; //'space'
+						if ((byte)editString[editCursor] == 'z') 
+							editString[editCursor] = 216; //'simbolo enter'
+						if ((byte)editString[editCursor] < 'z') 
+							editString[editCursor] = editString[editCursor]+1;						
 					}
 					if (deltaEnc < 0)
 					{
-						if (editString[editCursor] > 32)
+						if ((byte)editString[editCursor] == 216) //'simbolo enter'
+							editString[editCursor] = 'z';
+						else if ((byte)editString[editCursor] > 32) //'space'
 							editString[editCursor] = editString[editCursor]-1;
+												
 					}	
+					//mostramos la cadena
 					display.println(editString);
-					//dibujamos cursor
+					//dibujamos cursor en la posicion actual
 					display.drawFastHLine((editCursor*6), 15, 6, WHITE);
 					}
 					break;

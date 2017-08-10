@@ -38,8 +38,11 @@ byte getSongNoteDivision(byte songNum);
 //funcion para obtener el compas de una cancion
 byte getSongBarSignature(byte songNum);
 
+//funcion para guardar el titulo de un playlist
+void writePlayListTitle(byte playListNum,char * title);
+
 //funcion para guardar una cancion en el repertorio
-void WritePlayListSong(byte playListNum,byte playListPos,byte songNum);
+void writePlayListSong(byte playListNum,byte playListPos,byte songNum);
 
 //------------debug--------------------------
 //funcion de prueba para rellenar el EEPROM de datos

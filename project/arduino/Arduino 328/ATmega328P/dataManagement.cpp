@@ -26,7 +26,7 @@ char * readPlayListTitle(byte numPlayList)
 	
 	//comprobamos si el titulo esta vacío
 	if (EEPROM.read(actualPlayListPos) == 0xFF)
-		strcpy(buf,"VACIO");
+		strncpy(buf,"VACIO",MAX_PLAYLIST_TITLE);
 	else
 	{
 		//obtenemos el titulo del playlist
@@ -51,7 +51,7 @@ char * readSongTitle(byte numSong)
 		
 	//comprobamos si el titulo esta vacío
 	if (EEPROM.read(memPos) == 0xFF)
-		strcpy(buf,"Vacio");
+		strncpy(buf,"Vacio",MAX_SONG_TITLE);
 	else
 	{
 		//obtenemos el titulo de la cancion
@@ -113,9 +113,23 @@ byte getSongBarSignature(byte songNum)
 
 //ESCRITURA
 //=================================================================
+//funcion para guardar el titulo de un playlist
+void writePlayListTitle(byte playListNum,char * title)
+{
+	//nos posicionamos en el inicio de memoria del playList que nos pasan por parametro
+	unsigned int memPos = EEPROM_PLAYLIST_POS+(38*playListNum);
+	
+	
+	//escribimos el titulo del playlist
+	for (int i=0;i<MAX_PLAYLIST_TITLE;i++)		
+	{
+		EEPROM.write(memPos,title[i]);
+		memPos++;
+	}
+}
 
 //funcion para guardar una cancion en el repertorio
-void WritePlayListSong(byte playListNum,byte playListPos,byte songNum)
+void writePlayListSong(byte playListNum,byte playListPos,byte songNum)
 {
 	//nos posicionamos en el inicio de memoria del playList y de la posicion de cancion
 	unsigned int memPos = (EEPROM_PLAYLIST_POS+(38*playListNum))+8+playListPos;
