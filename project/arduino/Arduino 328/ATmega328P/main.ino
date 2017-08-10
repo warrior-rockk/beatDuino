@@ -55,7 +55,7 @@
 				#define CHANGE_ORDER_PAGE_2	7
 				#define INSERT_SONG_PAGE	8
 				#define INSERT_SONG_PAGE_2	9
-				#define DELETE_ORDER_PAGE	10
+				#define DELETE_SONG_PAGE	10
 				#define EMPTY_ORDER_PAGE	11
 		#define PLAYLIST_DELETE_PAGE    12
 	#define SONG_PAGE				13	
@@ -69,6 +69,7 @@
 		#define ORDER_OPTION                1
 			#define CHANGE_ORDER_OPTION			0
 			#define INSERT_SONG_OPTION          1
+			#define DELETE_SONG_OPTION			2
 	#define DELETE_PLAYLIST_OPTION		2
 #define SONG_OPTION					1
 	#define CHANGE_SONG_OPTION          0
@@ -118,7 +119,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[10] = {	3,MAIN_PAGE,mainStr,
+} menuPage[11] = {	3,MAIN_PAGE,mainStr,
 					3,MAIN_PAGE,playListStr,
 					0,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -127,6 +128,7 @@ const struct {
 					MAX_SONGS,ORDER_PAGE,NULL,
 					MAX_SONGS,ORDER_PAGE,NULL,
 					MAX_SONGS-1,ORDER_PAGE,NULL, 
+					MAX_SONGS,ORDER_PAGE,NULL,
 					MAX_SONGS,ORDER_PAGE,NULL
 				};
 				  
@@ -424,6 +426,14 @@ void loop()
 								editData = 0;
 								refresh = true;
 								break;
+							//borrar cancion
+							case DELETE_SONG_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = DELETE_SONG_PAGE;
+								numMenuOptions = menuPage[actualMenuPage].numOptions;
+								editData = 0;
+								refresh = true;
+								break;
 						}
 						break;
 					case CHANGE_ORDER_PAGE:  //elegimos posicion del orden
@@ -462,6 +472,20 @@ void loop()
 						}
 						//escribimos la nueva cancion en la posicion de inserccion
 						writePlayListSong(actualPlayListNum,editData+1,actualMenuOption);
+						
+						actualMenuOption=0;
+						editData=0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						readSongData();
+						
+						refresh = true;						
+						break;
+					case DELETE_SONG_PAGE: 	
+						//borramos la cancion. Movemos el resto de canciones una posicion hasta el final de la lista
+						for (int i=actualMenuOption;i<MAX_SONGS-1;i++)
+						{
+							writePlayListSong(actualPlayListNum,i,getSongNum(actualPlayListNum,i+1));
+						}
 						
 						actualMenuOption=0;
 						editData=0;
@@ -814,6 +838,20 @@ void refreshLCD()
 					display.println(F("Cancion a insertar:"));
 					char * title = readSongTitle(actualMenuOption);
 					display.print(editData+2); //se insertará en la siguiente posicion 
+					display.print(".");
+					display.println(title);
+					free (title);
+					}
+					break;
+				//borrar cancion
+				case DELETE_SONG_PAGE:
+					{
+					display.println(F("Borrar cancion"));
+					display.setTextColor(WHITE,BLACK);
+					//leemos el titulo de la cancion de la posicion de edicion
+					char * title = readSongTitle(getSongNum(actualPlayListNum,actualMenuOption));
+					//lo mostramos
+					display.print(actualMenuOption+1);
 					display.print(".");
 					display.println(title);
 					free (title);
