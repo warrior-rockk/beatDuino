@@ -15,6 +15,10 @@
 const byte EEPROM_SONGS_POS				= 0x00;			//Posicion Inicio Memoria Canciones
 const unsigned int EEPROM_PLAYLIST_POS	= 0x186;		//Posicion Inicio Memoria Canciones
 
+//textos por defecto
+const char emptyPlayListStr[] PROGMEM = "VACIO";
+const char emptySongStr[] PROGMEM = "Vacio";
+
 //==============================================
 
 //Prototipos funciones

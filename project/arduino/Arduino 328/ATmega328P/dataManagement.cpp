@@ -11,7 +11,7 @@
 #include <EEPROM.h>
 #include <defines.h>
 #include <dataManagement.h>
-#include <strings.h>
+
 
 //LECTURA
 //=================================================================
@@ -115,6 +115,14 @@ byte getSongBarSignature(byte songNum)
 
 //ESCRITURA
 //=================================================================
+
+//funcion de escritura EEPROM que comprueba si el dato ya está para no reescribirlo y alargar la vida de la memoria
+void EEPROM_Write(int memPos,byte data)
+{
+	if (data != EEPROM.read(memPos))
+		EEPROM.write(memPos,data);
+}
+
 //funcion para guardar el titulo de un playlist
 void writePlayListTitle(byte playListNum,char * title)
 {
@@ -125,7 +133,7 @@ void writePlayListTitle(byte playListNum,char * title)
 	//escribimos el titulo del playlist
 	for (int i=0;i<MAX_PLAYLIST_TITLE;i++)		
 	{
-		EEPROM.write(memPos,title[i]);
+		EEPROM_Write(memPos,title[i]);
 		memPos++;
 	}
 }
@@ -137,7 +145,7 @@ void writePlayListSong(byte playListNum,byte playListPos,byte songNum)
 	unsigned int memPos = (EEPROM_PLAYLIST_POS+((MAX_SONGS+MAX_PLAYLIST_TITLE)*playListNum))+MAX_PLAYLIST_TITLE+playListPos;
 	
 	//escribimos el numero de cancion en la posicion recibida
-	EEPROM.write(memPos,songNum);
+	EEPROM_Write(memPos,songNum);
 		
 }
 
@@ -152,14 +160,14 @@ void debugWritePlayLists()
 	{
 		for (int i=0;i<MAX_PLAYLIST_TITLE-1;i++)
 		{
-			EEPROM.write(memPos,random(65,90));
+			EEPROM_Write(memPos,random(65,90));
 			memPos++;
 		}
-		EEPROM.write(memPos,'\0');
+		EEPROM_Write(memPos,'\0');
 		memPos++;
 		for (int i=0;i<MAX_SONGS;i++)
 		{
-			EEPROM.write(memPos,random(0,29));
+			EEPROM_Write(memPos,random(0,29));
 			memPos++;
 		}
 	}
@@ -176,16 +184,16 @@ void debugWriteSongs()
 	{
 		for (int i=0;i<MAX_SONG_TITLE-1;i++)
 		{
-			EEPROM.write(memPos,random(97,120));
+			EEPROM_Write(memPos,random(97,120));
 			memPos++;
 		}
-		EEPROM.write(memPos,'\0');
+		EEPROM_Write(memPos,'\0');
 		memPos++;
-		EEPROM.write(memPos,random(10,250));
+		EEPROM_Write(memPos,random(10,250));
 		memPos++;
-		EEPROM.write(memPos,random(1,4));
+		EEPROM_Write(memPos,random(1,4));
 		memPos++;
-		EEPROM.write(memPos,random(2,8));
+		EEPROM_Write(memPos,random(2,8));
 		memPos++;	
 	}
 	

@@ -7,7 +7,6 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-en funciones write EEPROM , comprobar si se va a escribir lo que ya está para evitar escrituras
 	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
 	-se esta refrescando lo minimo? ver ciclo de trabajo?
 	
@@ -522,7 +521,7 @@ void loop()
 						{
 							for (int i=0;i<MAX_SONGS;i++)
 							{
-								writePlayListSong(actualPlayListNum,i,0);
+								writePlayListSong(actualPlayListNum,i,0xFF);
 							}
 						}
 												
@@ -539,13 +538,14 @@ void loop()
 						{
 							for (int i=0;i<MAX_SONGS;i++)
 							{
-								writePlayListSong(actualPlayListNum,i,0);
+								writePlayListSong(actualPlayListNum,i,0xFF);
 							}
 						}
 						
-						//ponemos titulo playlist vacio
+						//vaciamos titulo playlist
 						char title[MAX_PLAYLIST_TITLE];
-						strncpy_P(title,emptyPlayListStr,MAX_PLAYLIST_TITLE);
+						title[0] = (byte)0xFF;
+						strncpy(title,title,MAX_PLAYLIST_TITLE);
 						writePlayListTitle(actualPlayListNum,title);						
 						
 						actualMenuOption=0;
