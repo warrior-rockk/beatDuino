@@ -10,7 +10,6 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-eliminar el forzado de numero opciones y siempre leerlo de la estructura (siempre se conoce de antemano no?)
 	-en las funciones de eeprom, pasar los literales a operaciones con constantes MAX_SONG*MAX_PLAYLIST etc..
 	-en funciones write EEPROM , comprobar si se va a escribir lo que ya está para evitar escrituras
 	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
@@ -33,10 +32,10 @@
 #include <images.h>
 //definiciones globales
 #include <defines.h>
-//funciones datos
-#include <dataManagement.h>
 //textos
 #include <strings.h>
+//funciones datos
+#include <dataManagement.h>
 void setup ();
 void loop ();
 void playMetronome ();
@@ -47,7 +46,8 @@ void processButton (int pin ,int buttonNum );
 void refreshLCD ();
 void readPlayListData ();
 void readSongData ();
-#line 37
+#line 36
+
 
 //Definiciones====================================
 //pines IO
@@ -143,7 +143,7 @@ const struct {
     const char* const* strTable;
 } menuPage[13] = {	3,MAIN_PAGE,mainStr,
 					3,MAIN_PAGE,playListStr,
-					0,PLAYLIST_PAGE,NULL,
+					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
 					0,PLAYLIST_EDIT_PAGE,NULL,
 					4,PLAYLIST_PAGE,changeOrderStr,
@@ -180,7 +180,7 @@ unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funcion
 //menu
 byte actualMenuPage         = PLAYLIST_EDIT_PAGE;//MAIN_PAGE;				//página del menu actual
 byte actualMenuOption 		= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
-byte numMenuOptions			= 0;
+
 //entrada texto o parametros
 byte editCursor             = 0;				//posicion cursor edicion
 char * editString;								//cadena a editar
@@ -266,7 +266,7 @@ void loop()
 				state = MENU_STATE;
 				actualMenuOption = 0;
 				actualMenuPage = MAIN_PAGE;
-				numMenuOptions = menuPage[actualMenuPage].numOptions;
+				
 				refresh = true;
 				break;
 		}		
@@ -336,12 +336,12 @@ void loop()
 			//cambio de opcion
 			if (deltaEnc > 0 )
 			{
-				actualMenuOption < numMenuOptions-1 ? actualMenuOption++ : actualMenuOption=0;
+				actualMenuOption < menuPage[actualMenuPage].numOptions-1 ? actualMenuOption++ : actualMenuOption=0;
 				refresh = true;
 			}
 			if (deltaEnc < 0 )
 			{
-				actualMenuOption > 0 ? actualMenuOption-- : actualMenuOption = numMenuOptions-1;
+				actualMenuOption > 0 ? actualMenuOption-- : actualMenuOption = menuPage[actualMenuPage].numOptions-1;
 				refresh = true;
 			}
 			
@@ -356,7 +356,7 @@ void loop()
 							case PLAYLIST_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = PLAYLIST_PAGE;
-								numMenuOptions = menuPage[actualMenuPage].numOptions;
+								
 								refresh = true;
 								break;														
 						}
@@ -367,19 +367,19 @@ void loop()
 							case CHANGE_PLAYLIST_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = PLAYLIST_CHANGE_PAGE;
-								numMenuOptions = MAX_PLAYLISTS;
+								
 								refresh = true;
 								break;							
 							case EDIT_PLAYLIST_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = PLAYLIST_EDIT_PAGE;
-								numMenuOptions = menuPage[actualMenuPage].numOptions;
+								
 								refresh = true;
 								break;		
 							case DELETE_PLAYLIST_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = PLAYLIST_DELETE_PAGE;
-								numMenuOptions = menuPage[actualMenuPage].numOptions;
+								
 								refresh = true;
 								break;	
 						}
@@ -401,7 +401,7 @@ void loop()
 							case NAME_PLAYLIST_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = PLAYLIST_NAME_PAGE;
-								numMenuOptions = 0;
+								
 								//obtenemos el nombre para editarlo
 								editString = readPlayListTitle(actualPlayListNum);
 								editCursor = 0;								
@@ -411,7 +411,7 @@ void loop()
 							case ORDER_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = ORDER_PAGE;
-								numMenuOptions = menuPage[actualMenuPage].numOptions;								
+								
 								refresh = true;
 								break;
 						}
@@ -444,7 +444,7 @@ void loop()
 							case CHANGE_ORDER_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = CHANGE_ORDER_PAGE;
-								numMenuOptions = MAX_SONGS;		
+								
 								editData = 0;
 								refresh = true;
 								break;
@@ -452,7 +452,7 @@ void loop()
 							case INSERT_SONG_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = INSERT_SONG_PAGE;
-								numMenuOptions = menuPage[actualMenuPage].numOptions;
+								
 								editData = 0;
 								refresh = true;
 								break;
@@ -460,7 +460,7 @@ void loop()
 							case DELETE_SONG_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = DELETE_SONG_PAGE;
-								numMenuOptions = menuPage[actualMenuPage].numOptions;
+								
 								editData = 0;
 								refresh = true;
 								break;
@@ -468,7 +468,7 @@ void loop()
 							case EMPTY_ORDER_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = EMPTY_ORDER_PAGE;
-								numMenuOptions = menuPage[actualMenuPage].numOptions;
+								
 								refresh = true;
 								break;
 						}
@@ -477,7 +477,7 @@ void loop()
 						editData = actualMenuOption;
 						actualMenuOption = 0;
 						actualMenuPage = CHANGE_ORDER_PAGE_2;
-						numMenuOptions = MAX_SONGS;	
+						
 						
 						refresh = true;
 						break;
@@ -495,7 +495,7 @@ void loop()
 						editData = actualMenuOption;
 						actualMenuOption = 0;
 						actualMenuPage = INSERT_SONG_PAGE_2;
-						numMenuOptions = menuPage[actualMenuPage].numOptions;;	
+						
 						
 						refresh = true;
 						break; 

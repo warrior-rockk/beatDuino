@@ -11,6 +11,7 @@
 #include <EEPROM.h>
 #include <defines.h>
 #include <dataManagement.h>
+#include <strings.h>
 
 //LECTURA
 //=================================================================
@@ -26,7 +27,7 @@ char * readPlayListTitle(byte numPlayList)
 	
 	//comprobamos si el titulo esta vacío
 	if (EEPROM.read(actualPlayListPos) == 0xFF)
-		strncpy(buf,"VACIO",MAX_PLAYLIST_TITLE);
+		strncpy_P(buf,emptyPlayListStr,MAX_PLAYLIST_TITLE);
 	else
 	{
 		//obtenemos el titulo del playlist
@@ -51,7 +52,7 @@ char * readSongTitle(byte numSong)
 		
 	//comprobamos si el titulo esta vacío
 	if (EEPROM.read(memPos) == 0xFF)
-		strncpy(buf,"Vacio",MAX_SONG_TITLE);
+		strncpy_P(buf,emptySongStr,MAX_SONG_TITLE);
 	else
 	{
 		//obtenemos el titulo de la cancion
