@@ -7,7 +7,6 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-en las funciones de eeprom, pasar los literales a operaciones con constantes MAX_SONG*MAX_PLAYLIST etc..
 	-en funciones write EEPROM , comprobar si se va a escribir lo que ya está para evitar escrituras
 	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
 	-se esta refrescando lo minimo? ver ciclo de trabajo?

@@ -19,11 +19,12 @@
 //funcion para leer el titulo de un playlist de memoria
 char * readPlayListTitle(byte numPlayList)
 {
+	
 	//alocamos el espacio de memoria para el titulo del playlist
 	char * buf = (char *) malloc (MAX_PLAYLIST_TITLE);
 	
 	//nos posicionamos en el inicio de memoria del playList que nos pasan por parametro
-	int actualPlayListPos = EEPROM_PLAYLIST_POS+(38*numPlayList);
+	int actualPlayListPos = EEPROM_PLAYLIST_POS+((MAX_SONGS+MAX_PLAYLIST_TITLE)*numPlayList);
 	
 	//comprobamos si el titulo esta vacío
 	if (EEPROM.read(actualPlayListPos) == 0xFF)
@@ -48,7 +49,7 @@ char * readSongTitle(byte numSong)
 	char * buf = (char *) malloc (MAX_SONG_TITLE);
 	
 	//nos posicionamos en el inicio de memoria de la cancion que nos pasan por parametro
-	unsigned int memPos = EEPROM_SONGS_POS+(13*numSong);
+	unsigned int memPos = EEPROM_SONGS_POS+((MAX_SONG_TITLE+3)*numSong);
 		
 	//comprobamos si el titulo esta vacío
 	if (EEPROM.read(memPos) == 0xFF)
@@ -71,7 +72,7 @@ char * readSongTitle(byte numSong)
 byte getSongNum(byte playListNum,byte playListPos)
 {
 	//leemos el numero de cancion
-	byte songNum = EEPROM.read(((EEPROM_PLAYLIST_POS+(38*playListNum))+8+playListPos));
+	byte songNum = EEPROM.read(((EEPROM_PLAYLIST_POS+((MAX_SONGS+MAX_PLAYLIST_TITLE)*playListNum))+MAX_PLAYLIST_TITLE+playListPos));
 	
 	//comprobamos si tiene valor real
 	if (songNum == 0xFF)
@@ -83,7 +84,7 @@ byte getSongNum(byte playListNum,byte playListPos)
 //funcion para obtener el tempo de una cancion
 byte getSongTempo(byte songNum)
 {
-	byte songTempo =  EEPROM.read(((EEPROM_SONGS_POS+(13*songNum))+10));
+	byte songTempo =  EEPROM.read(((EEPROM_SONGS_POS+((MAX_SONG_TITLE+3)*songNum))+MAX_SONG_TITLE));
 	
 	return songTempo;
 }
@@ -91,7 +92,7 @@ byte getSongTempo(byte songNum)
 //funcion para obtener la division de nota de una cancion
 byte getSongNoteDivision(byte songNum)
 {
-	byte songNoteDivision =  EEPROM.read(((EEPROM_SONGS_POS+(13*songNum))+11));
+	byte songNoteDivision =  EEPROM.read(((EEPROM_SONGS_POS+((MAX_SONG_TITLE+3)*songNum))+MAX_SONG_TITLE+1));
 	
 	//comprobamos si tiene valor real
 	if (songNoteDivision == 0xFF)
@@ -103,7 +104,7 @@ byte getSongNoteDivision(byte songNum)
 //funcion para obtener el compas de una cancion
 byte getSongBarSignature(byte songNum)
 {
-	byte songBarSignature = EEPROM.read(((EEPROM_SONGS_POS+(13*songNum))+12));
+	byte songBarSignature = EEPROM.read(((EEPROM_SONGS_POS+((MAX_SONG_TITLE+3)*songNum))+MAX_SONG_TITLE+2));
 	
 	//comprobamos si tiene valor real
 	if (songBarSignature == 0xFF)
@@ -118,7 +119,7 @@ byte getSongBarSignature(byte songNum)
 void writePlayListTitle(byte playListNum,char * title)
 {
 	//nos posicionamos en el inicio de memoria del playList que nos pasan por parametro
-	unsigned int memPos = EEPROM_PLAYLIST_POS+(38*playListNum);
+	unsigned int memPos = EEPROM_PLAYLIST_POS+((MAX_SONGS+MAX_PLAYLIST_TITLE)*playListNum);
 	
 	
 	//escribimos el titulo del playlist
@@ -133,7 +134,7 @@ void writePlayListTitle(byte playListNum,char * title)
 void writePlayListSong(byte playListNum,byte playListPos,byte songNum)
 {
 	//nos posicionamos en el inicio de memoria del playList y de la posicion de cancion
-	unsigned int memPos = (EEPROM_PLAYLIST_POS+(38*playListNum))+8+playListPos;
+	unsigned int memPos = (EEPROM_PLAYLIST_POS+((MAX_SONGS+MAX_PLAYLIST_TITLE)*playListNum))+MAX_PLAYLIST_TITLE+playListPos;
 	
 	//escribimos el numero de cancion en la posicion recibida
 	EEPROM.write(memPos,songNum);
