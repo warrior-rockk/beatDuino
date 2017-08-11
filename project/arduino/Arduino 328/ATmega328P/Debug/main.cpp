@@ -486,6 +486,7 @@ void loop()
 						editData=0;
 						actualMenuPage = CHANGE_ORDER_PAGE;
 						
+						readSongData();
 						refresh = true;						
 						break;
 					case INSERT_SONG_PAGE:  
@@ -886,6 +887,8 @@ void refreshLCD()
 					display.println(title);
 					display.println("\n");
 					display.println(F("Elige la cancion:"));
+					free(title);
+					
 					title = readSongTitle(actualMenuOption);
 					display.print(editData+1);
 					display.print(".");
