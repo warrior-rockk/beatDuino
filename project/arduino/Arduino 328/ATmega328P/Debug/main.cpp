@@ -9,6 +9,13 @@
  created 1 Agosto 2017
  by Warrior / Warcom Ing.
 
+ TO-DO:
+	-eliminar el forzado de numero opciones y siempre leerlo de la estructura (siempre se conoce de antemano no?)
+	-en las funciones de eeprom, pasar los literales a operaciones con constantes MAX_SONG*MAX_PLAYLIST etc..
+	-en funciones write EEPROM , comprobar si se va a escribir lo que ya está para evitar escrituras
+	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
+	-se esta refrescando lo minimo? ver ciclo de trabajo?
+	
  v1.0	-	Release Inicial
  
  */
@@ -40,7 +47,7 @@ void processButton (int pin ,int buttonNum );
 void refreshLCD ();
 void readPlayListData ();
 void readSongData ();
-#line 30
+#line 37
 
 //Definiciones====================================
 //pines IO
@@ -134,7 +141,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[12] = {	3,MAIN_PAGE,mainStr,
+} menuPage[13] = {	3,MAIN_PAGE,mainStr,
 					3,MAIN_PAGE,playListStr,
 					0,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -145,7 +152,8 @@ const struct {
 					MAX_SONGS-1,ORDER_PAGE,NULL, 
 					MAX_SONGS,ORDER_PAGE,NULL,
 					MAX_SONGS,ORDER_PAGE,NULL,
-					2,ORDER_PAGE,confirmStr
+					2,ORDER_PAGE,confirmStr,
+					2,PLAYLIST_PAGE,confirmStr,
 				};
 				  
 //==============================================
@@ -367,7 +375,13 @@ void loop()
 								actualMenuPage = PLAYLIST_EDIT_PAGE;
 								numMenuOptions = menuPage[actualMenuPage].numOptions;
 								refresh = true;
-								break;							
+								break;		
+							case DELETE_PLAYLIST_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = PLAYLIST_DELETE_PAGE;
+								numMenuOptions = menuPage[actualMenuPage].numOptions;
+								refresh = true;
+								break;	
 						}
 						break;
 					case PLAYLIST_CHANGE_PAGE:
@@ -532,6 +546,29 @@ void loop()
 						readSongData();
 						
 						refresh = true;						
+						break;
+					case PLAYLIST_DELETE_PAGE: 	
+						{
+						//vaciamos el orden y quitamos el nombre al playlist
+						if (actualMenuOption == 1) //SI
+						{
+							for (int i=0;i<MAX_SONGS;i++)
+							{
+								writePlayListSong(actualPlayListNum,i,0);
+							}
+						}
+						
+						//ponemos titulo playlist vacio
+						char title[MAX_PLAYLIST_TITLE];
+						strncpy_P(title,emptyPlayListStr,MAX_PLAYLIST_TITLE);
+						writePlayListTitle(actualPlayListNum,title);						
+						
+						actualMenuOption=0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						readPlayListData();
+						
+						refresh = true;						
+						}
 						break;
 				}						
 			}
@@ -895,21 +932,7 @@ void refreshLCD()
 					display.println(title);
 					free (title);
 					}
-					break;
-				//vaciar orden
-				/*case EMPTY_ORDER_PAGE:
-					{
-					display.setTextColor(WHITE,BLACK);
-					display.println(F("Confirmar vaciar"));
-					char buffer[30];
-					for (int i=0;i<menuPage[actualMenuPage].numOptions;i++)
-					{
-						actualMenuOption == i ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
-						//leemos la opcion de la pagina
-						strcpy_P(buffer, (char*)pgm_read_word(&(menuPage[actualMenuPage].strTable[i])));
-						display.println(buffer);	
-					}
-					}*/
+					break;				
 				//cualquier pagina de menu que solo muestra opciones
 				default:
 					{

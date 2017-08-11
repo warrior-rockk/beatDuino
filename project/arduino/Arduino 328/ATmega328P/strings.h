@@ -4,6 +4,9 @@
  by Warrior / Warcom Ing.
  v1.0
  */
+//textos por defecto
+const char emptyPlayListStr[] PROGMEM = "VACIO";
+const char emptySongStr[] PROGMEM = "Vacio";
 
 //textos opciones menu
 const char str0[] PROGMEM = "Repertorios";
