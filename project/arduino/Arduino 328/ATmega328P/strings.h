@@ -4,6 +4,7 @@
  by Warrior / Warcom Ing.
  v1.0
  */
+ 
 //textos opciones menu
 const char str0[] PROGMEM = "Repertorios";
 const char str1[] PROGMEM = "Canciones";
@@ -49,3 +50,14 @@ const char str21[] PROGMEM = "8";
 const char str22[] PROGMEM = "16";
 
 const char* const noteDivisionStr[] PROGMEM = {str20, str21, str22};
+
+const char str23[] PROGMEM = "Modo";
+const char str24[] PROGMEM = "Ticks iguales";
+const char str25[] PROGMEM = "Canal Midi";
+
+const char* const settingsStr[] PROGMEM = {str23, str24, str25};
+
+const char str26[] PROGMEM = "Repertorio";
+const char str27[] PROGMEM = "Metronomo";
+
+const char* const modeStr[] PROGMEM = {str26, str27};

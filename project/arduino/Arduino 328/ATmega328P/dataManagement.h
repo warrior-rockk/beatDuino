@@ -12,8 +12,11 @@
 
 //definimos la estructura datos EEPROM
 
-const byte EEPROM_SONGS_POS				= 0x00;			//Posicion Inicio Memoria Canciones
-const unsigned int EEPROM_PLAYLIST_POS	= 0x186;		//Posicion Inicio Memoria Canciones
+const byte EEPROM_SONGS_POS						= 0x00;			//Posicion Inicio Memoria Canciones
+const unsigned int EEPROM_PLAYLIST_POS			= 0x186;		//Posicion Inicio Memoria Repertorio
+const unsigned int EEPROM_CONFIG_MODE			= 0x1FB;		//Posicion Inicio Configuracion Modo
+const unsigned int EEPROM_CONFIG_EQUAL_TICKS	= 0x1FC;		//Posicion Inicio Configuracion Ticks Iguales
+const unsigned int EEPROM_CONFIG_MIDI_CHANNEL	= 0x1FD;		//Posicion Inicio Configuracion Canal Midi
 
 //textos por defecto
 const char emptyPlayListStr[] PROGMEM = "VACIO";
@@ -60,6 +63,8 @@ void writeSongNoteDivision(byte songNum,byte note);
 //funcion para escribir el compas de una cancion
 void writeSongBeatSignature(byte songNum,byte beat);
 
+//funcion de escritura EEPROM que comprueba si el dato ya está para no reescribirlo y alargar la vida de la memoria
+void EEPROM_Write(int memPos,byte data);
 //------------debug--------------------------
 //funcion de prueba para rellenar el EEPROM de datos
 void debugWriteSongs();

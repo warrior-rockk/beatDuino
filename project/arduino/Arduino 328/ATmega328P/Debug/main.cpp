@@ -12,6 +12,8 @@
  TO-DO:
 	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
 	-se esta refrescando lo minimo? ver ciclo de trabajo?
+	-no dividir lso bpm en todos los ciclos?
+	-medir el ciclo de trabajo en micros()?
 	
  v1.0	-	Release Inicial
  
@@ -44,7 +46,8 @@ void processButton (int pin ,int buttonNum );
 void refreshLCD ();
 void readPlayListData ();
 void readSongData ();
-#line 34
+void loadConfig ();
+#line 36
 
 
 //Definiciones====================================
@@ -87,6 +90,9 @@ void readSongData ();
 		#define SELECT_EMPTY_SONG_PAGE			20		
 			#define EMPTY_SONG_PAGE				21
 	#define SETTINGS_PAGE			22
+		#define MODE_PAGE					23
+		#define EQUAL_TICKS_PAGE			24
+		#define MIDI_CHANNEL_PAGE			25
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
@@ -107,6 +113,9 @@ void readSongData ();
 		#define CHANGE_SONG_BEAT_OPTION          3
 	#define EMPTY_SONG_OPTION				1	
 #define SETTINGS_OPTION				2	
+	#define MODE_OPTION					0
+	#define EQUAL_TICKS_OPTION			1
+	#define MIDI_CHANNEL_OPTION			2
 
 //config LCD
 Adafruit_SSD1306 display(OLED_RESET);
@@ -152,7 +161,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[22] = {	3,MAIN_PAGE,mainStr,
+} menuPage[26] = {	3,MAIN_PAGE,mainStr,
 					3,MAIN_PAGE,playListStr,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -174,6 +183,10 @@ const struct {
 					6,EDIT_SONG_PAGE,NULL,
 					MAX_SONGS,SONG_PAGE,NULL,
 					2,SONG_PAGE,confirmStr,
+					3,MAIN_PAGE,settingsStr,
+					2,SETTINGS_PAGE,modeStr,
+					2,SETTINGS_PAGE,confirmStr,
+					16,SETTINGS_PAGE,NULL,
 				};
 				  
 //==============================================
@@ -191,8 +204,11 @@ unsigned int barSignature   = 4;				//tipo compas
 unsigned int actualTick     = 1;				//tiempo actual
 boolean tick 				= true;				//flag de activar tick
 boolean play				= false;			//flag de activar metronomo
+boolean equalTicks			= false;			//flag de mismo sonido para todos los ticks
 byte actualNumSong			= 0;				//cancion actual del repertorio
 byte actualPlayListNum      = 0;				//numero de repetorio actual
+//midi
+byte midiChannel			= 0;				//Canal midi
 //interfaz
 signed int deltaEnc         = 0;				//incremento o decremento del encoder
 unsigned int buttonDelay    = 2;				//Tiempo antirebote
@@ -248,6 +264,9 @@ void setup()
 	//prueba de elementos
 	//debugWriteSongs();
 	//debugWritePlayLists();
+	
+	//leemos la configuracion
+	loadConfig();
 	
 	//leemos los datos actuales
 	readPlayListData();
@@ -344,12 +363,17 @@ void loop()
 					
 					//arranque-paro del sonido
 					if (button[START_STOP_BT].pEdgePress)
+					{
 						play = !play;
-						
-					refresh = true;
+						refresh = true;
+					}	
 					
+					//refresco por cambio de tempo
+					if (deltaEnc != 0) 
+						refresh = true;					
 					break;
 			}
+			
 			break;
 
 		//estado menu (generico para todos los modos)
@@ -386,6 +410,12 @@ void loop()
 								
 								refresh = true;
 								break;	
+							case SETTINGS_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = SETTINGS_PAGE;
+								
+								refresh = true;
+								break;
 						}
 						break;
 					case PLAYLIST_PAGE:
@@ -746,6 +776,72 @@ void loop()
 						refresh = true;
 						}
 						break;
+					case SETTINGS_PAGE:
+						switch (actualMenuOption)
+						{
+							case MODE_OPTION:
+								//leemos el modo
+								editData = EEPROM.read(EEPROM_CONFIG_MODE);
+								//si no esta seteado, lo seteamos
+								editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
+								actualMenuPage = MODE_PAGE;
+								
+								refresh = true;
+								break;							
+							case EQUAL_TICKS_OPTION:
+								//leemos el ticks iguales
+								editData = EEPROM.read(EEPROM_CONFIG_EQUAL_TICKS);
+								//si no esta seteado, lo seteamos
+								editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
+								actualMenuPage = EQUAL_TICKS_PAGE;
+								
+								refresh = true;
+								break;		
+							case MIDI_CHANNEL_OPTION:
+								//leemos el canal midi
+								editData = EEPROM.read(EEPROM_CONFIG_MIDI_CHANNEL);
+								//si no esta seteado, lo seteamos
+								editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
+								actualMenuPage = MIDI_CHANNEL_PAGE;
+								
+								refresh = true;
+								break;	
+						}
+						break;
+					case MODE_PAGE:
+					{
+						//cambiamos el modo
+						mode = actualMenuOption;
+						//guardamos en config
+						EEPROM_Write(EEPROM_CONFIG_MODE,mode);
+						
+						actualMenuOption = 0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						refresh = true;
+					}
+					case EQUAL_TICKS_PAGE:
+					{
+						//cambiamos el flag equal ticks
+						equalTicks = actualMenuOption;
+						//guardamos en config
+						EEPROM_Write(EEPROM_CONFIG_EQUAL_TICKS,equalTicks);
+						
+						actualMenuOption = 0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						refresh = true;
+					}
+					case MIDI_CHANNEL_PAGE:
+					{
+						//cambiamos el canal midi
+						midiChannel = actualMenuOption;
+						//guardamos en config
+						EEPROM_Write(EEPROM_CONFIG_MIDI_CHANNEL,midiChannel);
+						
+						actualMenuOption = 0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						refresh = true;
+					}
+					break;
 				}						
 			}
 			
@@ -1179,6 +1275,15 @@ void refreshLCD()
 					free (title);
 					}
 					break;
+				//Configuracion: canal MIDI
+				case MIDI_CHANNEL_PAGE:
+					{
+					display.setTextColor(WHITE,BLACK);
+					display.println(F("Canal Midi:"));
+					display.println("\n");
+					display.println(actualMenuOption);
+					}
+					break;
 				//cualquier pagina de menu que solo muestra opciones
 				default:
 					{
@@ -1225,4 +1330,19 @@ void readSongData()
 	actualSong.noteDivision = getSongNoteDivision(actualSongPos);
 	//leemos el compas de la cancion actual
 	actualSong.barSignature = getSongBarSignature(actualSongPos);		
+}
+
+//funcion para leer la configuracion de EEPROM
+void loadConfig()
+{
+	byte data;
+	
+	data = EEPROM.read(EEPROM_CONFIG_MODE);
+	data != 0xFF ? mode =data : mode = mode;
+	
+	data = EEPROM.read(EEPROM_CONFIG_EQUAL_TICKS);
+	data != 0xFF ? equalTicks =data : equalTicks = equalTicks;
+	
+	data = EEPROM.read(EEPROM_CONFIG_MIDI_CHANNEL);
+	data != 0xFF ? midiChannel =data : midiChannel = midiChannel;
 }
