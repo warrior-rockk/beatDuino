@@ -284,7 +284,6 @@ void loop()
 					actualMenuPage = menuPage[actualMenuPage].prevPage;
 					actualMenuOption = 0;
 				}
-				refresh = true;
 				break;
 			//si no esta en el menu, salta al menu
 			default:
@@ -292,9 +291,9 @@ void loop()
 				actualMenuOption = 0;
 				actualMenuPage = MAIN_PAGE;
 				
-				refresh = true;
 				break;
-		}		
+		}	
+		refresh = true;	
 	}		
 	
 	//comprobamos estado
@@ -387,19 +386,16 @@ void loop()
 								actualMenuOption = 0;
 								actualMenuPage = PLAYLIST_PAGE;
 								
-								refresh = true;
 								break;		
 							case SONG_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = SONG_PAGE;
 								
-								refresh = true;
 								break;	
 							case SETTINGS_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = SETTINGS_PAGE;
 								
-								refresh = true;
 								break;
 						}
 						break;
@@ -410,19 +406,16 @@ void loop()
 								actualMenuOption = 0;
 								actualMenuPage = PLAYLIST_CHANGE_PAGE;
 								
-								refresh = true;
 								break;							
 							case EDIT_PLAYLIST_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = PLAYLIST_EDIT_PAGE;
 								
-								refresh = true;
 								break;		
 							case DELETE_PLAYLIST_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = PLAYLIST_DELETE_PAGE;
 								
-								refresh = true;
 								break;	
 						}
 						break;
@@ -433,7 +426,6 @@ void loop()
 						readPlayListData();
 						readSongData();
 						state = MAIN_STATE;
-						refresh = true;
 						
 						break;
 					case PLAYLIST_EDIT_PAGE:
@@ -447,14 +439,12 @@ void loop()
 								//obtenemos el nombre para editarlo
 								editString = readPlayListTitle(actualPlayListNum);
 								editCursor = 0;								
-								refresh = true;
 								break;
 							//cambio ordenes
 							case ORDER_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = ORDER_PAGE;
 								
-								refresh = true;
 								break;
 						}
 						break;
@@ -477,7 +467,6 @@ void loop()
 							//avanzamos cursor
 							editCursor < MAX_PLAYLIST_TITLE ? editCursor++ : editCursor = 0;							
 						}
-						refresh = true;
 						break;
 					case ORDER_PAGE:
 						switch (actualMenuOption)
@@ -488,7 +477,6 @@ void loop()
 								actualMenuPage = CHANGE_ORDER_PAGE;
 								
 								editData = 0;
-								refresh = true;
 								break;
 							//insertar cancion
 							case INSERT_SONG_OPTION:
@@ -496,7 +484,6 @@ void loop()
 								actualMenuPage = INSERT_SONG_PAGE;
 								
 								editData = 0;
-								refresh = true;
 								break;
 							//borrar cancion
 							case DELETE_SONG_OPTION:
@@ -504,14 +491,12 @@ void loop()
 								actualMenuPage = DELETE_SONG_PAGE;
 								
 								editData = 0;
-								refresh = true;
 								break;
 							//vaciar orden
 							case EMPTY_ORDER_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = EMPTY_ORDER_PAGE;
 								
-								refresh = true;
 								break;
 						}
 						break;
@@ -520,8 +505,6 @@ void loop()
 						actualMenuOption = 0;
 						actualMenuPage = CHANGE_ORDER_PAGE_2;
 						
-						
-						refresh = true;
 						break;
 					case CHANGE_ORDER_PAGE_2:
 						//aceptamos el cambio de canción
@@ -531,7 +514,6 @@ void loop()
 						actualMenuPage = CHANGE_ORDER_PAGE;
 						
 						readSongData();
-						refresh = true;						
 						break;
 					case INSERT_SONG_PAGE:  
 						//elegimos posicion de la inserccion
@@ -539,8 +521,6 @@ void loop()
 						actualMenuOption = 0;
 						actualMenuPage = INSERT_SONG_PAGE_2;
 						
-						
-						refresh = true;
 						break; 
 					case INSERT_SONG_PAGE_2: 	
 						//insertamos la cancion
@@ -557,8 +537,7 @@ void loop()
 						editData=0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
 						readSongData();
-						
-						refresh = true;						
+											
 						break;
 					case DELETE_SONG_PAGE: 	
 						//borramos la cancion. Movemos el resto de canciones una posicion hasta el final de la lista
@@ -571,8 +550,6 @@ void loop()
 						editData=0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
 						readSongData();
-						
-						refresh = true;						
 						break;
 					case EMPTY_ORDER_PAGE: 	
 						//vaciamos el orden
@@ -588,7 +565,6 @@ void loop()
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
 						readSongData();
 						
-						refresh = true;						
 						break;
 					case PLAYLIST_DELETE_PAGE: 	
 						{
@@ -610,8 +586,7 @@ void loop()
 						actualMenuOption=0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
 						readPlayListData();
-						
-						refresh = true;						
+										
 						}
 						break;
 					case SONG_PAGE:
@@ -620,12 +595,10 @@ void loop()
 							case EDIT_SONG_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = SELECT_EDIT_SONG_PAGE;
-								refresh = true;
 								break;
 							case EMPTY_SONG_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = SELECT_EMPTY_SONG_PAGE;
-								refresh = true;
 								break;
 						}
 						break;
@@ -634,7 +607,6 @@ void loop()
 						editSelection = actualMenuOption; //num cancion a editar
 						actualMenuOption = 0;
 						actualMenuPage = EDIT_SONG_PAGE;
-						refresh = true;
 						}
 						break;
 					case EDIT_SONG_PAGE:
@@ -644,13 +616,11 @@ void loop()
 								actualMenuOption = 0;
 								actualMenuPage = CHANGE_SONG_NAME_PAGE;
 								editString = readSongTitle(editSelection);
-								refresh = true;
 								break;
 							case CHANGE_SONG_TEMPO_OPTION:
 								actualMenuPage = CHANGE_SONG_TEMPO_PAGE;
 								editData = getSongTempo(editSelection);
 								actualMenuOption = editData;
-								refresh = true;
 								break;
 							case CHANGE_SONG_NOTE_OPTION:
 								actualMenuPage = CHANGE_SONG_NOTE_PAGE;
@@ -667,13 +637,11 @@ void loop()
 										actualMenuOption = 2;						
 										break;
 								}
-								refresh = true;
 								break;
 							case CHANGE_SONG_BEAT_OPTION:
 								actualMenuPage = CHANGE_SONG_BEAT_PAGE;
 								editData = getSongBarSignature(editSelection);
 								actualMenuOption = editData-2;
-								refresh = true;
 								break;
 						}
 						break;
@@ -695,7 +663,6 @@ void loop()
 							//avanzamos cursor
 							editCursor < MAX_SONG_TITLE ? editCursor++ : editCursor = 0;							
 						}
-						refresh=true;
 						break;
 					case CHANGE_SONG_TEMPO_PAGE:
 						writeSongTempo(editSelection,actualMenuOption);
@@ -703,7 +670,6 @@ void loop()
 						editData = 0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
 						readSongData();
-						refresh = true;
 						break;
 					case CHANGE_SONG_NOTE_PAGE:
 						switch (actualMenuOption)
@@ -722,7 +688,6 @@ void loop()
 						actualMenuOption=0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
 						readSongData();
-						refresh = true;
 						break;
 					case CHANGE_SONG_BEAT_PAGE:
 						writeSongBeatSignature(editSelection,actualMenuOption+2);
@@ -730,14 +695,12 @@ void loop()
 						actualMenuOption=0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
 						readSongData();
-						refresh = true;
 						break;
 					case SELECT_EMPTY_SONG_PAGE:
 						{
 						editSelection = actualMenuOption; //num cancion a editar
 						actualMenuOption = 0;
 						actualMenuPage = EMPTY_SONG_PAGE;
-						refresh = true;
 						}
 						break;
 					case EMPTY_SONG_PAGE:
@@ -758,7 +721,6 @@ void loop()
 						actualMenuOption = 0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
 						readSongData();
-						refresh = true;
 						}
 						break;
 					case SETTINGS_PAGE:
@@ -770,8 +732,6 @@ void loop()
 								//si no esta seteado, lo seteamos
 								editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
 								actualMenuPage = MODE_PAGE;
-								
-								refresh = true;
 								break;							
 							case EQUAL_TICKS_OPTION:
 								//leemos el ticks iguales
@@ -779,8 +739,6 @@ void loop()
 								//si no esta seteado, lo seteamos
 								editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
 								actualMenuPage = EQUAL_TICKS_PAGE;
-								
-								refresh = true;
 								break;		
 							case MIDI_CHANNEL_OPTION:
 								//leemos el canal midi
@@ -788,8 +746,6 @@ void loop()
 								//si no esta seteado, lo seteamos
 								editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
 								actualMenuPage = MIDI_CHANNEL_PAGE;
-								
-								refresh = true;
 								break;	
 						}
 						break;
@@ -802,7 +758,7 @@ void loop()
 						
 						actualMenuOption = 0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
-						refresh = true;
+						break;
 					}
 					case EQUAL_TICKS_PAGE:
 					{
@@ -813,7 +769,7 @@ void loop()
 						
 						actualMenuOption = 0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
-						refresh = true;
+						break;
 					}
 					case MIDI_CHANNEL_PAGE:
 					{
@@ -824,10 +780,12 @@ void loop()
 						
 						actualMenuOption = 0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
-						refresh = true;
+						break;
 					}
 					break;
 				}						
+				
+				refresh = true;
 			}
 			
 			break;
@@ -874,8 +832,8 @@ void loop()
 	if (tick){
 		//led
 		digitalWrite(LED_CLICK, HIGH);
-		//sonido del tick según si es el primer tiempo del compás
-		if (actualTick == 1)
+		//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
+		if (actualTick == 1 && !equalTicks)
 			tone(OUT_CLICK,NOTE_A4,clickDuration);
 		else
 			tone(OUT_CLICK,NOTE_C4,clickDuration);
