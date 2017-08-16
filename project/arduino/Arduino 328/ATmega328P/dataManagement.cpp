@@ -149,6 +149,42 @@ void writePlayListSong(byte playListNum,byte playListPos,byte songNum)
 		
 }
 
+//funcion para guardar el titulo de una cancion
+void writeSongTitle(byte songNum,char * title)
+{
+	//nos posicionamos en el inicio de memoria de la cancion que nos pasan por parametro
+	unsigned int memPos = EEPROM_SONGS_POS+((MAX_SONG_TITLE+3)*songNum);
+	
+	//escribimos el titulo de la cancion
+	for (int i=0;i<MAX_SONG_TITLE;i++)		
+	{
+		EEPROM_Write(memPos,title[i]);
+		memPos++;
+	}
+}
+
+//funcion para escribitr el tempo de una cancion
+void writeSongTempo(byte songNum,byte tempo)
+{
+	EEPROM_Write(((EEPROM_SONGS_POS+((MAX_SONG_TITLE+3)*songNum))+MAX_SONG_TITLE),tempo);
+
+}
+
+//funcion para escribir la division de nota de una cancion
+void writeSongNoteDivision(byte songNum,byte note)
+{
+	EEPROM_Write(((EEPROM_SONGS_POS+((MAX_SONG_TITLE+3)*songNum))+MAX_SONG_TITLE+1),note);
+
+}
+
+//funcion para escribir el compas de una cancion
+void writeSongBeatSignature(byte songNum,byte beat)
+{
+	EEPROM_Write(((EEPROM_SONGS_POS+((MAX_SONG_TITLE+3)*songNum))+MAX_SONG_TITLE+2),beat);
+
+}
+//DEBUG=====================
+
 //funcion de prueba para escribir unos setlist en memoria eepprom
 void debugWritePlayLists()
 {

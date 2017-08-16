@@ -64,7 +64,15 @@
 				#define EMPTY_ORDER_PAGE	11
 		#define PLAYLIST_DELETE_PAGE    12
 	#define SONG_PAGE				13	
-	#define SETTINGS_PAGE			14
+		#define SELECT_EDIT_SONG_PAGE			14
+			#define EDIT_SONG_PAGE                  15
+				#define CHANGE_SONG_NAME_PAGE			16
+				#define CHANGE_SONG_TEMPO_PAGE         	17
+				#define CHANGE_SONG_NOTE_PAGE          	18
+				#define CHANGE_SONG_BEAT_PAGE          	19
+		#define SELECT_EMPTY_SONG_PAGE			20		
+			#define EMPTY_SONG_PAGE				21
+	#define SETTINGS_PAGE			22
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
@@ -78,7 +86,12 @@
 			#define EMPTY_ORDER_OPTION			3
 	#define DELETE_PLAYLIST_OPTION		2
 #define SONG_OPTION					1
-	#define CHANGE_SONG_OPTION          0
+	#define EDIT_SONG_OPTION				0
+		#define CHANGE_SONG_NAME_OPTION          0
+		#define CHANGE_SONG_TEMPO_OPTION         1
+		#define CHANGE_SONG_NOTE_OPTION          2
+		#define CHANGE_SONG_BEAT_OPTION          3
+	#define EMPTY_SONG_OPTION				1	
 #define SETTINGS_OPTION				2	
 
 //config LCD
@@ -125,7 +138,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[13] = {	3,MAIN_PAGE,mainStr,
+} menuPage[22] = {	3,MAIN_PAGE,mainStr,
 					3,MAIN_PAGE,playListStr,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -138,13 +151,22 @@ const struct {
 					MAX_SONGS,ORDER_PAGE,NULL,
 					2,ORDER_PAGE,confirmStr,
 					2,PLAYLIST_PAGE,confirmStr,
+					2,MAIN_PAGE,songStr,
+					MAX_SONGS,SONG_PAGE,NULL,
+					4,SELECT_EDIT_SONG_PAGE,editSongStr,
+					0,EDIT_SONG_PAGE,NULL,
+					255,EDIT_SONG_PAGE,NULL,
+					3,EDIT_SONG_PAGE,noteDivisionStr,
+					6,EDIT_SONG_PAGE,NULL,
+					MAX_SONGS,SONG_PAGE,NULL,
+					2,SONG_PAGE,confirmStr,
 				};
 				  
 //==============================================
 
 //Variables generales===========================
 byte mode          = LIVE_MODE;					//modo general
-byte state         = MENU_STATE;//MAIN_STATE;				//estado general
+byte state         = MAIN_STATE;				//estado general
 boolean refresh			= true;					//refresco LCD
 unsigned int bpm 			= 100;				//tempo general
 unsigned long msTempo 		= 0;				//tempo en milisegundos
@@ -162,13 +184,14 @@ signed int deltaEnc         = 0;				//incremento o decremento del encoder
 unsigned int buttonDelay    = 2;				//Tiempo antirebote
 unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funciones
 //menu
-byte actualMenuPage         = PLAYLIST_EDIT_PAGE;//MAIN_PAGE;				//página del menu actual
+byte actualMenuPage         = MAIN_PAGE;				//página del menu actual
 byte actualMenuOption 		= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
 
 //entrada texto o parametros
 byte editCursor             = 0;				//posicion cursor edicion
 char * editString;								//cadena a editar
 byte editData				= 0;				//dato a editar
+byte editSelection			= 0;				//seleccion a editar
 //debug
 byte general;
 //================================
@@ -342,7 +365,13 @@ void loop()
 								actualMenuPage = PLAYLIST_PAGE;
 								
 								refresh = true;
-								break;														
+								break;		
+							case SONG_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = SONG_PAGE;
+								
+								refresh = true;
+								break;	
 						}
 						break;
 					case PLAYLIST_PAGE:
@@ -554,6 +583,153 @@ void loop()
 						readPlayListData();
 						
 						refresh = true;						
+						}
+						break;
+					case SONG_PAGE:
+						switch (actualMenuOption)
+						{
+							case EDIT_SONG_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = SELECT_EDIT_SONG_PAGE;
+								refresh = true;
+								break;
+							case EMPTY_SONG_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = SELECT_EMPTY_SONG_PAGE;
+								refresh = true;
+								break;
+						}
+						break;
+					case SELECT_EDIT_SONG_PAGE:
+						{
+						editSelection = actualMenuOption; //num cancion a editar
+						actualMenuOption = 0;
+						actualMenuPage = EDIT_SONG_PAGE;
+						refresh = true;
+						}
+						break;
+					case EDIT_SONG_PAGE:
+						switch (actualMenuOption)
+						{
+							case CHANGE_SONG_NAME_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = CHANGE_SONG_NAME_PAGE;
+								editString = readSongTitle(editSelection);
+								refresh = true;
+								break;
+							case CHANGE_SONG_TEMPO_OPTION:
+								actualMenuPage = CHANGE_SONG_TEMPO_PAGE;
+								editData = getSongTempo(editSelection);
+								actualMenuOption = editData;
+								refresh = true;
+								break;
+							case CHANGE_SONG_NOTE_OPTION:
+								actualMenuPage = CHANGE_SONG_NOTE_PAGE;
+								editData = getSongNoteDivision(editSelection);
+								switch (editData)
+								{
+									case QUARTER:
+										actualMenuOption = 0;								
+										break;
+									case EIGHTH:
+										actualMenuOption = 1;						
+										break;
+									case SIXTEENTH:
+										actualMenuOption = 2;						
+										break;
+								}
+								refresh = true;
+								break;
+							case CHANGE_SONG_BEAT_OPTION:
+								actualMenuPage = CHANGE_SONG_BEAT_PAGE;
+								editData = getSongBarSignature(editSelection);
+								actualMenuOption = editData-2;
+								refresh = true;
+								break;
+						}
+						break;
+					case CHANGE_SONG_NAME_PAGE:
+						//avanzamos el cursor de edicion de nombre o aceptamos cadena si el ultimo caracter es un enter
+						if ((byte)editString[editCursor] == 216)
+						{
+							//sustituimos ultimo caracter enter
+							editString[editCursor] = '\0';
+							//guardamos el nuevo nombre
+							writeSongTitle(editSelection,editString);
+							free(editString);
+							actualMenuOption=0;
+							actualMenuPage = menuPage[actualMenuPage].prevPage;
+							readSongData();							
+						}
+						else 
+						{
+							//avanzamos cursor
+							editCursor < MAX_SONG_TITLE ? editCursor++ : editCursor = 0;							
+						}
+						refresh=true;
+						break;
+					case CHANGE_SONG_TEMPO_PAGE:
+						writeSongTempo(editSelection,actualMenuOption);
+						actualMenuOption=0;
+						editData = 0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						readSongData();
+						refresh = true;
+						break;
+					case CHANGE_SONG_NOTE_PAGE:
+						switch (actualMenuOption)
+						{
+							case 0:
+								writeSongNoteDivision(editSelection,QUARTER);
+								break;
+							case 1:
+								writeSongNoteDivision(editSelection,EIGHTH);
+								break;
+							case 2:
+								writeSongNoteDivision(editSelection,SIXTEENTH);
+								break;
+						}
+						editData = 0;
+						actualMenuOption=0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						readSongData();
+						refresh = true;
+						break;
+					case CHANGE_SONG_BEAT_PAGE:
+						writeSongBeatSignature(editSelection,actualMenuOption+2);
+						editData = 0;
+						actualMenuOption=0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						readSongData();
+						refresh = true;
+						break;
+					case SELECT_EMPTY_SONG_PAGE:
+						{
+						editSelection = actualMenuOption; //num cancion a editar
+						actualMenuOption = 0;
+						actualMenuPage = EMPTY_SONG_PAGE;
+						refresh = true;
+						}
+						break;
+					case EMPTY_SONG_PAGE:
+						{
+						//vaciamos la cancion de datos
+						if (actualMenuOption == 1) //SI
+						{
+								//vaciamos titulo cancion
+								char title[MAX_SONG_TITLE];
+								title[0] = (byte)0xFF;
+								strncpy(title,title,MAX_SONG_TITLE);
+								writeSongTitle(editSelection,title);		
+								writeSongTempo(editSelection,0xFF);							
+								writeSongNoteDivision(editSelection,0xFF);							
+								writeSongBeatSignature(editSelection,0xFF);							
+						}
+						
+						actualMenuOption = 0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						readSongData();
+						refresh = true;
 						}
 						break;
 				}						
@@ -920,7 +1096,75 @@ void refreshLCD()
 					display.println(title);
 					free (title);
 					}
-					break;				
+					break;		
+				//elige cancion para editar
+				case SELECT_EDIT_SONG_PAGE:
+					{
+					display.println(F("Elige la cancion:"));
+					char * title = readSongTitle(actualMenuOption);
+					display.print(actualMenuOption+1);
+					display.print(".");
+					display.println(title);
+					free (title);
+					}
+					break;
+				case CHANGE_SONG_NAME_PAGE:
+					{
+					display.setTextColor(WHITE,BLACK);
+					display.println(F("Nombre cancion:"));
+					//cambio de caracter con encoder
+					if (deltaEnc > 0)
+					{
+						if ((byte)editString[editCursor] == 0) // \0'
+							editString[editCursor] = 32; //'space'
+						if ((byte)editString[editCursor] == 'z') 
+							editString[editCursor] = 216; //'simbolo enter'
+						if ((byte)editString[editCursor] < 'z') 
+							editString[editCursor] = editString[editCursor]+1;						
+					}
+					if (deltaEnc < 0)
+					{
+						if ((byte)editString[editCursor] == 216) //'simbolo enter'
+							editString[editCursor] = 'z';
+						else if ((byte)editString[editCursor] > 32) //'space'
+							editString[editCursor] = editString[editCursor]-1;
+												
+					}	
+					//mostramos la cadena
+					display.println(editString);
+					//dibujamos cursor en la posicion actual
+					display.drawFastHLine((editCursor*6), 15, 6, WHITE);
+					}
+					break;
+				case CHANGE_SONG_TEMPO_PAGE:
+					{
+					display.setTextColor(WHITE,BLACK);
+					display.println(F("Elige el tempo:"));
+					display.println("\n");
+					display.print(actualMenuOption);
+					display.println(F("  BPM"));
+					}
+					break;
+				case CHANGE_SONG_BEAT_PAGE:
+					{
+					display.setTextColor(WHITE,BLACK);
+					display.println(F("Tipo Compas:"));
+					display.println("\n");
+					display.println(actualMenuOption+2);					
+					}
+					break;
+				//elige cancion para vaciar
+				case SELECT_EMPTY_SONG_PAGE:
+					{
+					display.setTextColor(WHITE,BLACK);
+					display.println(F("Elige la cancion:"));
+					char * title = readSongTitle(actualMenuOption);
+					display.print(actualMenuOption+1);
+					display.print(".");
+					display.println(title);
+					free (title);
+					}
+					break;
 				//cualquier pagina de menu que solo muestra opciones
 				default:
 					{

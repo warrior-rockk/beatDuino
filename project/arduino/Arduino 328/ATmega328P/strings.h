@@ -32,3 +32,20 @@ const char str13[] PROGMEM = "SI";
 
 const char* const confirmStr[] PROGMEM = {str12, str13};
 
+const char str14[] PROGMEM = "Editar Cancion";
+const char str15[] PROGMEM = "Eliminar Cancion";
+
+const char* const songStr[] PROGMEM = {str14, str15};
+
+const char str16[] PROGMEM = "Cambiar Nombre";
+const char str17[] PROGMEM = "Cambiar Tempo";
+const char str18[] PROGMEM = "Cambiar Division";
+const char str19[] PROGMEM = "Cambiar Compas";
+
+const char* const editSongStr[] PROGMEM = {str16, str17, str18, str19};
+
+const char str20[] PROGMEM = "4";
+const char str21[] PROGMEM = "8";
+const char str22[] PROGMEM = "16";
+
+const char* const noteDivisionStr[] PROGMEM = {str20, str21, str22};

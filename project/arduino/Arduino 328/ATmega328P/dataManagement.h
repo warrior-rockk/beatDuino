@@ -48,6 +48,18 @@ void writePlayListTitle(byte playListNum,char * title);
 //funcion para guardar una cancion en el repertorio
 void writePlayListSong(byte playListNum,byte playListPos,byte songNum);
 
+//funcion para guardar el titulo de una cancion
+void writeSongTitle(byte songNum,char * title);
+
+//funcion para escribitr el tempo de una cancion
+void writeSongTempo(byte songNum,byte tempo);
+
+//funcion para escribir la division de nota de una cancion
+void writeSongNoteDivision(byte songNum,byte note);
+
+//funcion para escribir el compas de una cancion
+void writeSongBeatSignature(byte songNum,byte beat);
+
 //------------debug--------------------------
 //funcion de prueba para rellenar el EEPROM de datos
 void debugWriteSongs();
