@@ -857,7 +857,6 @@ void loop()
 	}
 	else{
 		digitalWrite(LED_CLICK, LOW);
-		noTone(OUT_CLICK);
 	}		
 }
 
