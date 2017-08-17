@@ -38,16 +38,21 @@ Parte Audio
 Tenemos 2 opciones: generar tono via Arduino (tone()).. Habria que ver que tal se oye y el tipo de timbre que tiene.
 					reproducir un archivo de audio WAV. ¿Es mucho proceso? ¿usamos un IC dedicado?
 					
-Salida audio line: salida estándar son +/-0,316V. Si generamos una onda de tono cuadrado (funcion tone) por un pin,
-como oscila entre 5V, tenemos que poner un divisor resistivo. Poniendo 10K y 1K, la dejamos en +/-0,5V. En algunas documentaciones, se refieren a +/-1V.
+Salida audio line: salida estándar son +/-0,316V o +/- 1V (consumer-pro). Si generamos una onda de tono cuadrado (funcion tone) por un pin,como oscila entre 5V, tenemos que poner un divisor resistivo. Poniendo 1K y 10K, la dejamos en +/-0,5V. Poniendo 15K y 10K la dejamos en +/- 1V.
 
-Diferencias salida auriculares/linea. La señal de linea es muy pequeña y, la entrada de línea es de alta impedancia (orden de los 50ks). Un auricular tiene una baja impedancia (30ohms mas o menos) con lo que, si tratamos de alimentar un auricular con la salida directa de arduino, podemos cargarnos el pin porque la corriente maxima por pin de un atMega es de
-40mA. Con una tension de 5V y una resistencia de 32ohms, nos da 156mA!!! con lo que seria excesivo. Tenemos que poner una resistencia limitadora (160 Ohm por ejemplo) para evitar dañar el pin.
+Diferencias salida auriculares/linea:
+La señal de linea es muy pequeña y, la entrada de línea es de alta impedancia (orden de los 50ks). Un auricular tiene una baja impedancia (30ohms mas o menos) con lo que, si tratamos de alimentar un auricular con la salida directa de arduino, podemos cargarnos el pin porque la corriente maxima por pin de un atMega es de 40mA. Con una tension de 5V y una resistencia de 32ohms, nos da 156mA!!! con lo que seria excesivo. Tenemos que poner una resistencia limitadora (160 Ohm por ejemplo) para evitar dañar el pin.
 
-Como se ha comentado, la salida de linea hay que bajarla con un divisor resistivo, pero además, nos interesará poner un filtro RC para suavizar la señal cuadrada y hacerla mas sinusoide, y un condensador para centrar la señal +-/1V en el 0.
+https://forum.arduino.cc/index.php?topic=439305.0
+
+Como se ha comentado, la salida de linea hay que bajarla con un divisor resistivo, pero además, nos interesará poner un filtro RC para suavizar la señal cuadrada y hacerla mas sinusoide, y un condensador para centrar la señal +-/1V en el 0. EL filtro es relevante en salidas de audio complejas que pueden presentar distorsion por haber sido generadas digitalmente. La funcion tone() de arduino, como genera un beep de onda cuadrada, no es muy necesario filtrarla y hacerla sinusoide porque ya suena bien.
+Si la filtramos, lo que si que no sera muy necesario es el doble filtrado. Apenas se nota diferencia con la segunda pareja de R+C. (por lo menos con origen de onda cuadrada, a lo mejor ondas complejas si que es mejor)
+AL igual, el acoplamiento con condensador para centrar, es mas relevante cuando amplificamos para alimentar un altavoz directamente. A pequeños voltajes no se aprecia el descentrado ni tiene relevancia.
+
 (http://forum.arduino.cc/index.php?topic=286907.0).
 
-Si la salida es para auriculares, creo que hay que amplificarla también. (o poner un buffer como el enlace anterior)
+Para el cálculo del filtro RC se usa la formula frecuencia = 1/(2*pi*R*C). La resistencia queremos poner la minima que limite la corriente de 40mA por seguridad y que no afecte a los divisores resistivos de luego, con lo que la ponemos de 160). La frecuencia de corte que queremos , creo que es la mitad de la maxima que vamos a suministrar, que, mirando el archivo .h de tones, son 4Khz, con lo que calculamos un C de 500nF (0,5uF -> comercial 0,47uF).
+¿Si la salida es para auriculares, creo que hay que amplificarla también. (o poner un buffer como el enlace anterior)? Creo que no es necesario... O quizas, al tener la carga de 32ohms conectada, se genera una caida de tension que hace que se pierda volumen y por eso se necesita el amplificador/buffer....
 
 Si queremos generar audio con datos en array de WAV, tenemos que usar una salida PMW, pero requiere configurar timers e interrupciones
 para leer y reproducir el buffer. Además, tendremos que poner a la salida de ese pin, un filtro low pass para que suavice la señal, y
@@ -75,6 +80,7 @@ Interfaz física
 Para la parte de introducir valores usaremos un encoder rotativo con pulsador. EL encoder genera un pulso por cada canal A y B desfasados 90 grados entre ellos segun el sentido de giro del encoder. EN un sentido, el pulso de A se da antes que el de B, y en el otro sentido, al contrario. Eso nos permite controlar que, si cuando se da el pulso de A, B ya ha cambiado, estamos en un sentido y si B es distinto, estamos en el otro sentido.
 Es importante poner unos condensadores para filtrar los ruidos y rebotes de la conmutación mecánica.
 
+El knob del encoder rotativo en forma de rueda se llama scrubber
 Dudas:
 	-CUando cambias de tema, se para el metronomo?
 	-Hay que aceptar el cambio de metronomo con el botón?

@@ -271,6 +271,7 @@ void setup()
 	//leemos los datos actuales
 	readPlayListData();
 	readSongData();
+	//tone(OUT_CLICK,NOTE_C4);
  }
 
  //bucle principal
