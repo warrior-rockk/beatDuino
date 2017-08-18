@@ -304,6 +304,7 @@ void loop()
 	//si pulsamos boton menu/cancelar-atras
 	if (button[MENU_BT].pEdgePress)
 	{
+		
 		//comprobamos estado
 		switch (state)
 		{
@@ -840,15 +841,14 @@ void loop()
 	{
 		stopMetronome();
 	}
-					
+
+	
+		
 	//refresco interfaz
 	if (refresh) {
 		refreshLCD();
 		refresh = false;
 	}
-	
-	//resetemos valor encoder
-	deltaEnc = 0;
 	
 	//calculo del tiempo de ciclo,maximo y minimo
 	lastCycleTime = micros() - startTime;
@@ -856,6 +856,9 @@ void loop()
 		maxCycleTime = lastCycleTime;
 	if (lastCycleTime < minCycleTime)
 		minCycleTime = lastCycleTime;
+		
+	//resetemos valor encoder
+	deltaEnc = 0;
 		
 	//reseteamos el watchdog
 	wdt_reset();
@@ -1281,7 +1284,7 @@ void refreshLCD()
 					display.print(majorVersion);
 					display.print(".");
 					display.println(minorVersion);
-					display.print(F("Ciclo Actual:"));
+					display.print(F("Ciclo Act:"));
 					display.print(lastCycleTime);
 					display.println(F("uS"));
 					display.print(F("Ciclo Min:"));
