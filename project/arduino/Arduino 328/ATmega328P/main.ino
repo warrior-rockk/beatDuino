@@ -33,8 +33,8 @@
 #include <strings.h>
 //funciones datos
 #include <dataManagement.h>
-
-
+//midi
+#include <SoftwareSerial.h>
 //Definiciones====================================
 //pines IO
 #define START_STOP  0
@@ -43,6 +43,8 @@
 #define MENU_PIN   	3		
 #define OLED_RESET 	4
 #define ENTER_PIN	5
+#define MIDI_TX		6
+#define MIDI_RX		7 
 #define OUT_CLICK 	11		
 #define LED_CLICK   13
 
@@ -101,6 +103,11 @@
 	#define MODE_OPTION					0
 	#define EQUAL_TICKS_OPTION			1
 	#define MIDI_CHANNEL_OPTION			2
+
+//comandos midi
+#define MIDI_CLOCK_MSG		0xF8
+#define MIDI_START_MSG		0xFA
+#define MIDI_STOP_MSG		0xFC
 
 //config LCD
 Adafruit_SSD1306 display(OLED_RESET);
@@ -193,6 +200,7 @@ boolean equalTicks			= false;			//flag de mismo sonido para todos los ticks
 byte actualNumSong			= 0;				//cancion actual del repertorio
 byte actualPlayListNum      = 0;				//numero de repetorio actual
 //midi
+SoftwareSerial midi(MIDI_RX,MIDI_TX);			//conexion serie Midi
 byte midiChannel			= 0;				//Canal midi
 //interfaz
 signed int deltaEnc         = 0;				//incremento o decremento del encoder
@@ -201,7 +209,6 @@ unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funcion
 //menu
 byte actualMenuPage         = MAIN_PAGE;				//página del menu actual
 byte actualMenuOption 		= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
-
 //entrada texto o parametros
 byte editCursor             = 0;				//posicion cursor edicion
 char * editString;								//cadena a editar
@@ -233,6 +240,9 @@ void setup()
 	//inicializamos display
 	display.begin(SSD1306_SWITCHCAPVCC, 0x3D);  // initialize with the I2C addr 0x3D (for the 128x64)
 	
+	//Midi Baud Rate 
+	midi.begin(31250);
+  
 	//Mensaje de inicio
 	#ifndef DEBUG
 		wellcomeTest();
@@ -838,12 +848,17 @@ void loop()
 			tone(OUT_CLICK,NOTE_A4,clickDuration);
 		else
 			tone(OUT_CLICK,NOTE_C4,clickDuration);
+		
+		//debug midi (enviamos un midi clock. En la realidad hay que enviarlo 24 veces por negra)
+		midi.write(MIDI_CLOCK_MSG);
+		
 		//desactivamos flag	
 		tick = false;
 	}
 	else{
 		digitalWrite(LED_CLICK, LOW);
-	}		
+	}	
+	
 }
 
 //funcion que detiene la reproduccion del metronomo
@@ -855,6 +870,7 @@ void stopMetronome()
 	actualTick = 0;
 	lastTime = millis();
 }
+
  //funcion que realiza mensaje de inicio y test luces
 void wellcomeTest()
 {

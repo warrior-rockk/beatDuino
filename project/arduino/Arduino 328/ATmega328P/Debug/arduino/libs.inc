@@ -4,4 +4,5 @@
 -I "C:/Archivos de programa/Arduino/libraries/EEPROM"
 -I "C:/Archivos de programa/Arduino/libraries/SPI"
 -I "C:/Archivos de programa/Arduino/libraries/Wire"
+-I "C:/Archivos de programa/Arduino/libraries/SoftwareSerial"
 

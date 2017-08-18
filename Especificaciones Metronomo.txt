@@ -85,3 +85,7 @@ Dudas:
 	-CUando cambias de tema, se para el metronomo?
 	-Hay que aceptar el cambio de metronomo con el botón?
 	
+Parte Midi
+----------
+Se va a usar salida midi para enviar la claqueta a cualquier dispositivo que lo necesite (como mi multiefectos :) ).
+El tempo midi es un mensaje midi llamado midi clock que es enviar 0xF8. La particularidad de ese mensaje es que hay que enviarlo 24 veces por negra (quarter). Tengo que probar si es necesario hacerlo con una interrupcion de Timer o se puede hacer por codigo, aunque son muchas llamadas. Si se hace por interrupcion, quizas interesaría pasar todos los eventos de claqueta a TImer y que desde ahí envie el tono de audio, el parpadeo de led y el midi clock.

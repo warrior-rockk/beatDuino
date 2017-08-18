@@ -20,7 +20,7 @@ AR=ar
 ## Build tree:
 all:	arduino/arduino.a
 
-arduino/arduino.a:	arduino/CDC.o arduino/HardwareSerial.o arduino/HID.o arduino/IPAddress.o arduino/main.o arduino/new.o arduino/Print.o arduino/Stream.o arduino/Tone.o arduino/USBCore.o arduino/WInterrupts.o arduino/wiring.o arduino/wiring_analog.o arduino/wiring_digital.o arduino/wiring_pulse.o arduino/wiring_shift.o arduino/WMath.o arduino/WString.o arduino/avr-libc/malloc.o arduino/avr-libc/realloc.o arduino/EEPROM/EEPROM.o arduino/SPI/SPI.o arduino/Wire/Wire.o arduino/Wire/utility/twi.o 
+arduino/arduino.a:	arduino/CDC.o arduino/HardwareSerial.o arduino/HID.o arduino/IPAddress.o arduino/main.o arduino/new.o arduino/Print.o arduino/Stream.o arduino/Tone.o arduino/USBCore.o arduino/WInterrupts.o arduino/wiring.o arduino/wiring_analog.o arduino/wiring_digital.o arduino/wiring_pulse.o arduino/wiring_shift.o arduino/WMath.o arduino/WString.o arduino/avr-libc/malloc.o arduino/avr-libc/realloc.o arduino/EEPROM/EEPROM.o arduino/SPI/SPI.o arduino/Wire/Wire.o arduino/Wire/utility/twi.o arduino/SoftwareSerial/SoftwareSerial.o 
 
 arduino/CDC.o:	C:/Archivos\ de\ programa/Arduino/hardware/arduino/cores/arduino/CDC.cpp
 	 $(CC) $(CCFLAGS) -o arduino/CDC.o -c "C:/Archivos de programa/Arduino/hardware/arduino/cores/arduino/CDC.cpp"
@@ -118,6 +118,10 @@ arduino/Wire/utility/twi.o:	C:/Archivos\ de\ programa/Arduino/libraries/Wire/uti
 	 $(CC) $(CCFLAGS) @arduino/libs.inc -I "C:/Archivos de programa/Arduino/libraries/Wire/utility" -I "C:/Archivos de programa/Arduino/libraries/Wire/avr" -I "C:/Archivos de programa/Arduino/libraries/Wire/utility/avr" -o arduino/Wire/utility/twi.o -c "C:/Archivos de programa/Arduino/libraries/Wire/utility/twi.c"
 	 $(AR) $(ARFLAGS) arduino/arduino.a arduino/Wire/utility/twi.o
 
+arduino/SoftwareSerial/SoftwareSerial.o:	C:/Archivos\ de\ programa/Arduino/libraries/SoftwareSerial/SoftwareSerial.cpp
+	 $(CC) $(CCFLAGS) @arduino/libs.inc -I "C:/Archivos de programa/Arduino/libraries/SoftwareSerial/utility" -I "C:/Archivos de programa/Arduino/libraries/SoftwareSerial/avr" -I "C:/Archivos de programa/Arduino/libraries/SoftwareSerial/utility/avr" -o arduino/SoftwareSerial/SoftwareSerial.o -c "C:/Archivos de programa/Arduino/libraries/SoftwareSerial/SoftwareSerial.cpp"
+	 $(AR) $(ARFLAGS) arduino/arduino.a arduino/SoftwareSerial/SoftwareSerial.o
+
 clean:	tidy
 	 rm -f arduino/arduino.a
 
@@ -146,4 +150,5 @@ tidy:
 	 rm -f arduino/SPI/SPI.o
 	 rm -f arduino/Wire/Wire.o
 	 rm -f arduino/Wire/utility/twi.o
+	 rm -f arduino/SoftwareSerial/SoftwareSerial.o
 
