@@ -53,7 +53,7 @@ const char* const noteDivisionStr[] PROGMEM = {str20, str21, str22};
 
 const char str23[] PROGMEM = "Modo";
 const char str24[] PROGMEM = "Ticks iguales";
-const char str25[] PROGMEM = "Canal Midi";
+const char str25[] PROGMEM = "Midi Clock";
 
 const char* const settingsStr[] PROGMEM = {str23, str24, str25};
 

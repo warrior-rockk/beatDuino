@@ -79,7 +79,7 @@
 	#define SETTINGS_PAGE			22
 		#define MODE_PAGE					23
 		#define EQUAL_TICKS_PAGE			24
-		#define MIDI_CHANNEL_PAGE			25
+		#define MIDI_CLOCK_PAGE			25
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
@@ -102,7 +102,7 @@
 #define SETTINGS_OPTION				2	
 	#define MODE_OPTION					0
 	#define EQUAL_TICKS_OPTION			1
-	#define MIDI_CHANNEL_OPTION			2
+	#define MIDI_CLOCK_OPTION			2
 
 //comandos midi
 #define MIDI_CLOCK_MSG		0xF8
@@ -178,7 +178,7 @@ const struct {
 					3,MAIN_PAGE,settingsStr,
 					2,SETTINGS_PAGE,modeStr,
 					2,SETTINGS_PAGE,confirmStr,
-					16,SETTINGS_PAGE,NULL,
+					2,SETTINGS_PAGE,confirmStr,
 				};
 				  
 //==============================================
@@ -201,7 +201,7 @@ byte actualNumSong			= 0;				//cancion actual del repertorio
 byte actualPlayListNum      = 0;				//numero de repetorio actual
 //midi
 SoftwareSerial midi(MIDI_RX,MIDI_TX);			//conexion serie Midi
-byte midiChannel			= 0;				//Canal midi
+boolean midiClock			= false;			//flag de envio de midi clock
 //interfaz
 signed int deltaEnc         = 0;				//incremento o decremento del encoder
 unsigned int buttonDelay    = 2;				//Tiempo antirebote
@@ -751,12 +751,12 @@ void loop()
 								editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
 								actualMenuPage = EQUAL_TICKS_PAGE;
 								break;		
-							case MIDI_CHANNEL_OPTION:
+							case MIDI_CLOCK_OPTION:
 								//leemos el canal midi
-								editData = EEPROM.read(EEPROM_CONFIG_MIDI_CHANNEL);
+								editData = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
 								//si no esta seteado, lo seteamos
 								editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
-								actualMenuPage = MIDI_CHANNEL_PAGE;
+								actualMenuPage = MIDI_CLOCK_PAGE;
 								break;	
 						}
 						break;
@@ -782,12 +782,12 @@ void loop()
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
 						break;
 					}
-					case MIDI_CHANNEL_PAGE:
+					case MIDI_CLOCK_PAGE:
 					{
 						//cambiamos el canal midi
-						midiChannel = actualMenuOption;
+						midiClock = actualMenuOption;
 						//guardamos en config
-						EEPROM_Write(EEPROM_CONFIG_MIDI_CHANNEL,midiChannel);
+						EEPROM_Write(EEPROM_CONFIG_MIDI_CLOCK,midiClock);
 						
 						actualMenuOption = 0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
@@ -850,7 +850,8 @@ void loop()
 			tone(OUT_CLICK,NOTE_C4,clickDuration);
 		
 		//debug midi (enviamos un midi clock. En la realidad hay que enviarlo 24 veces por negra)
-		midi.write(MIDI_CLOCK_MSG);
+		if (midiClock)
+			midi.write(MIDI_CLOCK_MSG);
 		
 		//desactivamos flag	
 		tick = false;
@@ -1233,16 +1234,7 @@ void refreshLCD()
 					display.println(title);
 					free (title);
 					}
-					break;
-				//Configuracion: canal MIDI
-				case MIDI_CHANNEL_PAGE:
-					{
-					display.setTextColor(WHITE,BLACK);
-					display.println(F("Canal Midi:"));
-					display.println("\n");
-					display.println(actualMenuOption);
-					}
-					break;
+					break;				
 				//cualquier pagina de menu que solo muestra opciones
 				default:
 					{
@@ -1302,6 +1294,6 @@ void loadConfig()
 	data = EEPROM.read(EEPROM_CONFIG_EQUAL_TICKS);
 	data != 0xFF ? equalTicks =data : equalTicks = equalTicks;
 	
-	data = EEPROM.read(EEPROM_CONFIG_MIDI_CHANNEL);
-	data != 0xFF ? midiChannel =data : midiChannel = midiChannel;
+	data = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
+	data != 0xFF ? midiClock =data : midiClock = midiClock;
 }

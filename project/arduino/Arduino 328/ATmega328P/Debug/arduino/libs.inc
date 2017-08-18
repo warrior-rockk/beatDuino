@@ -1,8 +1,8 @@
--DARDUINO=105
--I "C:/Archivos de programa/Arduino/hardware/arduino/cores/arduino"
--I "C:/Archivos de programa/Arduino/hardware/arduino/variants/standard"
--I "C:/Archivos de programa/Arduino/libraries/EEPROM"
--I "C:/Archivos de programa/Arduino/libraries/SPI"
--I "C:/Archivos de programa/Arduino/libraries/Wire"
--I "C:/Archivos de programa/Arduino/libraries/SoftwareSerial"
+-DARDUINO=183
+-I "C:/Archivos de programa/Arduino/hardware/arduino/avr/cores/arduino"
+-I "C:/Archivos de programa/Arduino/hardware/arduino/avr/variants/eightanaloginputs"
+-I "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/EEPROM/src"
+-I "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/SPI/src"
+-I "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/Wire/src"
+-I "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/SoftwareSerial/src"
 
