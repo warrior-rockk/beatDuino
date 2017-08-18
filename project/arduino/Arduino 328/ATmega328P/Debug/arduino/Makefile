@@ -10,7 +10,7 @@ ARDUINO = 183
 SHELL = C:\Windows\system32\cmd.exe
 
 ## Tools general options
-CCFLAGS = -w -ffunction-sections -fdata-sections -DARDUINO_ARCH_AVR -DF_CPU=$(CLOCK) -DARDUINO=$(ARDUINO) -mmcu=$(MCU) -I "C:/Archivos de programa/Arduino/hardware/arduino/avr/cores/arduino" -I "C:/Archivos de programa/Arduino/hardware/arduino/avr/variants/eightanaloginputs" -Os
+CCFLAGS = -w -ffunction-sections -fdata-sections -DARDUINO_ARCH_AVR -DF_CPU=$(CLOCK) -DARDUINO=$(ARDUINO) -mmcu=$(MCU) -I "C:/Archivos de programa/Arduino/hardware/arduino/avr/cores/arduino" -I "C:/Archivos de programa/Arduino/hardware/arduino/avr/variants/eightanaloginputs" -gdwarf-2 -Os
 ARFLAGS = ru
 
 ## Processing Tools

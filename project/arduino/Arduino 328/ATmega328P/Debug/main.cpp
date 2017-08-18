@@ -95,6 +95,7 @@ void loadConfig ();
 		#define MODE_PAGE					23
 		#define EQUAL_TICKS_PAGE			24
 		#define MIDI_CLOCK_PAGE			25
+	#define INFO_PAGE				26
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
@@ -118,6 +119,7 @@ void loadConfig ();
 	#define MODE_OPTION					0
 	#define EQUAL_TICKS_OPTION			1
 	#define MIDI_CLOCK_OPTION			2
+#define INFO_OPTION					3
 
 //comandos midi
 #define MIDI_CLOCK_MSG		0xF8
@@ -168,7 +170,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[26] = {	3,MAIN_PAGE,mainStr,
+} menuPage[27] = {	4,MAIN_PAGE,mainStr,
 					3,MAIN_PAGE,playListStr,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -194,6 +196,7 @@ const struct {
 					2,SETTINGS_PAGE,modeStr,
 					2,SETTINGS_PAGE,confirmStr,
 					2,SETTINGS_PAGE,confirmStr,
+					0,MAIN_PAGE,NULL,
 				};
 				  
 //==============================================
@@ -230,6 +233,10 @@ char * editString;								//cadena a editar
 byte editData				= 0;				//dato a editar
 byte editSelection			= 0;				//seleccion a editar
 //debug
+unsigned long startTime     = 0;				//tiempo de inicio de ejecucion ciclo para medir rendimiento
+unsigned long lastCycleTime = 0;				//tiempo que tardo el ultimo ciclo
+unsigned long minCycleTime  = 2000000;			//tiempo de ciclo minimo
+unsigned long maxCycleTime  = 0;				//tiempo de ciclo maximo
 byte general;
 //================================
 //configuracion
@@ -281,12 +288,14 @@ void setup()
 	//leemos los datos actuales
 	readPlayListData();
 	readSongData();
-	//tone(OUT_CLICK,NOTE_C4);
  }
 
  //bucle principal
 void loop()
  { 
+	//inciio ejecucion
+	startTime = micros();
+	
 	//procesamos botones
 	processButton(START_STOP,START_STOP_BT);
 	processButton(MENU_PIN,MENU_BT);
@@ -421,6 +430,11 @@ void loop()
 							case SETTINGS_OPTION:
 								actualMenuOption = 0;
 								actualMenuPage = SETTINGS_PAGE;
+								
+								break;
+							case INFO_OPTION:
+								actualMenuOption = 0;
+								actualMenuPage = INFO_PAGE;
 								
 								break;
 						}
@@ -836,6 +850,13 @@ void loop()
 	//resetemos valor encoder
 	deltaEnc = 0;
 	
+	//calculo del tiempo de ciclo,maximo y minimo
+	lastCycleTime = micros() - startTime;
+	if (lastCycleTime > maxCycleTime)
+		maxCycleTime = lastCycleTime;
+	if (lastCycleTime < minCycleTime)
+		minCycleTime = lastCycleTime;
+		
 	//reseteamos el watchdog
 	wdt_reset();
  }
@@ -1248,6 +1269,27 @@ void refreshLCD()
 					display.print(".");
 					display.println(title);
 					free (title);
+					}
+					break;				
+				//informacion
+				case INFO_PAGE:
+					{
+					display.setTextColor(WHITE,BLACK);
+					display.println(F("BeatDuino"));
+					display.println(F("by Warrior"));
+					display.print(F("Version:"));
+					display.print(majorVersion);
+					display.print(".");
+					display.println(minorVersion);
+					display.print(F("Ciclo Actual:"));
+					display.print(lastCycleTime);
+					display.println(F("uS"));
+					display.print(F("Ciclo Min:"));
+					display.print(minCycleTime);
+					display.println(F("uS"));
+					display.print(F("Ciclo Max:"));
+					display.print(maxCycleTime);
+					display.println(F("uS"));
 					}
 					break;				
 				//cualquier pagina de menu que solo muestra opciones

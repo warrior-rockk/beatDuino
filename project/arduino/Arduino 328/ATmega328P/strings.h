@@ -9,7 +9,8 @@
 const char str0[] PROGMEM = "Repertorios";
 const char str1[] PROGMEM = "Canciones";
 const char str2[] PROGMEM = "Ajustes";
-const char* const mainStr[] PROGMEM = {str0, str1, str2};
+const char str2_1[] PROGMEM = "Info";
+const char* const mainStr[] PROGMEM = {str0, str1, str2, str2_1};
 
 const char str3[] PROGMEM = "Cambiar Repertorio";
 const char str4[] PROGMEM = "Editar Repertorio";
