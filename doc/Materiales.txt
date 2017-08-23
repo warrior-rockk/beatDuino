@@ -1,0 +1,32 @@
+Generales
+=========
+
+Componentes
+-----------
+1 Pantalla OLED 0,96" con interfaz I2C y que acepte 5V. (pedir 2)
+1 Encoder rotativo con pulsador (pedir 2) (comprobar tamaño para acoplar rueda)
+2 Condensadores ceramicos de 1uF - los pasamos a 100nF
+1 Potenciometro 10K (con perilla)
+2 Resistencias 160
+1 Resistencia 1K
+1 Resistencia 1,5K
+1 Resistencia 220
+2 Condensadores electrolíticos de 0,47uF 5V (pido de los 2. electrolitico y ceramico)
+
+Componentes version standalone
+------------------------------
+1 Atmega328 con bootloader Arduino (o sin) + portachip dip socket
+1 Cristal 16Mhz
+2 Condensadores ceramicos de 18 a 22pF
+1 Resistencia 10K
+1 Estabilizador tension 7805
+2 Condensadores ceramicos 100nF
+
+Materiales mecánicos
+====================
+1 conector barrel-jack para alimentacion 9V
+1 conector midi mural hembra
+1 conector mural minijack hembra estereo
+1 conector mural jack hembra mono
+1 scrubber o perilla de rueda para el encoder (comprobar tamaño)
+1 interruptor ON/OFF chulo
