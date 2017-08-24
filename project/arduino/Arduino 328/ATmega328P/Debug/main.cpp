@@ -54,12 +54,12 @@ void sonar ();
 #line 39
 //Definiciones====================================
 //pines IO
-#define START_STOP  0
+#define START_STOP  5
 #define ENC_B   	1		
 #define ENC_A		2		
 #define MENU_PIN   	3		
 #define OLED_RESET 	4
-#define ENTER_PIN	5
+#define ENTER_PIN	0
 #define MIDI_TX		6
 #define MIDI_RX		7 
 #define OUT_CLICK 	11		
@@ -96,7 +96,8 @@ void sonar ();
 	#define SETTINGS_PAGE			22
 		#define MODE_PAGE					23
 		#define EQUAL_TICKS_PAGE			24
-		#define MIDI_CLOCK_PAGE			25
+		#define TICK_SOUND_PAGE				25
+		#define MIDI_CLOCK_PAGE				26
 	#define INFO_PAGE				26
 	
 //opciones menu
@@ -120,7 +121,8 @@ void sonar ();
 #define SETTINGS_OPTION				2	
 	#define MODE_OPTION					0
 	#define EQUAL_TICKS_OPTION			1
-	#define MIDI_CLOCK_OPTION			2
+	#define TICK_SOUND_OPTION			2
+	#define MIDI_CLOCK_OPTION			3
 #define INFO_OPTION					3
 
 //comandos midi
@@ -172,7 +174,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[27] = {	4,MAIN_PAGE,mainStr,
+} menuPage[28] = {	4,MAIN_PAGE,mainStr,
 					3,MAIN_PAGE,playListStr,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -194,10 +196,11 @@ const struct {
 					6,EDIT_SONG_PAGE,NULL,
 					MAX_SONGS,SONG_PAGE,NULL,
 					2,SONG_PAGE,confirmStr,
-					3,MAIN_PAGE,settingsStr,
+					4,MAIN_PAGE,settingsStr,
 					2,SETTINGS_PAGE,modeStr,
 					2,SETTINGS_PAGE,confirmStr,
-					2,SETTINGS_PAGE,confirmStr,
+					0,SETTINGS_PAGE,NULL,
+					2,SETTINGS_PAGE,confirmStr,					
 					0,MAIN_PAGE,NULL,
 				};
 				  
@@ -214,8 +217,9 @@ unsigned long lastTime 		= 0;				//memoria tiempo anterior
 unsigned int noteDivision	= QUARTER;			//subdivision nota click
 unsigned int barSignature   = 4;				//tipo compas
 unsigned int actualTick     = 1;				//tiempo actual
+unsigned int tickSound		= NOTE_C4;			//sonido del tick
 boolean tick 				= true;				//flag de activar tick
-boolean play				= true;			//flag de activar metronomo
+boolean play				= true;				//flag de activar metronomo
 boolean equalTicks			= false;			//flag de mismo sonido para todos los ticks
 byte actualNumSong			= 0;				//cancion actual del repertorio
 byte actualPlayListNum      = 0;				//numero de repetorio actual
@@ -233,6 +237,7 @@ byte actualMenuOption 		= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
 byte editCursor             = 0;				//posicion cursor edicion
 char * editString;								//cadena a editar
 byte editData				= 0;				//dato a editar
+int editDataInt				= 0;				//dato a editar entero
 byte editSelection			= 0;				//seleccion a editar
 //debug
 unsigned long startTime     = 0;				//tiempo de inicio de ejecucion ciclo para medir rendimiento
@@ -786,6 +791,13 @@ void loop()
 								editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
 								actualMenuPage = EQUAL_TICKS_PAGE;
 								break;		
+							case TICK_SOUND_OPTION:
+								//leemos el sonido actual
+								editDataInt = tickSound; //EEPROM.read(EEPROM_CONFIG_EQUAL_TICKS);
+								//si no esta seteado, lo seteamos
+								//editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
+								actualMenuPage = TICK_SOUND_PAGE;
+								break;		
 							case MIDI_CLOCK_OPTION:
 								//leemos el canal midi
 								editData = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
@@ -812,6 +824,17 @@ void loop()
 						equalTicks = actualMenuOption;
 						//guardamos en config
 						EEPROM_Write(EEPROM_CONFIG_EQUAL_TICKS,equalTicks);
+						
+						actualMenuOption = 0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						break;
+					}
+					case TICK_SOUND_PAGE:
+					{
+						//cambiamos el sonido
+						tickSound = editDataInt;
+						//guardamos en config
+						//EEPROM_Write(EEPROM_CONFIG_EQUAL_TICKS,equalTicks);
 						
 						actualMenuOption = 0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
@@ -891,7 +914,7 @@ void loop()
 		if (actualTick == 1 && !equalTicks)
 			tone(OUT_CLICK,NOTE_A4,clickDuration);
 		else
-			tone(OUT_CLICK,NOTE_C4,clickDuration);
+			tone(OUT_CLICK,tickSound,clickDuration);
 		
 		//debug midi (enviamos un midi clock. En la realidad hay que enviarlo 24 veces por negra)
 		if (midiClock)
@@ -1278,7 +1301,26 @@ void refreshLCD()
 					display.println(title);
 					free (title);
 					}
-					break;				
+					break;	
+				case TICK_SOUND_PAGE:
+					{
+					if (deltaEnc > 0)
+					{
+						editDataInt++;	
+						tickSound = editDataInt;
+					}
+					if (deltaEnc < 0)
+					{
+						editDataInt--;			
+						tickSound = editDataInt;
+					}	
+					display.setTextColor(WHITE,BLACK);
+					display.println(F("Elige el sonido:"));
+					display.println("\n");
+					display.print(editDataInt);
+					display.println(F("  Hz"));
+					}
+					break;
 				//informacion
 				case INFO_PAGE:
 					{
