@@ -38,6 +38,7 @@
 #include <dataManagement.h>
 //midi
 #include <SoftwareSerial.h>
+#include <TimerOne.h>
 void setup ();
 void loop ();
 void playMetronome ();
@@ -49,7 +50,8 @@ void refreshLCD ();
 void readPlayListData ();
 void readSongData ();
 void loadConfig ();
-#line 38
+void sonar ();
+#line 39
 //Definiciones====================================
 //pines IO
 #define START_STOP  0
@@ -202,18 +204,18 @@ const struct {
 //==============================================
 
 //Variables generales===========================
-byte mode          = LIVE_MODE;					//modo general
+byte mode          = METRONOME_MODE;			//modo general
 byte state         = MAIN_STATE;				//estado general
 boolean refresh			= true;					//refresco LCD
-unsigned int bpm 			= 100;				//tempo general
+unsigned int bpm 			= 160;				//tempo general
 unsigned long msTempo 		= 0;				//tempo en milisegundos
-unsigned int clickDuration 	= 10;				//duración pulso click
+unsigned int clickDuration 	= 30;				//duración pulso click
 unsigned long lastTime 		= 0;				//memoria tiempo anterior
 unsigned int noteDivision	= QUARTER;			//subdivision nota click
 unsigned int barSignature   = 4;				//tipo compas
 unsigned int actualTick     = 1;				//tiempo actual
 boolean tick 				= true;				//flag de activar tick
-boolean play				= false;			//flag de activar metronomo
+boolean play				= true;			//flag de activar metronomo
 boolean equalTicks			= false;			//flag de mismo sonido para todos los ticks
 byte actualNumSong			= 0;				//cancion actual del repertorio
 byte actualPlayListNum      = 0;				//numero de repetorio actual
@@ -274,6 +276,9 @@ void setup()
 	display.clearDisplay();
 	display.setTextSize(1);
 	display.setTextColor(WHITE);
+	
+	//Timer1.initialize(375000);  // 150 ms
+	//Timer1.attachInterrupt(sonar);
 	
 	//activamos el watchdog a 2 segundos
 	wdt_enable(WDTO_2S);
@@ -1356,4 +1361,9 @@ void loadConfig()
 	
 	data = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
 	data != 0xFF ? midiClock =data : midiClock = midiClock;
+}
+
+void sonar()
+{
+	tone(OUT_CLICK,NOTE_A4,clickDuration);
 }
