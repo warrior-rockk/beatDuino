@@ -196,12 +196,12 @@ byte state         = MAIN_STATE;				//estado general
 boolean refresh			= true;					//refresco LCD
 unsigned int bpm 			= 160;				//tempo general
 unsigned long msTempo 		= 0;				//tempo en milisegundos
-unsigned int clickDuration 	= 30;				//duración pulso click
+unsigned int clickDuration 	= 50;				//duración pulso click
 unsigned long lastTime 		= 0;				//memoria tiempo anterior
 unsigned int noteDivision	= QUARTER;			//subdivision nota click
 unsigned int barSignature   = 4;				//tipo compas
 unsigned int actualTick     = 1;				//tiempo actual
-unsigned int tickSound		= NOTE_C4;			//sonido del tick
+unsigned int tickSound		= NOTE_A4;			//sonido del tick
 boolean tick 				= true;				//flag de activar tick
 boolean play				= true;				//flag de activar metronomo
 boolean equalTicks			= false;			//flag de mismo sonido para todos los ticks
@@ -896,7 +896,7 @@ void loop()
 		digitalWrite(LED_CLICK, HIGH);
 		//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
 		if (actualTick == 1 && !equalTicks)
-			tone(OUT_CLICK,NOTE_A4,clickDuration);
+			tone(OUT_CLICK,NOTE_F5,clickDuration);
 		else
 			tone(OUT_CLICK,tickSound,clickDuration);
 		
