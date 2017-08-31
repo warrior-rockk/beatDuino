@@ -52,6 +52,7 @@ AL igual, el acoplamiento con condensador para centrar, es mas relevante cuando 
 (http://forum.arduino.cc/index.php?topic=286907.0).
 
 Para el cálculo del filtro RC se usa la formula frecuencia = 1/(2*pi*R*C). La resistencia queremos poner la minima que limite la corriente de 40mA por seguridad y que no afecte a los divisores resistivos de luego, con lo que la ponemos de 160). La frecuencia de corte que queremos , creo que es la mitad de la maxima que vamos a suministrar, que, mirando el archivo .h de tones, son 4Khz, con lo que calculamos un C de 500nF (0,5uF -> comercial 0,47uF).
+He realizado pruebas y no he notado diferencia entre poner condensador electrolitico o ceramico.
 ¿Si la salida es para auriculares, creo que hay que amplificarla también. (o poner un buffer como el enlace anterior)? Creo que no es necesario... O quizas, al tener la carga de 32ohms conectada, se genera una caida de tension que hace que se pierda volumen y por eso se necesita el amplificador/buffer....
 
 Si queremos generar audio con datos en array de WAV, tenemos que usar una salida PMW, pero requiere configurar timers e interrupciones
@@ -62,6 +63,14 @@ http://www.uchobby.com/index.php/2007/11/14/arduino-sound-part-2-hello-world/
 
 http://www.instructables.com/id/Arduino-Audio-Output/
 http://www.instructables.com/id/Simple-Wav-Player-Using-Arduino/
+
+Ruidos:
+--------
+La comunicacion i2c me genera mucho ruido de fondo , que cambia conforme se redibuja la pantalla. Para evitar estos ruidos, se utilizan condensadores de desacoplamiento.
+Siempre que hay ICs, sobretodo que son microcontroladores, es recomendable poner un condensador electrolítico entre su aliemntacion positiva y masa porque, debido al procesamiento de cambio de entradas salidas y comunicacion serie, el uC hace variar su caída de tension durante tiempos muy rapidos, generando oscilacion y provocando ruidos en la masa. Con el condensador en la alimentación, filtramos esas variaciones rapidas. Podemos poner tantos condensadores como ICs tengamos en sus alimentaciones.
+Haciendo pruebas en real, cuanto mas grande es el condensador (mas capacidad), mas filtra. Con uno de 1000uF me ha ido bien.
+
+Ha pesar del filtro en la alimentacion, he tenido ruido de fondo en la masa probando en protoboard. Al mover el cable y tumbarlo y hacer que mas superficie toque el pin, se eliminaba. Hay que tener una buena zona de masa para evita esto. Es importante en el PCB, hacer un buen cooper de masa que ocupe mucha superficie.
 
 Pantalla
 -------
