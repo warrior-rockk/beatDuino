@@ -71,6 +71,8 @@ Siempre que hay ICs, sobretodo que son microcontroladores, es recomendable poner
 Haciendo pruebas en real, cuanto mas grande es el condensador (mas capacidad), mas filtra. Con uno de 1000uF me ha ido bien.
 
 Ha pesar del filtro en la alimentacion, he tenido ruido de fondo en la masa probando en protoboard. Al mover el cable y tumbarlo y hacer que mas superficie toque el pin, se eliminaba. Hay que tener una buena zona de masa para evita esto. Es importante en el PCB, hacer un buen cooper de masa que ocupe mucha superficie.
+Al pasar la masa del encoder y de la pantalla al carril de abajo del protoboard y la masa de todo lo demas cojerlo a la otra salida gnd de arduino, me desaparece el ruido de fondo totalmente sin usar condensador. Parece que cuanto
+mas alejado esté de la fuente de ruido, mejor.
 
 Pantalla
 -------
