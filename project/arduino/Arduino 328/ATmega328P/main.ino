@@ -82,7 +82,7 @@
 		#define EQUAL_TICKS_PAGE			24
 		#define TICK_SOUND_PAGE				25
 		#define MIDI_CLOCK_PAGE				26
-	#define INFO_PAGE				26
+	#define INFO_PAGE				27
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
@@ -1387,6 +1387,7 @@ void loadConfig()
 	
 	data = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
 	data != 0xFF ? midiClock =data : midiClock = midiClock;
+	
 }
 
 void sonar()
