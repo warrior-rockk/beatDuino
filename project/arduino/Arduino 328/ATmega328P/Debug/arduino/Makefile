@@ -4,7 +4,7 @@
 
 ## General options
 MCU = atmega328p
-CLOCK = 16000000
+CLOCK = 8000000
 COMPILER = "Arduino"
 ARDUINO = 180
 SHELL = C:\Windows\system32\cmd.exe
@@ -20,7 +20,7 @@ AR=ar
 ## Build tree:
 all:	arduino/arduino.a
 
-arduino/arduino.a:	arduino/abi.o arduino/CDC.o arduino/HardwareSerial.o arduino/HardwareSerial0.o arduino/HardwareSerial1.o arduino/HardwareSerial2.o arduino/HardwareSerial3.o arduino/hooks.o arduino/IPAddress.o arduino/main.o arduino/new.o arduino/PluggableUSB.o arduino/Print.o arduino/Stream.o arduino/Tone.o arduino/USBCore.o arduino/WInterrupts.o arduino/wiring.o arduino/wiring_analog.o arduino/wiring_digital.o arduino/wiring_pulse.o arduino/wiring_shift.o arduino/WMath.o arduino/WString.o arduino/SPI/SPI.o arduino/Wire/Wire.o arduino/Wire/utility/twi.o arduino/SoftwareSerial/SoftwareSerial.o 
+arduino/arduino.a:	arduino/abi.o arduino/CDC.o arduino/HardwareSerial.o arduino/HardwareSerial0.o arduino/HardwareSerial1.o arduino/HardwareSerial2.o arduino/HardwareSerial3.o arduino/hooks.o arduino/IPAddress.o arduino/main.o arduino/new.o arduino/PluggableUSB.o arduino/Print.o arduino/Stream.o arduino/Tone.o arduino/USBCore.o arduino/WInterrupts.o arduino/wiring.o arduino/wiring_analog.o arduino/wiring_digital.o arduino/wiring_pulse.o arduino/wiring_shift.o arduino/WMath.o arduino/WString.o arduino/SPI/SPI.o arduino/Wire/Wire.o arduino/Wire/utility/twi.o 
 
 arduino/abi.o:	C:/Archivos\ de\ programa/Arduino/hardware/arduino/avr/cores/arduino/abi.cpp
 	 $(CC) $(CCFLAGS) -o arduino/abi.o -c "C:/Archivos de programa/Arduino/hardware/arduino/avr/cores/arduino/abi.cpp"
@@ -130,10 +130,6 @@ arduino/Wire/utility/twi.o:	C:/Archivos\ de\ programa/Arduino/hardware/arduino/a
 	 $(CC) $(CCFLAGS) @arduino/libs.inc -I "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/Wire/src/utility" -I "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/Wire/src/avr" -I "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/Wire/src/utility/avr" -o arduino/Wire/utility/twi.o -c "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/Wire/src/utility/twi.c"
 	 $(AR) $(ARFLAGS) arduino/arduino.a arduino/Wire/utility/twi.o
 
-arduino/SoftwareSerial/SoftwareSerial.o:	C:/Archivos\ de\ programa/Arduino/hardware/arduino/avr/libraries/SoftwareSerial/src/SoftwareSerial.cpp
-	 $(CC) $(CCFLAGS) @arduino/libs.inc -I "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/SoftwareSerial/src/utility" -I "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/SoftwareSerial/src/avr" -I "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/SoftwareSerial/src/utility/avr" -o arduino/SoftwareSerial/SoftwareSerial.o -c "C:/Archivos de programa/Arduino/hardware/arduino/avr/libraries/SoftwareSerial/src/SoftwareSerial.cpp"
-	 $(AR) $(ARFLAGS) arduino/arduino.a arduino/SoftwareSerial/SoftwareSerial.o
-
 clean:	tidy
 	 rm -f arduino/arduino.a
 
@@ -165,5 +161,4 @@ tidy:
 	 rm -f arduino/SPI/SPI.o
 	 rm -f arduino/Wire/Wire.o
 	 rm -f arduino/Wire/utility/twi.o
-	 rm -f arduino/SoftwareSerial/SoftwareSerial.o
 

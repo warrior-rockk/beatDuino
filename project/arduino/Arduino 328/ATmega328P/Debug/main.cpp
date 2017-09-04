@@ -37,7 +37,6 @@
 //funciones datos
 #include <dataManagement.h>
 //midi
-#include <SoftwareSerial.h>
 #include <TimerOne.h>
 void setup ();
 void loop ();
@@ -50,18 +49,18 @@ void refreshLCD ();
 void readPlayListData ();
 void readSongData ();
 void loadConfig ();
-void sonar ();
-#line 39
+void sendMidiClock ();
+#line 38
 //Definiciones====================================
 //pines IO
 #define START_STOP  5
-#define ENC_B   	1		
+#define ENC_B   	6		
 #define ENC_A		2		
 #define MENU_PIN   	3		
 #define OLED_RESET 	4
-#define ENTER_PIN	0
-#define MIDI_TX		6
-#define MIDI_RX		7 
+#define ENTER_PIN	7
+#define MIDI_TX		1
+#define MIDI_RX		0 
 #define OUT_CLICK 	11		
 #define LED_CLICK   13
 
@@ -98,7 +97,7 @@ void sonar ();
 		#define EQUAL_TICKS_PAGE			24
 		#define TICK_SOUND_PAGE				25
 		#define MIDI_CLOCK_PAGE				26
-	#define INFO_PAGE				26
+	#define INFO_PAGE				27
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
@@ -129,6 +128,8 @@ void sonar ();
 #define MIDI_CLOCK_MSG		0xF8
 #define MIDI_START_MSG		0xFA
 #define MIDI_STOP_MSG		0xFC
+//midi clock per beat
+#define MIDI_TICKS_BEAT		24
 
 //config LCD
 Adafruit_SSD1306 display(OLED_RESET);
@@ -224,10 +225,11 @@ boolean equalTicks			= false;			//flag de mismo sonido para todos los ticks
 byte actualNumSong			= 0;				//cancion actual del repertorio
 byte actualPlayListNum      = 0;				//numero de repetorio actual
 //midi
-SoftwareSerial midi(MIDI_RX,MIDI_TX);			//conexion serie Midi
 boolean midiClock			= false;			//flag de envio de midi clock
+float midiClockTime;							//intervalo midi interrupcion
+byte midiCounter			= 0;				//contador clocks midi
 //interfaz
-signed int deltaEnc         = 0;				//incremento o decremento del encoder
+volatile signed int deltaEnc= 0;				//incremento o decremento del encoder
 unsigned int buttonDelay    = 2;				//Tiempo antirebote
 unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funciones
 //menu
@@ -270,11 +272,11 @@ void setup()
 	display.begin(SSD1306_SWITCHCAPVCC, 0x3D);  // initialize with the I2C addr 0x3D (for the 128x64)
 	
 	//Midi Baud Rate 
-	midi.begin(31250);
-  
+	Serial.begin(31250);
+	
 	//Mensaje de inicio
 	#ifndef DEBUG
-		wellcomeTest();
+	//	wellcomeTest();
 	#endif
 	
 	//Clear the buffer.
@@ -282,8 +284,13 @@ void setup()
 	display.setTextSize(1);
 	display.setTextColor(WHITE);
 	
-	//Timer1.initialize(375000);  // 150 ms
-	//Timer1.attachInterrupt(sonar);
+	//iniciamos la interrupcion del metronomo
+	//midiClockTime = 60000/bpm;
+	//midiClockTime = midiClockTime/MIDI_TICKS_BEAT;
+	//midiClockTime = midiClockTime*1000;
+	midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
+	Timer1.initialize(midiClockTime); //uSecs
+	Timer1.attachInterrupt(sendMidiClock);
 	
 	//activamos el watchdog a 2 segundos
 	wdt_enable(WDTO_2S);
@@ -305,7 +312,7 @@ void loop()
  { 
 	//inciio ejecucion
 	startTime = micros();
-	
+		
 	//procesamos botones
 	processButton(START_STOP,START_STOP_BT);
 	processButton(MENU_PIN,MENU_BT);
@@ -357,12 +364,16 @@ void loop()
 					{
 						actualNumSong++;
 						readSongData();
+						midiClockTime = (float)((float)(60000/actualSong.tempo)/MIDI_TICKS_BEAT)*1000;
+						Timer1.setPeriod(midiClockTime); //uSecs
 						refresh = true;
 					}
 					if (deltaEnc < 0 && actualNumSong > 0)
 					{
 						actualNumSong--;
 						readSongData();
+						midiClockTime = (float)((float)(60000/actualSong.tempo)/MIDI_TICKS_BEAT)*1000;
+						Timer1.setPeriod(midiClockTime); //uSecs
 						refresh = true;
 					}
 										
@@ -385,9 +396,30 @@ void loop()
 					
 				//modo metronomo normal. Con la ruleta cambias el tempo.
 				case METRONOME_MODE:
-					//conversion bpm
-					bpm = bpm + deltaEnc;
-										
+					//cambio tempo
+					if (deltaEnc > 0 )
+					{
+						if (bpm < 255)
+							bpm++;
+						
+						//actualizamos 
+						midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
+						Timer1.setPeriod(midiClockTime); //uSecs
+						deltaEnc = 0;
+						refresh = true;
+					}
+					if (deltaEnc < 0 )
+					{
+						if (bpm > 0)
+							bpm--;
+						
+						//actualizamos
+						midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
+						Timer1.setPeriod(midiClockTime); //uSecs
+						deltaEnc = 0;
+						refresh = true;
+					}
+															
 					//ms of actual tempo
 					msTempo = (60000/bpm);
 					
@@ -397,10 +429,7 @@ void loop()
 						play = !play;
 						refresh = true;
 					}	
-					
-					//refresco por cambio de tempo
-					if (deltaEnc != 0) 
-						refresh = true;					
+										
 					break;
 			}
 			
@@ -861,17 +890,15 @@ void loop()
 	}
 	
 	//si está activado el sonido del metronomo
-	if (play)
+	/*if (play)
 	{
 		playMetronome();
 	}
 	else
 	{
 		stopMetronome();
-	}
+	}*/
 
-	
-		
 	//refresco interfaz
 	if (refresh) {
 		refreshLCD();
@@ -884,9 +911,10 @@ void loop()
 		maxCycleTime = lastCycleTime;
 	if (lastCycleTime < minCycleTime)
 		minCycleTime = lastCycleTime;
-		
+
 	//resetemos valor encoder
-	deltaEnc = 0;
+	if (digitalRead(ENC_B) == digitalRead(ENC_A))
+		deltaEnc = 0;
 		
 	//reseteamos el watchdog
 	wdt_reset();
@@ -915,10 +943,6 @@ void loop()
 			tone(OUT_CLICK,NOTE_F5,clickDuration);
 		else
 			tone(OUT_CLICK,tickSound,clickDuration);
-		
-		//debug midi (enviamos un midi clock. En la realidad hay que enviarlo 24 veces por negra)
-		if (midiClock)
-			midi.write(MIDI_CLOCK_MSG);
 		
 		//desactivamos flag	
 		tick = false;
@@ -997,9 +1021,9 @@ void doEncoder()
 {
   //si el canal A y el B son iguales, estamos incrementando, si no, decrementando
   if (digitalRead(ENC_B) == digitalRead(ENC_A)) 
-	deltaEnc++;
+	deltaEnc=1;
   else
- 	deltaEnc--;  
+ 	deltaEnc=-1;  
 }
 
 
@@ -1403,9 +1427,32 @@ void loadConfig()
 	
 	data = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
 	data != 0xFF ? midiClock =data : midiClock = midiClock;
+	
 }
 
-void sonar()
+void sendMidiClock()
 {
-	tone(OUT_CLICK,NOTE_A4,clickDuration);
+	//comprobamos iteraccion del midiClock
+	if (midiCounter >= 24)
+	{
+		midiCounter = 0;
+		//incrementamos el numero de tick del compas
+		actualTick == (barSignature*noteDivision) ? actualTick = 1 : actualTick++;
+		//si está en reproduccion
+		if (play)
+		{
+			//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
+			if (actualTick == 1 && !equalTicks)
+				tone(OUT_CLICK,NOTE_F5,clickDuration);
+			else
+				tone(OUT_CLICK,tickSound,clickDuration);
+		}
+	}
+	else
+		midiCounter++;
+	
+	//Enviamos un midi clock cada 24 veces por negra)
+	if (midiClock)
+		//midi.write(MIDI_CLOCK_MSG);	
+		Serial.write(MIDI_CLOCK_MSG);	
 }
