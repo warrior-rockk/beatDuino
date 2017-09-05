@@ -192,16 +192,15 @@ const struct {
 //==============================================
 
 //Variables generales===========================
-byte mode          = METRONOME_MODE;			//modo general
-byte state         = MAIN_STATE;				//estado general
-boolean refresh			= true;					//refresco LCD
-unsigned int bpm 			= 160;				//tempo general
-unsigned long msTempo 		= 0;				//tempo en milisegundos
-unsigned int clickDuration 	= 50;				//duración pulso click
-unsigned long lastTime 		= 0;				//memoria tiempo anterior
-unsigned int noteDivision	= QUARTER;			//subdivision nota click
-unsigned int barSignature   = 4;				//tipo compas
-unsigned int actualTick     = 1;				//tiempo actual
+byte mode          	= METRONOME_MODE;			//modo general
+byte state         	= MAIN_STATE;				//estado general
+boolean refresh		= true;						//refresco LCD
+unsigned int bpm 					= 160;		//tempo general
+unsigned int lastBpm				= 0;		//tempo anterior
+unsigned int clickDuration 			= 50;		//duración pulso click
+unsigned int noteDivision			= QUARTER;	//subdivision nota click
+unsigned int barSignature   		= 4;		//tipo compas
+volatile unsigned int actualTick    = 0;		//tiempo actual
 unsigned int tickSound		= NOTE_A4;			//sonido del tick
 boolean tick 				= true;				//flag de activar tick
 boolean play				= true;				//flag de activar metronomo
@@ -211,7 +210,7 @@ byte actualPlayListNum      = 0;				//numero de repetorio actual
 //midi
 boolean midiClock			= false;			//flag de envio de midi clock
 float midiClockTime;							//intervalo midi interrupcion
-byte midiCounter			= 0;				//contador clocks midi
+volatile byte midiCounter	= 0;				//contador clocks midi
 //interfaz
 volatile signed int deltaEnc= 0;				//incremento o decremento del encoder
 unsigned int buttonDelay    = 2;				//Tiempo antirebote
@@ -268,10 +267,7 @@ void setup()
 	display.setTextSize(1);
 	display.setTextColor(WHITE);
 	
-	//iniciamos la interrupcion del metronomo
-	//midiClockTime = 60000/bpm;
-	//midiClockTime = midiClockTime/MIDI_TICKS_BEAT;
-	//midiClockTime = midiClockTime*1000;
+	//iniciamos la interrupcion del metronomo ((temporal)
 	midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
 	Timer1.initialize(midiClockTime); //uSecs
 	Timer1.attachInterrupt(sendMidiClock);
@@ -348,16 +344,14 @@ void loop()
 					{
 						actualNumSong++;
 						readSongData();
-						midiClockTime = (float)((float)(60000/actualSong.tempo)/MIDI_TICKS_BEAT)*1000;
-						Timer1.setPeriod(midiClockTime); //uSecs
+						deltaEnc = 0; //para que no se mueva
 						refresh = true;
 					}
 					if (deltaEnc < 0 && actualNumSong > 0)
 					{
 						actualNumSong--;
 						readSongData();
-						midiClockTime = (float)((float)(60000/actualSong.tempo)/MIDI_TICKS_BEAT)*1000;
-						Timer1.setPeriod(midiClockTime); //uSecs
+						deltaEnc = 0; //para que no se mueva
 						refresh = true;
 					}
 										
@@ -366,9 +360,6 @@ void loop()
 					noteDivision 	= actualSong.noteDivision;
 					barSignature 	= actualSong.barSignature;
 			
-					//ms of actual tempo
-					msTempo = (60000/bpm);
-					
 					//arranque-paro del sonido
 					if (button[START_STOP_BT].pEdgePress)
 					{
@@ -386,9 +377,6 @@ void loop()
 						if (bpm < 255)
 							bpm++;
 						
-						//actualizamos 
-						midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
-						Timer1.setPeriod(midiClockTime); //uSecs
 						deltaEnc = 0;
 						refresh = true;
 					}
@@ -397,16 +385,10 @@ void loop()
 						if (bpm > 0)
 							bpm--;
 						
-						//actualizamos
-						midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
-						Timer1.setPeriod(midiClockTime); //uSecs
 						deltaEnc = 0;
 						refresh = true;
 					}
-															
-					//ms of actual tempo
-					msTempo = (60000/bpm);
-					
+								
 					//arranque-paro del sonido
 					if (button[START_STOP_BT].pEdgePress)
 					{
@@ -425,12 +407,18 @@ void loop()
 			if (deltaEnc > 0 )
 			{
 				actualMenuOption < menuPage[actualMenuPage].numOptions-1 ? actualMenuOption++ : actualMenuOption=0;
+				//si tiene el numero de opciones definido, reseteamos el encoder
+				if (menuPage[actualMenuPage].numOptions != 0)
+					deltaEnc = 0; //para que no se mueva						
 				refresh = true;
 			}
 			if (deltaEnc < 0 )
 			{
 				actualMenuOption > 0 ? actualMenuOption-- : actualMenuOption = menuPage[actualMenuPage].numOptions-1;
-				refresh = true;
+				//si tiene el numero de opciones definido, reseteamos el encoder
+				if (menuPage[actualMenuPage].numOptions != 0)
+					deltaEnc = 0; //para que no se mueva						
+				refresh = true;				
 			}
 			
 			//si pulsamos enter
@@ -873,16 +861,14 @@ void loop()
 			break;
 	}
 	
-	//si está activado el sonido del metronomo
-	/*if (play)
+	//si ha cambiado el tempo, recalculamos la interrupcion
+	if (lastBpm != bpm)
 	{
-		playMetronome();
+		midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
+		Timer1.setPeriod(midiClockTime); //uSecs
+		lastBpm = bpm;
 	}
-	else
-	{
-		stopMetronome();
-	}*/
-
+	
 	//refresco interfaz
 	if (refresh) {
 		refreshLCD();
@@ -904,100 +890,32 @@ void loop()
 	wdt_reset();
  }
 
- //funcion que reproduce el metronomo al tempo y tipo de ritmo seleccionado
- void playMetronome()
- {
-	//comprobamos si se cumple el siguiente tick si el tiempo supera el tiempo de negra dividido entre
-	//la division de notas seleccionada
-	if ((millis()-lastTime) >= (msTempo/noteDivision))
+//callback de la interrupcion que se ejecuta 24 veces por negra al tempo actual
+void sendMidiClock()
+{
+	//comprobamos iteraccion del midiClock
+	if (midiCounter >= (MIDI_TICKS_BEAT/noteDivision))
 	{
-		//realizamos tick
-		tick = true;
+		midiCounter = 0;
 		//incrementamos el numero de tick del compas
-		actualTick == (barSignature*noteDivision) ? actualTick = 1 : actualTick++;
-		lastTime = millis();		 
+		actualTick >= (barSignature-1) ? actualTick = 0 : actualTick++;
+		//si está en reproduccion
+		if (play)
+		{
+			//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
+			if (actualTick == 0 && !equalTicks)
+				tone(OUT_CLICK,NOTE_F5,clickDuration);
+			else
+				tone(OUT_CLICK,tickSound,clickDuration);
+		}
 	}
+	else
+		midiCounter++;
 	
-	//actualizamos tick
-	if (tick){
-		//led
-		digitalWrite(LED_CLICK, HIGH);
-		//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
-		if (actualTick == 1 && !equalTicks)
-			tone(OUT_CLICK,NOTE_F5,clickDuration);
-		else
-			tone(OUT_CLICK,tickSound,clickDuration);
-		
-		//desactivamos flag	
-		tick = false;
-	}
-	else{
-		digitalWrite(LED_CLICK, LOW);
-	}	
-	
-}
-
-//funcion que detiene la reproduccion del metronomo
-void stopMetronome()
-{
-	digitalWrite(LED_CLICK, LOW);
-	noTone(OUT_CLICK);
-	tick = false;
-	actualTick = 0;
-	lastTime = millis();
-}
-
- //funcion que realiza mensaje de inicio y test luces
-void wellcomeTest()
-{
-	unsigned char welcome[] = {'B','e','a','t','D','u','i','n','o'};
-	unsigned char welcome2[] = {'v','e','r',' ',majorVersion+48,'.',minorVersion+48};
-	unsigned char welcome3[] = {'b','y',' ','W','a','r','r','i','o','r'};
-	
-	int frames = 0;
-	
-	
-	display.clearDisplay();
-	display.setTextSize(1);
-	display.setTextColor(WHITE);
-    
-    display.setCursor(0,0);
-    for (unsigned int i=0;i<sizeof(welcome);i++)
-	{
-		display.print(char(welcome[i]));
-		display.display();
-		delay(25);
-		frames++;
-	}
-		
-    delay(1000);
-	
-	display.print("\n");
-	for (unsigned int i=0;i<sizeof(welcome2);i++)
-	{
-		display.print(char(welcome2[i]));
-		display.display();
-		delay(25);
-		frames++;
-	}
-	
-	delay(1000);
-	
-	display.print("\n");
-	for (unsigned int i=0;i<sizeof(welcome3);i++)
-	{
-		display.print(char(welcome3[i]));
-		display.display();
-		delay(25);
-		frames++;
-	}
-	
-	delay(1000);
-	
-	display.drawBitmap(90, 20,  bmMetronome, 32, 33, 2);
-	display.display();
-	
-	delay(1000);
+	//Enviamos un midi clock cada 24 veces por negra)
+	if (midiClock)
+		//midi.write(MIDI_CLOCK_MSG);	
+		Serial.write(MIDI_CLOCK_MSG);	
 }
 
 //callback de la interrupcion 0 para leer el encoder
@@ -1153,6 +1071,8 @@ void refreshLCD()
 							editString[editCursor] = 216; //'simbolo enter'
 						if ((byte)editString[editCursor] < 'z') 
 							editString[editCursor] = editString[editCursor]+1;						
+						
+						deltaEnc = 0; //para que no se mueva
 					}
 					if (deltaEnc < 0)
 					{
@@ -1160,7 +1080,8 @@ void refreshLCD()
 							editString[editCursor] = 'z';
 						else if ((byte)editString[editCursor] > 32) //'space'
 							editString[editCursor] = editString[editCursor]-1;
-												
+						
+						deltaEnc = 0; //para que no se mueva						
 					}	
 					//mostramos la cadena
 					display.println(editString);
@@ -1265,7 +1186,9 @@ void refreshLCD()
 						if ((byte)editString[editCursor] == 'z') 
 							editString[editCursor] = 216; //'simbolo enter'
 						if ((byte)editString[editCursor] < 'z') 
-							editString[editCursor] = editString[editCursor]+1;						
+							editString[editCursor] = editString[editCursor]+1;		
+			
+						deltaEnc = 0; //para que no se mueva										
 					}
 					if (deltaEnc < 0)
 					{
@@ -1274,6 +1197,7 @@ void refreshLCD()
 						else if ((byte)editString[editCursor] > 32) //'space'
 							editString[editCursor] = editString[editCursor]-1;
 												
+						deltaEnc = 0; //para que no se mueva						
 					}	
 					//mostramos la cadena
 					display.println(editString);
@@ -1316,11 +1240,15 @@ void refreshLCD()
 					{
 						editDataInt++;	
 						tickSound = editDataInt;
+						
+						deltaEnc = 0; //para que no se mueva						
 					}
 					if (deltaEnc < 0)
 					{
 						editDataInt--;			
 						tickSound = editDataInt;
+						
+						deltaEnc = 0; //para que no se mueva						
 					}	
 					display.setTextColor(WHITE,BLACK);
 					display.println(F("Elige el sonido:"));
@@ -1414,29 +1342,55 @@ void loadConfig()
 	
 }
 
-void sendMidiClock()
+ //funcion que realiza mensaje de inicio y test luces
+void wellcomeTest()
 {
-	//comprobamos iteraccion del midiClock
-	if (midiCounter >= 24)
-	{
-		midiCounter = 0;
-		//incrementamos el numero de tick del compas
-		actualTick == (barSignature*noteDivision) ? actualTick = 1 : actualTick++;
-		//si está en reproduccion
-		if (play)
-		{
-			//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
-			if (actualTick == 1 && !equalTicks)
-				tone(OUT_CLICK,NOTE_F5,clickDuration);
-			else
-				tone(OUT_CLICK,tickSound,clickDuration);
-		}
-	}
-	else
-		midiCounter++;
+	unsigned char welcome[] = {'B','e','a','t','D','u','i','n','o'};
+	unsigned char welcome2[] = {'v','e','r',' ',majorVersion+48,'.',minorVersion+48};
+	unsigned char welcome3[] = {'b','y',' ','W','a','r','r','i','o','r'};
 	
-	//Enviamos un midi clock cada 24 veces por negra)
-	if (midiClock)
-		//midi.write(MIDI_CLOCK_MSG);	
-		Serial.write(MIDI_CLOCK_MSG);	
+	int frames = 0;
+	
+	
+	display.clearDisplay();
+	display.setTextSize(1);
+	display.setTextColor(WHITE);
+    
+    display.setCursor(0,0);
+    for (unsigned int i=0;i<sizeof(welcome);i++)
+	{
+		display.print(char(welcome[i]));
+		display.display();
+		delay(25);
+		frames++;
+	}
+		
+    delay(1000);
+	
+	display.print("\n");
+	for (unsigned int i=0;i<sizeof(welcome2);i++)
+	{
+		display.print(char(welcome2[i]));
+		display.display();
+		delay(25);
+		frames++;
+	}
+	
+	delay(1000);
+	
+	display.print("\n");
+	for (unsigned int i=0;i<sizeof(welcome3);i++)
+	{
+		display.print(char(welcome3[i]));
+		display.display();
+		delay(25);
+		frames++;
+	}
+	
+	delay(1000);
+	
+	display.drawBitmap(90, 20,  bmMetronome, 32, 33, 2);
+	display.display();
+	
+	delay(1000);
 }
