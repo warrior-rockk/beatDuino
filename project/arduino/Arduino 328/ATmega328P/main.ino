@@ -7,11 +7,10 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
+	-solo debe leer la informacion de cancion al cambiar opcion si estas en modo live
 	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
 	-se esta refrescando lo minimo? ver ciclo de trabajo?
-	-no dividir lso bpm en todos los ciclos?
-	-medir el ciclo de trabajo en micros()?
-	
+		
  v1.0	-	Release Inicial
  
  */
@@ -81,7 +80,8 @@
 		#define EQUAL_TICKS_PAGE			24
 		#define TICK_SOUND_PAGE				25
 		#define MIDI_CLOCK_PAGE				26
-	#define INFO_PAGE				27
+		#define RESET_FABRIC_PAGE			27
+	#define INFO_PAGE				28
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
@@ -106,6 +106,7 @@
 	#define EQUAL_TICKS_OPTION			1
 	#define TICK_SOUND_OPTION			2
 	#define MIDI_CLOCK_OPTION			3
+	#define RESET_FABRIC_OPTION			4
 #define INFO_OPTION					3
 
 //comandos midi
@@ -159,7 +160,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[28] = {	4,MAIN_PAGE,mainStr,
+} menuPage[29] = {	4,MAIN_PAGE,mainStr,
 					3,MAIN_PAGE,playListStr,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -181,10 +182,11 @@ const struct {
 					6,EDIT_SONG_PAGE,NULL,
 					MAX_SONGS,SONG_PAGE,NULL,
 					2,SONG_PAGE,confirmStr,
-					4,MAIN_PAGE,settingsStr,
+					5,MAIN_PAGE,settingsStr,
 					2,SETTINGS_PAGE,modeStr,
 					2,SETTINGS_PAGE,confirmStr,
 					0,SETTINGS_PAGE,NULL,
+					2,SETTINGS_PAGE,confirmStr,					
 					2,SETTINGS_PAGE,confirmStr,					
 					0,MAIN_PAGE,NULL,
 				};
@@ -806,6 +808,9 @@ void loop()
 								editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
 								actualMenuPage = MIDI_CLOCK_PAGE;
 								break;	
+							case RESET_FABRIC_OPTION:
+								actualMenuPage = RESET_FABRIC_PAGE;
+								break;	
 						}
 						break;
 					case MODE_PAGE:
@@ -843,10 +848,20 @@ void loop()
 					}
 					case MIDI_CLOCK_PAGE:
 					{
-						//cambiamos el canal midi
+						//cambiamos la opcion
 						midiClock = actualMenuOption;
 						//guardamos en config
 						EEPROM_Write(EEPROM_CONFIG_MIDI_CLOCK,midiClock);
+						
+						actualMenuOption = 0;
+						actualMenuPage = menuPage[actualMenuPage].prevPage;
+						break;
+					}
+					case RESET_FABRIC_PAGE:
+					{
+						//reiniciamos ajustes a fabrica
+						if (actualMenuOption == 1) //si
+							resetDefault();
 						
 						actualMenuOption = 0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
@@ -1340,6 +1355,15 @@ void loadConfig()
 	data = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
 	data != 0xFF ? midiClock =data : midiClock = midiClock;
 	
+}
+
+//funcion para inicializar la EEPROM por defecto
+void resetDefault()
+{
+	//inicializamos las canciones
+	initSongs();
+	//inicializamos el orden
+	initPlayLists();
 }
 
  //funcion que realiza mensaje de inicio y test luces

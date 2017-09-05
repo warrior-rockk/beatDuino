@@ -183,6 +183,53 @@ void writeSongBeatSignature(byte songNum,byte beat)
 	EEPROM_Write(((EEPROM_SONGS_POS+((MAX_SONG_TITLE+3)*songNum))+MAX_SONG_TITLE+2),beat);
 
 }
+
+//funcion para inicializar la memoria de Canciones
+void initSongs()
+{	
+	unsigned int memPos = EEPROM_SONGS_POS;
+	
+	for (int j=0;j<MAX_SONGS;j++)
+	{
+		for (int i=0;i<MAX_SONG_TITLE-1;i++)
+		{
+			EEPROM_Write(memPos,0xFF);
+			memPos++;
+		}
+		EEPROM_Write(memPos,'\0');
+		memPos++;
+		EEPROM_Write(memPos,120);
+		memPos++;
+		EEPROM_Write(memPos,QUARTER);
+		memPos++;
+		EEPROM_Write(memPos,4);
+		memPos++;	
+	}
+	
+}
+
+//funcion para inicializar la memoria de ordenes
+void initPlayLists()
+{
+	unsigned int memPos = EEPROM_PLAYLIST_POS;
+	
+	for (int j=0;j<MAX_PLAYLISTS;j++)
+	{
+		for (int i=0;i<MAX_PLAYLIST_TITLE-1;i++)
+		{
+			EEPROM_Write(memPos,0xFF);
+			memPos++;
+		}
+		EEPROM_Write(memPos,'\0');
+		memPos++;
+		for (int i=0;i<MAX_SONGS;i++)
+		{
+			EEPROM_Write(memPos,0xFF);
+			memPos++;
+		}
+	}
+}
+
 //DEBUG=====================
 
 //funcion de prueba para escribir unos setlist en memoria eepprom

@@ -52,12 +52,13 @@ const char str22[] PROGMEM = "16";
 
 const char* const noteDivisionStr[] PROGMEM = {str20, str21, str22};
 
-const char str23[] PROGMEM = "Modo";
-const char str24[] PROGMEM = "Ticks iguales";
-const char str25[] PROGMEM = "Sonido Tick";
-const char str26[] PROGMEM = "Midi Clock";
+const char str23[] PROGMEM 	= "Modo";
+const char str24[] PROGMEM 	= "Ticks iguales";
+const char str25[] PROGMEM 	= "Sonido Tick";
+const char str26[] PROGMEM 	= "Midi Clock";
+const char str26_1[] PROGMEM= "Reset Fabrica";
 
-const char* const settingsStr[] PROGMEM = {str23, str24, str25, str26};
+const char* const settingsStr[] PROGMEM = {str23, str24, str25, str26, str26_1};
 
 const char str27[] PROGMEM = "Repertorio";
 const char str28[] PROGMEM = "Metronomo";

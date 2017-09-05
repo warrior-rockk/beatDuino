@@ -63,6 +63,12 @@ void writeSongNoteDivision(byte songNum,byte note);
 //funcion para escribir el compas de una cancion
 void writeSongBeatSignature(byte songNum,byte beat);
 
+//funcion para inicializar la memoria de Canciones
+void initSongs();
+
+//funcion para inicializar la memoria de ordenes
+void initPlayLists();
+
 //funcion de escritura EEPROM que comprueba si el dato ya está para no reescribirlo y alargar la vida de la memoria
 void EEPROM_Write(int memPos,byte data);
 //------------debug--------------------------
