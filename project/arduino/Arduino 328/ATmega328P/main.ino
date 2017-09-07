@@ -224,7 +224,7 @@ byte actualMenuOption 		= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
 byte editCursor             = 0;				//posicion cursor edicion
 char * editString;								//cadena a editar
 byte editData				= 0;				//dato a editar
-int editDataInt				= 0;				//dato a editar entero
+unsigned int editDataInt	= 0;				//dato a editar entero
 byte editSelection			= 0;				//seleccion a editar
 //debug
 unsigned long startTime     = 0;				//tiempo de inicio de ejecucion ciclo para medir rendimiento
@@ -796,9 +796,12 @@ void loop()
 								break;		
 							case TICK_SOUND_OPTION:
 								//leemos el sonido actual
-								editDataInt = tickSound; //EEPROM.read(EEPROM_CONFIG_EQUAL_TICKS);
+								editDataInt = EEPROMReadInt(EEPROM_CONFIG_TICK_SOUND);
 								//si no esta seteado, lo seteamos
-								//editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
+								if (editDataInt < NOTE_B0 || editDataInt > NOTE_DS8)
+									editDataInt = NOTE_A4;
+								//actualizamos el sonido actual
+								tickSound = editDataInt;
 								actualMenuPage = TICK_SOUND_PAGE;
 								break;		
 							case MIDI_CLOCK_OPTION:
@@ -810,6 +813,7 @@ void loop()
 								break;	
 							case RESET_FABRIC_OPTION:
 								actualMenuPage = RESET_FABRIC_PAGE;
+								actualMenuOption = 0;
 								break;	
 						}
 						break;
@@ -840,8 +844,7 @@ void loop()
 						//cambiamos el sonido
 						tickSound = editDataInt;
 						//guardamos en config
-						//EEPROM_Write(EEPROM_CONFIG_EQUAL_TICKS,equalTicks);
-						
+						EEPROMWriteInt(EEPROM_CONFIG_TICK_SOUND,tickSound);
 						actualMenuOption = 0;
 						actualMenuPage = menuPage[actualMenuPage].prevPage;
 						break;
@@ -1355,6 +1358,13 @@ void loadConfig()
 	data = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
 	data != 0xFF ? midiClock =data : midiClock = midiClock;
 	
+	int dataInt;
+	dataInt = EEPROMReadInt(EEPROM_CONFIG_TICK_SOUND);
+	if (dataInt < NOTE_B0 ||dataInt > NOTE_DS8)
+		tickSound = NOTE_A4;
+	else
+		tickSound = dataInt;
+	
 }
 
 //funcion para inicializar la EEPROM por defecto
@@ -1364,6 +1374,15 @@ void resetDefault()
 	initSongs();
 	//inicializamos el orden
 	initPlayLists();
+	//iniciamos configuracion
+	EEPROM.update(EEPROM_CONFIG_MODE,(byte)0xFF);
+	EEPROM.update(EEPROM_CONFIG_EQUAL_TICKS,(byte)0xFF);
+	EEPROM.update(EEPROM_CONFIG_MIDI_CLOCK,(byte)0xFF);
+	EEPROMWriteInt(EEPROM_CONFIG_TICK_SOUND,NOTE_A4);
+	
+	//reiniciamos
+	while(true)
+	{}
 }
 
  //funcion que realiza mensaje de inicio y test luces

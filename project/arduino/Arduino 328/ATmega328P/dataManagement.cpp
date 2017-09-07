@@ -113,6 +113,15 @@ byte getSongBarSignature(byte songNum)
 	return songBarSignature;
 }
 
+//Funcion para leer ints de EEPROM
+unsigned int EEPROMReadInt(int p_address)
+{
+     byte lowByte = EEPROM.read(p_address);
+     byte highByte = EEPROM.read(p_address + 1);
+
+     return ((lowByte << 0) & 0xFF) + ((highByte << 8) & 0xFF00);
+}
+
 //ESCRITURA
 //=================================================================
 
@@ -123,6 +132,20 @@ void EEPROM_Write(int memPos,byte data)
 		EEPROM.write(memPos,data);
 }
 
+//Funcion para escribir int en EEPROM 
+void EEPROMWriteInt(int p_address, int p_value)
+{
+     byte lowByte = ((p_value >> 0) & 0xFF);
+     byte highByte = ((p_value >> 8) & 0xFF);
+
+     if (lowByte != EEPROM.read(p_address))
+		EEPROM.write(p_address, lowByte);
+     
+	 if (highByte != EEPROM.read(p_address + 1))
+		 EEPROM.write(p_address + 1, highByte);
+}
+
+	 
 //funcion para guardar el titulo de un playlist
 void writePlayListTitle(byte playListNum,char * title)
 {

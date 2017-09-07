@@ -17,6 +17,8 @@ const unsigned int EEPROM_PLAYLIST_POS			= 0x186;		//Posicion Inicio Memoria Rep
 const unsigned int EEPROM_CONFIG_MODE			= 0x1FB;		//Posicion Inicio Configuracion Modo
 const unsigned int EEPROM_CONFIG_EQUAL_TICKS	= 0x1FC;		//Posicion Inicio Configuracion Ticks Iguales
 const unsigned int EEPROM_CONFIG_MIDI_CLOCK		= 0x1FD;		//Posicion Inicio Configuracion Midi Clock
+const unsigned int EEPROM_CONFIG_TICK_SOUND		= 0x1FE;		//Posicion Inicio Configuracion Sonido Tick (integer)
+
 
 //textos por defecto
 const char emptyPlayListStr[] PROGMEM = "VACIO";
@@ -71,6 +73,10 @@ void initPlayLists();
 
 //funcion de escritura EEPROM que comprueba si el dato ya está para no reescribirlo y alargar la vida de la memoria
 void EEPROM_Write(int memPos,byte data);
+//Funcion para escribir int en EEPROM 
+void EEPROMWriteInt(int p_address, int p_value);
+//Funcion para leer ints de EEPROM
+unsigned int EEPROMReadInt(int p_address);
 //------------debug--------------------------
 //funcion de prueba para rellenar el EEPROM de datos
 void debugWriteSongs();
