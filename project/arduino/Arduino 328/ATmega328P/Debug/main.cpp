@@ -245,6 +245,8 @@ byte editSelection			= 0;				//seleccion a editar
 //interrupcion timer
 volatile static unsigned long timer0Counter		= 0;
 volatile static unsigned long timer0DelayTime 	= 0;
+volatile static unsigned long timer0MidiTime 	= 0;
+unsigned long midiClockTime2;
 //debug
 unsigned long startTime     = 0;				//tiempo de inicio de ejecucion ciclo para medir rendimiento
 unsigned long lastCycleTime = 0;				//tiempo que tardo el ultimo ciclo
@@ -257,6 +259,36 @@ byte general;
 ISR(TIMER0_OVF_vect) {
 	timer0Counter++;	
 	timer0DelayTime++;
+	timer0MidiTime++;
+	
+	
+	if ((timer0MidiTime) >= midiClockTime2)
+	{
+		timer0MidiTime = 0;
+		//comprobamos iteraccion del midiClock
+		if (midiCounter >= (MIDI_TICKS_BEAT/noteDivision))
+		{
+			midiCounter = 0;
+			//incrementamos el numero de tick del compas
+			actualTick >= (barSignature-1) ? actualTick = 0 : actualTick++;
+			//si está en reproduccion
+			if (play)
+			{
+				//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
+				if (actualTick == 0 && !equalTicks)
+					tone(OUT_CLICK,NOTE_F5,clickDuration);
+				else
+					tone(OUT_CLICK,tickSound,clickDuration);
+			}
+		}
+		else
+			midiCounter++;
+		
+		//Enviamos un midi clock cada 24 veces por negra)
+		if (midiClock)
+			Serial.write(MIDI_CLOCK_MSG);	
+	}
+	
 }
 //sobreescribimos funcion micros
 unsigned long micros()
@@ -267,7 +299,7 @@ unsigned long micros()
 void delay(unsigned long ms)
 {
 	timer0DelayTime = 0;
-	while ((timer0DelayTime*31) < ms)
+	while ((unsigned long)(timer0DelayTime*8) < ms) 
 		{yield();}	
 }
 
@@ -288,11 +320,13 @@ int main(void)
 	pinMode(LED_CLICK,OUTPUT);
 	pinMode(OLED_RESET,OUTPUT); 
 	
+	midiClockTime2 = ((float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000)/32;
+	
 	noInterrupts(); // disable all interrupts
-	TCCR0A = 0;
-	TCCR0B = 0;
-	TCNT0 = 255;   	//preload timer
-	TCCR0B =5; 		//1024 preescaler
+	TCCR0A 	= 0;
+	TCCR0B	= 0;
+	TCNT0 	= 0;   	//valor actual
+	TCCR0B 	= 1; 		//1024 preescaler
 	TIMSK0 |= (1 << TOIE0);   // enable timer overflow interrupt
 	interrupts();             // enable all interrupts  
 
@@ -306,9 +340,9 @@ int main(void)
 	Serial.begin(31250);
 	
 	//Mensaje de inicio
-	//#ifndef DEBUG
+	#ifndef DEBUG
 		wellcomeTest();
-	//#endif
+	#endif
 	
 	//Clear the buffer.
 	display.clearDisplay();
@@ -316,9 +350,9 @@ int main(void)
 	display.setTextColor(WHITE);
 	
 	//iniciamos la interrupcion del metronomo ((temporal)
-	midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
+	/*midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
 	Timer1.initialize(midiClockTime); //uSecs
-	Timer1.attachInterrupt(sendMidiClock);
+	Timer1.attachInterrupt(sendMidiClock);*/
 	
 	//activamos el watchdog a 2 segundos
 	wdt_enable(WDTO_2S);
