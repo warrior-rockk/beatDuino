@@ -4,9 +4,9 @@
 
 ## General options
 MCU = atmega328p
-CLOCK = 8000000
+CLOCK = 16000000
 COMPILER = "Arduino"
-ARDUINO = 180
+ARDUINO = 184
 SHELL = C:\Windows\system32\cmd.exe
 
 ## Tools general options

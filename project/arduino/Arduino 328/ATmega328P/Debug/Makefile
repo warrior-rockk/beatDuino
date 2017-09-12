@@ -10,8 +10,8 @@ TARGET = Debug
 SHELL = C:\WINDOWS\system32\cmd.exe
 
 ## Tools general options
-APPFLAGS=-C pro328 -N atmega328p -F 8000000
-CCFLAGS=-Wall -gdwarf-2 -fno-exceptions -ffunction-sections -fdata-sections -DF_CPU=8000000 -I .. -DARDUINO_ARCH_AVR @arduino/libs.inc -O1 -mmcu=atmega328p -DDEBUG
+APPFLAGS=-C pro328 -N atmega328p -F 16000000
+CCFLAGS=-Wall -gdwarf-2 -fno-exceptions -ffunction-sections -fdata-sections -DF_CPU=16000000 -I .. -DARDUINO_ARCH_AVR @arduino/libs.inc -O1 -mmcu=atmega328p -DDEBUG
 LDFLAGS=-Wl,--gc-sections -mmcu=atmega328p
 
 ## Processing Tools
@@ -19,23 +19,23 @@ APP=mksketch
 CC=avr-gcc
 ASM=avr-gcc
 LD=avr-gcc
-#  E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/Debug.elf: TOOL=LD
+#  E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/Debug.elf: TOOL=LD
 #  Post: $(OBJ) avr-objcopy -O ihex -R .eeprom "./Debug.elf" "./Debug.hex"
 #  Post: $(OBJ) avr-objcopy -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0 --no-change-warnings -O ihex "./Debug.elf" "./Debug.eep" || exit 0 
-#     E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/main.o: TOOL=CC
-#        E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/main.cpp: TOOL=APP
+#     E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/main.o: TOOL=CC
+#        E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/main.cpp: TOOL=APP
 #        Post: make -f arduino/Makefile all
-#           E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/main.ino
-#     E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/glcdfont.o: TOOL=CC
-#        E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/glcdfont.c
-#     E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/Adafruit_GFX.o: TOOL=CC
-#        E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/Adafruit_GFX.cpp
-#     E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/Adafruit_SSD1306.o: TOOL=CC
-#        E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/Adafruit_SSD1306.cpp
-#     E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/dataManagement.o: TOOL=CC
-#        E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/dataManagement.cpp
-#     E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/TimerOne.o: TOOL=CC
-#        E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATmega328P/TimerOne.cpp
+#           E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/main.ino
+#     E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/glcdfont.o: TOOL=CC
+#        E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/glcdfont.c
+#     E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/Adafruit_GFX.o: TOOL=CC
+#        E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/Adafruit_GFX.cpp
+#     E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/Adafruit_SSD1306.o: TOOL=CC
+#        E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/Adafruit_SSD1306.cpp
+#     E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/dataManagement.o: TOOL=CC
+#        E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/dataManagement.cpp
+#     E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/Debug/TimerOne.o: TOOL=CC
+#        E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATmega328P/TimerOne.cpp
 
 # Build tree:
 all:	Debug

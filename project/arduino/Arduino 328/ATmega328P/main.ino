@@ -226,15 +226,37 @@ char * editString;								//cadena a editar
 byte editData				= 0;				//dato a editar
 unsigned int editDataInt	= 0;				//dato a editar entero
 byte editSelection			= 0;				//seleccion a editar
+//interrupcion timer
+volatile static unsigned long timer0Counter		= 0;
+volatile static unsigned long timer0DelayTime 	= 0;
 //debug
 unsigned long startTime     = 0;				//tiempo de inicio de ejecucion ciclo para medir rendimiento
 unsigned long lastCycleTime = 0;				//tiempo que tardo el ultimo ciclo
 unsigned long minCycleTime  = 2000000;			//tiempo de ciclo minimo
 unsigned long maxCycleTime  = 0;				//tiempo de ciclo maximo
 byte general;
+
 //================================
-//configuracion
-void setup()
+//callback de la interrupcion overflow del timer0
+ISR(TIMER0_OVF_vect) {
+	timer0Counter++;	
+	timer0DelayTime++;
+}
+//sobreescribimos funcion micros
+unsigned long micros()
+{
+	return timer0Counter;
+}
+//sobreescribimos funcion delay
+void delay(unsigned long ms)
+{
+	timer0DelayTime = 0;
+	while ((timer0DelayTime*31) < ms)
+		{yield();}	
+}
+
+//configuracion void setup()
+int main(void)
  { 
 	//desactivamos el watchdog
 	wdt_disable();
@@ -250,6 +272,14 @@ void setup()
 	pinMode(LED_CLICK,OUTPUT);
 	pinMode(OLED_RESET,OUTPUT); 
 	
+	noInterrupts(); // disable all interrupts
+	TCCR0A = 0;
+	TCCR0B = 0;
+	TCNT0 = 255;   	//preload timer
+	TCCR0B =5; 		//1024 preescaler
+	TIMSK0 |= (1 << TOIE0);   // enable timer overflow interrupt
+	interrupts();             // enable all interrupts  
+
 	//asignamos interrupcion a entrada encoder A	
 	attachInterrupt(0, doEncoder, CHANGE);
 	
@@ -261,7 +291,7 @@ void setup()
 	
 	//Mensaje de inicio
 	#ifndef DEBUG
-	//	wellcomeTest();
+		wellcomeTest();
 	#endif
 	
 	//Clear the buffer.
@@ -287,10 +317,10 @@ void setup()
 	//leemos los datos actuales
 	readPlayListData();
 	readSongData();
- }
+ 
 
- //bucle principal
-void loop()
+ //bucle principal void loop()
+while(true)
  { 
 	//inciio ejecucion
 	startTime = micros();
@@ -907,7 +937,7 @@ void loop()
 	//reseteamos el watchdog
 	wdt_reset();
  }
-
+}
 //callback de la interrupcion que se ejecuta 24 veces por negra al tempo actual
 void sendMidiClock()
 {
