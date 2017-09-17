@@ -230,7 +230,6 @@ byte editSelection			= 0;				//seleccion a editar
 volatile static unsigned long timer0Counter		= 0;
 volatile static unsigned long timer0DelayTime 	= 0;
 volatile static unsigned long timer0MidiTime 	= 0;
-unsigned long midiClockTime2;
 //debug
 unsigned long startTime     = 0;				//tiempo de inicio de ejecucion ciclo para medir rendimiento
 unsigned long lastCycleTime = 0;				//tiempo que tardo el ultimo ciclo
@@ -241,12 +240,12 @@ byte general;
 //================================
 //callback de la interrupcion overflow del timer0
 ISR(TIMER0_OVF_vect) {
-	timer0Counter++;	
-	timer0DelayTime++;
-	timer0MidiTime++;
+	timer0Counter+=128;	
+	timer0DelayTime+=128;
+	timer0MidiTime+=128;
 	
 	
-	if ((timer0MidiTime) >= midiClockTime2)
+	if ((timer0MidiTime) >= midiClockTime)
 	{
 		timer0MidiTime = 0;
 		//comprobamos iteraccion del midiClock
@@ -264,6 +263,7 @@ ISR(TIMER0_OVF_vect) {
 				else
 					tone(OUT_CLICK,tickSound,clickDuration);
 			}
+			
 		}
 		else
 			midiCounter++;
@@ -283,7 +283,7 @@ unsigned long micros()
 void delay(unsigned long ms)
 {
 	timer0DelayTime = 0;
-	while ((unsigned long)(timer0DelayTime*8) < ms) 
+	while (timer0DelayTime < (ms*1000)) 
 		{yield();}	
 }
 
@@ -304,13 +304,13 @@ int main(void)
 	pinMode(LED_CLICK,OUTPUT);
 	pinMode(OLED_RESET,OUTPUT); 
 	
-	midiClockTime2 = ((float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000)/32;
+	midiClockTime = ((float)((float)(60000/bpm)/MIDI_TICKS_BEAT))*1000;
 	
 	noInterrupts(); // disable all interrupts
 	TCCR0A 	= 0;
 	TCCR0B	= 0;
 	TCNT0 	= 0;   	//valor actual
-	TCCR0B 	= 1; 		//1024 preescaler  (tiempo interrupcion: (1/F_CPU)*256*preescaler*1000(ms)
+	TCCR0B 	= 2;	//8 preescaler  (tiempo interrupcion: (1/F_CPU)*256*preescaler*1000(ms)
 	TIMSK0 |= (1 << TOIE0);   // enable timer overflow interrupt
 	interrupts();             // enable all interrupts  
 
@@ -942,7 +942,7 @@ while(true)
 			
 			break;
 	}
-	
+		
 	//si ha cambiado el tempo, recalculamos la interrupcion
 	if (lastBpm != bpm)
 	{
