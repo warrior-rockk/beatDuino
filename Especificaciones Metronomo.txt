@@ -158,6 +158,18 @@ Con lo que se va a usar el Attiny85 para la reproduccion, recibiendo de arduino 
 
 A fin de poder utilizar el Proteus para el código de ambos ICs, se va a programar el Attiny sin los cores de Arduino, con compilador WinAVR en C y sustituyendo las funciones Arduino de pines,etcc.. por macros #define.
 
+
+Como los samples de clicks son pequeños, nos caben varios sonidos en el Attiny. Haria falta comunicar el atMega con el atTiny para decirle qué sonido reproducir y cúando. He mirado opciones. El attiny no implementa usart de serie, hay que usar librerias, al igual que el i2c, y al final, la comunicacion es muy simple. Utilizamos 3 salidas digitales en forma de bits codificados que nos darán esta informacion:
+
+0	0	0	no sound	
+0	0	1	spare	
+0	1	0	tone1 	
+0	1	1	tone1 beat 1	
+1	0	0	tone2 	
+1	0	1	tone2 beat 1	
+1	1	0	tone3 	
+1	1	4	tone3 beat 1
+
 Ruidos:
 --------
 La comunicacion i2c me genera mucho ruido de fondo , que cambia conforme se redibuja la pantalla. Para evitar estos ruidos, se utilizan condensadores de desacoplamiento.
