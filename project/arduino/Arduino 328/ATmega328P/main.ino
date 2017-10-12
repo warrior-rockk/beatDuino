@@ -7,6 +7,9 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
+	-indicar modo marcado en el menu de cambiarlo
+	-comprobacion de rango de valores en el load config
+	-que al cancelar la seleccion de una opcion, vuelva el valor original
 	-solo debe leer la informacion de cancion al cambiar opcion si estas en modo live
 	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
 	-se esta refrescando lo minimo? ver ciclo de trabajo?
@@ -18,14 +21,8 @@
 #include <avr/pgmspace.h>
 #include <EEPROM.h>
 //comunicacion con LCD OLED
-#include <SPI.h>
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
- //notas musicales
-#include <freqNotes.h>
-//imagenes
-#include <images.h>
+#include "SSD1306Ascii.h"
+#include "SSD1306AsciiAvrI2c.h"
 //definiciones globales
 #include <defines.h>
 //textos
@@ -35,11 +32,6 @@
 //midi
 #include <TimerOne.h>
 
-//config LCD
-Adafruit_SSD1306 display(OLED_RESET);
-#if (SSD1306_LCDHEIGHT != 64)
-#error("Height incorrect, please fix Adafruit_SSD1306.h!");
-#endif
 //==============================================
 //Constantes ===================================
 
@@ -103,7 +95,7 @@ const struct {
 					5,MAIN_PAGE,settingsStr,
 					2,SETTINGS_PAGE,modeStr,
 					2,SETTINGS_PAGE,confirmStr,
-					0,SETTINGS_PAGE,NULL,
+					3,SETTINGS_PAGE,soundsStr,
 					2,SETTINGS_PAGE,confirmStr,					
 					2,SETTINGS_PAGE,confirmStr,					
 					0,MAIN_PAGE,NULL,
@@ -114,14 +106,16 @@ const struct {
 //Variables generales===========================
 byte mode          	= METRONOME_MODE;			//modo general
 byte state         	= MAIN_STATE;				//estado general
+byte lastState		= 255;						//estado anterior
 boolean refresh		= true;						//refresco LCD
-unsigned int bpm 					= 160;		//tempo general
+unsigned int bpm 					= 100;//160;		//tempo general
 unsigned int lastBpm				= 0;		//tempo anterior
 unsigned int clickDuration 			= 50;		//duración pulso click
+unsigned long clickLastTime			= 0;		//cuenta del inicio pulso click
 unsigned int noteDivision			= QUARTER;	//subdivision nota click
 unsigned int barSignature   		= 4;		//tipo compas
 volatile unsigned int actualTick    = 0;		//tiempo actual
-unsigned int tickSound		= NOTE_A4;			//sonido del tick
+byte tickSound				= SND_1;			//sonido del tick
 boolean tick 				= true;				//flag de activar tick
 boolean play				= true;				//flag de activar metronomo
 boolean equalTicks			= false;			//flag de mismo sonido para todos los ticks
@@ -131,12 +125,15 @@ byte actualPlayListNum      = 0;				//numero de repetorio actual
 boolean midiClock			= false;			//flag de envio de midi clock
 float midiClockTime;							//intervalo midi interrupcion
 volatile byte midiCounter	= 0;				//contador clocks midi
+//display Oled
+SSD1306AsciiAvrI2c display;
 //interfaz
 volatile signed int deltaEnc= 0;				//incremento o decremento del encoder
 unsigned int buttonDelay    = 2;				//Tiempo antirebote
 unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funciones
 //menu
-byte actualMenuPage         = MAIN_PAGE;				//página del menu actual
+byte actualMenuPage         = MAIN_PAGE;		//página del menu actual
+byte lastMenuPage			= 255;				//pagina anterior del menu
 byte actualMenuOption 		= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
 //entrada texto o parametros
 byte editCursor             = 0;				//posicion cursor edicion
@@ -144,10 +141,6 @@ char * editString;								//cadena a editar
 byte editData				= 0;				//dato a editar
 unsigned int editDataInt	= 0;				//dato a editar entero
 byte editSelection			= 0;				//seleccion a editar
-//interrupcion timer
-volatile static unsigned long timer0Counter		= 0;
-volatile static unsigned long timer0DelayTime 	= 0;
-volatile static unsigned long timer0MidiTime 	= 0;
 //debug
 unsigned long startTime     = 0;				//tiempo de inicio de ejecucion ciclo para medir rendimiento
 unsigned long lastCycleTime = 0;				//tiempo que tardo el ultimo ciclo
@@ -156,58 +149,9 @@ unsigned long maxCycleTime  = 0;				//tiempo de ciclo maximo
 byte general;
 
 //================================
-//callback de la interrupcion overflow del timer0
-ISR(TIMER0_OVF_vect) {
-	timer0Counter+=128;	
-	timer0DelayTime+=128;
-	timer0MidiTime+=128;
-	
-	
-	if ((timer0MidiTime) >= midiClockTime)
-	{
-		timer0MidiTime = 0;
-		//comprobamos iteraccion del midiClock
-		if (midiCounter >= (MIDI_TICKS_BEAT/noteDivision))
-		{
-			midiCounter = 0;
-			//incrementamos el numero de tick del compas
-			actualTick >= (barSignature-1) ? actualTick = 0 : actualTick++;
-			//si está en reproduccion
-			if (play)
-			{
-				//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
-				if (actualTick == 0 && !equalTicks)
-					tone(OUT_CLICK,NOTE_F5,clickDuration);
-				else
-					tone(OUT_CLICK,tickSound,clickDuration);
-			}
-			
-		}
-		else
-			midiCounter++;
-		
-		//Enviamos un midi clock cada 24 veces por negra)
-		if (midiClock)
-			Serial.write(MIDI_CLOCK_MSG);	
-	}
-	
-}
-//sobreescribimos funcion micros
-unsigned long micros()
-{
-	return timer0Counter;
-}
-//sobreescribimos funcion delay
-void delay(unsigned long ms)
-{
-	timer0DelayTime = 0;
-	while (timer0DelayTime < (ms*1000)) 
-		{yield();}	
-}
 
-//configuracion void setup()
-int main(void)
- { 
+void setup()
+{ 
 	//desactivamos el watchdog
 	wdt_disable();
 	
@@ -218,26 +162,20 @@ int main(void)
 	pinMode(MENU_PIN,INPUT_PULLUP);
 	pinMode(ENTER_PIN,INPUT_PULLUP);
 	
-	pinMode(OUT_CLICK,OUTPUT);
+	pinMode(BEAT1_CLICK,OUTPUT);
+	pinMode(SND0_CLICK,OUTPUT);
+	pinMode(SND1_CLICK,OUTPUT);
+	
 	pinMode(LED_CLICK,OUTPUT);
 	pinMode(OLED_RESET,OUTPUT); 
 	
-	midiClockTime = ((float)((float)(60000/bpm)/MIDI_TICKS_BEAT))*1000;
-	
-	noInterrupts(); // disable all interrupts
-	TCCR0A 	= 0;
-	TCCR0B	= 0;
-	TCNT0 	= 0;   	//valor actual
-	TCCR0B 	= 2;	//8 preescaler  (tiempo interrupcion: (1/F_CPU)*256*preescaler*1000(ms)
-	TIMSK0 |= (1 << TOIE0);   // enable timer overflow interrupt
-	interrupts();             // enable all interrupts  
-
 	//asignamos interrupcion a entrada encoder A	
 	attachInterrupt(0, doEncoder, CHANGE);
 	
 	//inicializamos display
-	display.begin(SSD1306_SWITCHCAPVCC, 0x3D);  // initialize with the I2C addr 0x3D (for the 128x64)
-	
+	display.begin(&Adafruit128x64, 0x3C);
+	display.setFont(Adafruit5x7); 
+  
 	//Midi Baud Rate 
 	Serial.begin(31250);
 	
@@ -247,14 +185,14 @@ int main(void)
 	#endif
 	
 	//Clear the buffer.
-	display.clearDisplay();
-	display.setTextSize(1);
-	display.setTextColor(WHITE);
+	display.clear();
+	display.set1X();
+	display.setBlackText(false);
 	
 	//iniciamos la interrupcion del metronomo ((temporal)
-	/*midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
+	midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
 	Timer1.initialize(midiClockTime); //uSecs
-	Timer1.attachInterrupt(sendMidiClock);*/
+	Timer1.attachInterrupt(sendMidiClock);
 	
 	//activamos el watchdog a 2 segundos
 	wdt_enable(WDTO_2S);
@@ -270,10 +208,10 @@ int main(void)
 	readPlayListData();
 	readSongData();
  
+}
 
- //bucle principal void loop()
-while(true)
- { 
+void loop()
+{ 
 	//inciio ejecucion
 	startTime = micros();
 		
@@ -328,11 +266,16 @@ while(true)
 		
 	//reseteamos el watchdog
 	wdt_reset();
- }
+ 
 }
+
 //callback de la interrupcion que se ejecuta 24 veces por negra al tempo actual
 void sendMidiClock()
 {
+	//si se cumple el ancho de pulso del tick, quitamos las señales de tick
+	if (millis() - clickLastTime > clickDuration)
+		PORTB &= 0xF8;
+		
 	//comprobamos iteraccion del midiClock
 	if (midiCounter >= (MIDI_TICKS_BEAT/noteDivision))
 	{
@@ -342,11 +285,10 @@ void sendMidiClock()
 		//si está en reproduccion
 		if (play)
 		{
+			//guardamos tiempo inicio tick
+			clickLastTime = millis();
 			//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
-			if (actualTick == 0 && !equalTicks)
-				tone(OUT_CLICK,NOTE_F5,clickDuration);
-			else
-				tone(OUT_CLICK,tickSound,clickDuration);
+			PORTB |= ((tickSound*2)+2) + (actualTick == 0 && !equalTicks);							
 		}
 	}
 	else
@@ -354,7 +296,6 @@ void sendMidiClock()
 	
 	//Enviamos un midi clock cada 24 veces por negra)
 	if (midiClock)
-		//midi.write(MIDI_CLOCK_MSG);	
 		Serial.write(MIDI_CLOCK_MSG);	
 }
 
@@ -851,12 +792,12 @@ void doMenuState()
 						break;		
 					case TICK_SOUND_OPTION:
 						//leemos el sonido actual
-						editDataInt = EEPROMReadInt(EEPROM_CONFIG_TICK_SOUND);
+						actualMenuOption = EEPROM.read(EEPROM_CONFIG_TICK_SOUND);
 						//si no esta seteado, lo seteamos
-						if (editDataInt < NOTE_B0 || editDataInt > NOTE_DS8)
-							editDataInt = NOTE_A4;
+						if (actualMenuOption < SND_1 || actualMenuOption > SND_3)
+							actualMenuOption = SND_1;
 						//actualizamos el sonido actual
-						tickSound = editDataInt;
+						tickSound = editData;
 						actualMenuPage = TICK_SOUND_PAGE;
 						break;		
 					case MIDI_CLOCK_OPTION:
@@ -897,9 +838,9 @@ void doMenuState()
 			case TICK_SOUND_PAGE:
 			{
 				//cambiamos el sonido
-				tickSound = editDataInt;
+				tickSound = actualMenuOption;
 				//guardamos en config
-				EEPROMWriteInt(EEPROM_CONFIG_TICK_SOUND,tickSound);
+				EEPROM_Write(EEPROM_CONFIG_TICK_SOUND,tickSound);
 				actualMenuOption = 0;
 				actualMenuPage = menuPage[actualMenuPage].prevPage;
 				break;
@@ -935,6 +876,13 @@ void doMenuState()
 //funcion para el refresco del LCD
 void refreshLCD()
 {
+	
+	//si hemos cambiado de estado, refrescamos completamente
+	if (lastState != state){
+		display.clear();
+		lastState = state;
+	}
+	
 	//segun estado
 	switch (state)
 	{
@@ -946,52 +894,66 @@ void refreshLCD()
 				//modo directo
 				case LIVE_MODE:
 					//actualizamos display del modo directo
-					display.clearDisplay();
+					//display.clear();
 					display.setCursor(0,0);
-					display.setTextColor(WHITE,BLACK);
+					display.setBlackText(false);
 					display.print(actualPlayListNum+1);
 					display.print(".");
 					display.print(actualPlayList.title);
 					display.print("\n"); 
+					display.clear(0,END_OF_LINE,1,2);
+					display.setCursor(0,1);
 					display.print(actualNumSong+1);
 					display.print(".");
 					display.print(actualSong.title);
 					display.print("\n\n"); 
-					display.setTextSize(2);
+					display.set2X();
 					display.print(bpm); 
 					display.print(F(" BPM\n\n")); 
-					display.setTextSize(1);
+					display.set1X();
 					display.print(barSignature);
 					display.print("/");
 					display.print(noteDivision*4);
 					display.print("      ");
-					play ? display.print(F("START")) : display.print("STOP");
-					display.display();
+					display.setCursor(96,7);
+					play ? display.print(F("START")) : display.print("STOP ");
+					//display.display();
 					
 					break;
 				//modo metronomo
 				case METRONOME_MODE:
 					//actualizamos display del modo metronomo
-					display.clearDisplay();
-					display.setCursor(0,0);
-					display.setTextColor(WHITE,BLACK);
-					display.setTextSize(2);
+					//display.clear(0,(display.fontWidth()+4)*5,2,3);
+					display.clear(0,32,1,2);
+					display.setCursor(11,1);
+					display.setBlackText(false);
+					display.set2X();
 					display.print(bpm); 
-					display.print(F(" BPM\n\n")); 
-					display.setTextSize(1);
+					//display.setCursor(display.fontWidth()*5,2);
+					display.setCursor(64,1);
+					display.print(F("BPM")); 					
+					display.set1X();
+					display.setCursor(64,4);
 					display.print(barSignature);
 					display.print("/");
 					display.print(noteDivision*4);
-					display.print("      ");
-					play ? display.print(F("START")) : display.print("STOP");
-					display.display();
+					display.setCursor(0,7);
+					mode ? display.print(F("METRO")) : display.print("LIVE ");
+					display.setCursor(96,7);
+					play ? display.print(F("START")) : display.print("STOP ");
+					//display.display();
+					
 					break;
 			}
 			
 			break;
 		case MENU_STATE:
 			//actualizamos display del menu
-			display.clearDisplay();
+			//si hemos cambiado de pagina, refrescamos completamente
+			if (lastMenuPage != actualMenuPage){
+				display.clear();
+				lastMenuPage = actualMenuPage;
+			}
 			display.setCursor(0,0);
 			//segun la página del menu
 			switch (actualMenuPage)
@@ -999,11 +961,12 @@ void refreshLCD()
 				//cambio de repertorio
 				case PLAYLIST_CHANGE_PAGE:
 					{
-					display.setTextColor(WHITE,BLACK);
+					display.setBlackText(false);
 					display.println(F("Elige repertorio:"));
+					display.clear(0,END_OF_LINE,1,1);
 					for (int i=0;i<MAX_PLAYLISTS;i++)
 					{
-						actualMenuOption == i ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
 						char * title = readPlayListTitle(i);
 						display.print(i+1);
 						display.print(".");
@@ -1014,8 +977,9 @@ void refreshLCD()
 					break;
 				case PLAYLIST_NAME_PAGE:
 					{
-					display.setTextColor(WHITE,BLACK);
+					display.setBlackText(false);
 					display.println(F("Nombre repertorio:"));
+					display.clear(0,END_OF_LINE,1,1);
 					//cambio de caracter con encoder
 					if (deltaEnc > 0)
 					{
@@ -1040,14 +1004,15 @@ void refreshLCD()
 					//mostramos la cadena
 					display.println(editString);
 					//dibujamos cursor en la posicion actual
-					display.drawFastHLine((editCursor*6), 15, 6, WHITE);
+					//display.drawFastHLine((editCursor*6), 15, 6, WHITE);
 					}
 					break;
 				//cambio de cancion (elegimos primero el orden)
 				case CHANGE_ORDER_PAGE:
 					{
 					display.println(F("Elige la posicion:"));
-					display.setTextColor(WHITE,BLACK);
+					display.clear(0,END_OF_LINE,1,1);
+					display.setBlackText(false);
 					//leemos el titulo de la cancion de la posicion de edicion
 					char * title = readSongTitle(getSongNum(actualPlayListNum,actualMenuOption));
 					//lo mostramos
@@ -1069,10 +1034,11 @@ void refreshLCD()
 					display.println(title);
 					display.println("\n");
 					display.println(F("Elige la cancion:"));
+					display.clear(0,END_OF_LINE,5,6);
 					free(title);
 					
 					title = readSongTitle(actualMenuOption);
-					display.print(editData+1);
+					display.print(actualMenuOption+1);
 					display.print(".");
 					display.println(title);
 					free (title);
@@ -1082,7 +1048,8 @@ void refreshLCD()
 				case INSERT_SONG_PAGE:
 					{
 					display.println(F("Insertar despues de:"));
-					display.setTextColor(WHITE,BLACK);
+					display.setBlackText(false);
+					display.clear(0,END_OF_LINE,1,1);
 					//leemos el titulo de la cancion de la posicion de edicion
 					char * title = readSongTitle(getSongNum(actualPlayListNum,actualMenuOption));
 					//lo mostramos
@@ -1096,6 +1063,7 @@ void refreshLCD()
 				case INSERT_SONG_PAGE_2:
 					{
 					display.println(F("Cancion a insertar:"));
+					display.clear(0,END_OF_LINE,1,1);
 					char * title = readSongTitle(actualMenuOption);
 					display.print(editData+2); //se insertará en la siguiente posicion 
 					display.print(".");
@@ -1107,7 +1075,8 @@ void refreshLCD()
 				case DELETE_SONG_PAGE:
 					{
 					display.println(F("Borrar cancion"));
-					display.setTextColor(WHITE,BLACK);
+					display.clear(0,END_OF_LINE,1,1);
+					display.setBlackText(false);
 					//leemos el titulo de la cancion de la posicion de edicion
 					char * title = readSongTitle(getSongNum(actualPlayListNum,actualMenuOption));
 					//lo mostramos
@@ -1122,6 +1091,7 @@ void refreshLCD()
 					{
 					display.println(F("Elige la cancion:"));
 					char * title = readSongTitle(actualMenuOption);
+					display.clear(0,END_OF_LINE,1,1);
 					display.print(actualMenuOption+1);
 					display.print(".");
 					display.println(title);
@@ -1130,8 +1100,9 @@ void refreshLCD()
 					break;
 				case CHANGE_SONG_NAME_PAGE:
 					{
-					display.setTextColor(WHITE,BLACK);
+					display.setBlackText(false);
 					display.println(F("Nombre cancion:"));
+					display.clear(0,END_OF_LINE,1,1);
 					//cambio de caracter con encoder
 					if (deltaEnc > 0)
 					{
@@ -1156,31 +1127,34 @@ void refreshLCD()
 					//mostramos la cadena
 					display.println(editString);
 					//dibujamos cursor en la posicion actual
-					display.drawFastHLine((editCursor*6), 15, 6, WHITE);
+					//display.drawFastHLine((editCursor*6), 15, 6, WHITE);
 					}
 					break;
 				case CHANGE_SONG_TEMPO_PAGE:
 					{
-					display.setTextColor(WHITE,BLACK);
+					display.setBlackText(false);
 					display.println(F("Elige el tempo:"));
 					display.println("\n");
+					display.clear(0,END_OF_LINE,3,4);
 					display.print(actualMenuOption);
 					display.println(F("  BPM"));
 					}
 					break;
 				case CHANGE_SONG_BEAT_PAGE:
 					{
-					display.setTextColor(WHITE,BLACK);
+					display.setBlackText(false);
 					display.println(F("Tipo Compas:"));
 					display.println("\n");
+					display.clear(0,END_OF_LINE,3,4);
 					display.println(actualMenuOption+2);					
 					}
 					break;
 				//elige cancion para vaciar
 				case SELECT_EMPTY_SONG_PAGE:
 					{
-					display.setTextColor(WHITE,BLACK);
+					display.setBlackText(false);
 					display.println(F("Elige la cancion:"));
+					display.clear(0,END_OF_LINE,1,1);
 					char * title = readSongTitle(actualMenuOption);
 					display.print(actualMenuOption+1);
 					display.print(".");
@@ -1188,33 +1162,10 @@ void refreshLCD()
 					free (title);
 					}
 					break;	
-				case TICK_SOUND_PAGE:
-					{
-					if (deltaEnc > 0)
-					{
-						editDataInt++;	
-						tickSound = editDataInt;
-						
-						deltaEnc = 0; //para que no se mueva						
-					}
-					if (deltaEnc < 0)
-					{
-						editDataInt--;			
-						tickSound = editDataInt;
-						
-						deltaEnc = 0; //para que no se mueva						
-					}	
-					display.setTextColor(WHITE,BLACK);
-					display.println(F("Elige el sonido:"));
-					display.println("\n");
-					display.print(editDataInt);
-					display.println(F("  Hz"));
-					}
-					break;
 				//informacion
 				case INFO_PAGE:
 					{
-					display.setTextColor(WHITE,BLACK);
+					display.setBlackText(false);
 					display.println(F("BeatDuino"));
 					display.println(F("by Warrior"));
 					display.print(F("Version:"));
@@ -1238,7 +1189,7 @@ void refreshLCD()
 					char buffer[30];
 					for (int i=0;i<menuPage[actualMenuPage].numOptions;i++)
 					{
-						actualMenuOption == i ? display.setTextColor(BLACK,WHITE) : display.setTextColor(WHITE,BLACK);
+						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
 						//leemos la opcion de la pagina
 						strcpy_P(buffer, (char*)pgm_read_word(&(menuPage[actualMenuPage].strTable[i])));
 						display.println(buffer);	
@@ -1246,7 +1197,7 @@ void refreshLCD()
 					}
 			}
 			//mostramos pantalla
-			display.display();
+			//display.display();
 			
 			break;
 	}
@@ -1354,12 +1305,8 @@ void loadConfig()
 	data = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
 	data != 0xFF ? midiClock =data : midiClock = midiClock;
 	
-	int dataInt;
-	dataInt = EEPROMReadInt(EEPROM_CONFIG_TICK_SOUND);
-	if (dataInt < NOTE_B0 ||dataInt > NOTE_DS8)
-		tickSound = NOTE_A4;
-	else
-		tickSound = dataInt;
+	data = EEPROM.read(EEPROM_CONFIG_TICK_SOUND);
+	data >= SND_1 && data <= SND_3 ? tickSound =data : tickSound = tickSound;
 	
 }
 
@@ -1374,7 +1321,7 @@ void resetDefault()
 	EEPROM.update(EEPROM_CONFIG_MODE,(byte)0xFF);
 	EEPROM.update(EEPROM_CONFIG_EQUAL_TICKS,(byte)0xFF);
 	EEPROM.update(EEPROM_CONFIG_MIDI_CLOCK,(byte)0xFF);
-	EEPROMWriteInt(EEPROM_CONFIG_TICK_SOUND,NOTE_A4);
+	EEPROM.update(EEPROM_CONFIG_TICK_SOUND,(byte)SND_1);
 	
 	//reiniciamos
 	while(true)
@@ -1391,15 +1338,15 @@ void wellcomeTest()
 	int frames = 0;
 	
 	
-	display.clearDisplay();
-	display.setTextSize(1);
-	display.setTextColor(WHITE);
+	display.clear();
+	display.set1X();
+	display.setBlackText(false);
     
     display.setCursor(0,0);
     for (unsigned int i=0;i<sizeof(welcome);i++)
 	{
 		display.print(char(welcome[i]));
-		display.display();
+		//display.display();
 		delay(25);
 		frames++;
 	}
@@ -1410,7 +1357,7 @@ void wellcomeTest()
 	for (unsigned int i=0;i<sizeof(welcome2);i++)
 	{
 		display.print(char(welcome2[i]));
-		display.display();
+		//display.display();
 		delay(25);
 		frames++;
 	}
@@ -1421,15 +1368,15 @@ void wellcomeTest()
 	for (unsigned int i=0;i<sizeof(welcome3);i++)
 	{
 		display.print(char(welcome3[i]));
-		display.display();
+		//display.display();
 		delay(25);
 		frames++;
 	}
 	
 	delay(1000);
 	
-	display.drawBitmap(90, 20,  bmMetronome, 32, 33, 2);
-	display.display();
+	/*display.drawBitmap(90, 20,  bmMetronome, 32, 33, 2);
+	//display.display();
 	
-	delay(1000);
+	delay(1000);*/
 }

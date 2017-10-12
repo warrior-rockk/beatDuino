@@ -17,7 +17,7 @@ const unsigned int EEPROM_PLAYLIST_POS			= 0x186;		//Posicion Inicio Memoria Rep
 const unsigned int EEPROM_CONFIG_MODE			= 0x1FB;		//Posicion Inicio Configuracion Modo
 const unsigned int EEPROM_CONFIG_EQUAL_TICKS	= 0x1FC;		//Posicion Inicio Configuracion Ticks Iguales
 const unsigned int EEPROM_CONFIG_MIDI_CLOCK		= 0x1FD;		//Posicion Inicio Configuracion Midi Clock
-const unsigned int EEPROM_CONFIG_TICK_SOUND		= 0x1FE;		//Posicion Inicio Configuracion Sonido Tick (integer)
+const unsigned int EEPROM_CONFIG_TICK_SOUND		= 0x1FE;		//Posicion Inicio Configuracion Sonido Ticks
 
 
 //textos por defecto

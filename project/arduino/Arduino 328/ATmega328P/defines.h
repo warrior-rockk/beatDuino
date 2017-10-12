@@ -15,15 +15,19 @@
 #define minorVersion 0
 
 //pines IO
-#define START_STOP  5
-#define ENC_B   	6		
+#define MIDI_RX		0 
+#define MIDI_TX		1
 #define ENC_A		2		
 #define MENU_PIN   	3		
 #define OLED_RESET 	4
+#define START_STOP  5
+#define ENC_B   	6		
 #define ENTER_PIN	7
-#define MIDI_TX		1
-#define MIDI_RX		0 
-#define OUT_CLICK 	11		
+
+#define BEAT1_CLICK	8		
+#define SND0_CLICK 	9		
+#define SND1_CLICK 	10		
+
 #define LED_CLICK   13
 
 //botones
@@ -56,6 +60,15 @@
 #define MAX_PLAYLIST_TITLE  8
 #define MAX_SONGS       	30
 #define MAX_SONG_TITLE  	10
+
+//tipos de sonido click
+#define SND_1 			0
+#define SND_2 			1
+#define SND_3 			2
+
+//defines del display
+#define END_OF_LINE		128
+#define LAST_LINE		7
 
 //MENU
 //páginas del menu

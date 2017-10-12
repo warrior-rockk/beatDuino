@@ -64,3 +64,9 @@ const char str27[] PROGMEM = "Repertorio";
 const char str28[] PROGMEM = "Metronomo";
 
 const char* const modeStr[] PROGMEM = {str27, str28};
+
+const char str29[] PROGMEM = "Sonido 1";
+const char str30[] PROGMEM = "Sonido 2";
+const char str31[] PROGMEM = "Sonido 3";
+
+const char* const soundsStr[] PROGMEM = {str29, str30, str31};
