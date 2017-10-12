@@ -100,7 +100,10 @@ const struct {
 					2,SETTINGS_PAGE,confirmStr,					
 					0,MAIN_PAGE,NULL,
 				};
-				  
+
+const unsigned int buttonDelay    	= 5;				//Tiempo antirebote (*10ms)
+const unsigned int buttonLongPress	= 200;				//Tiempo pulsacion larga para otras funciones (*10ms)				
+
 //==============================================
 
 //Variables generales===========================
@@ -129,8 +132,8 @@ volatile byte midiCounter	= 0;				//contador clocks midi
 SSD1306AsciiAvrI2c display;
 //interfaz
 volatile signed int deltaEnc= 0;				//incremento o decremento del encoder
-unsigned int buttonDelay    = 2;				//Tiempo antirebote
-unsigned int buttonLongPress= 60;				//Tiempo pulsacion larga para otras funciones
+unsigned long countClockTime= 0;				//contador de tiempo para las bases 10ms
+boolean clock10ms			= false;			//flanco de 10ms
 //menu
 byte actualMenuPage         = MAIN_PAGE;		//página del menu actual
 byte lastMenuPage			= 255;				//pagina anterior del menu
@@ -258,6 +261,15 @@ void loop()
 		refresh = false;
 	}
 	
+	//flanco cada 10ms
+	if (millis()- countClockTime >= 10)
+	{
+		countClockTime = millis();
+		clock10ms = true;
+	}
+	else
+		clock10ms = false;
+		
 	//calculo del tiempo de ciclo,maximo y minimo
 	lastCycleTime = micros() - startTime;
 	if (lastCycleTime > maxCycleTime)
@@ -1235,7 +1247,7 @@ void processButton(int pin,int buttonNum)
 	if (button[buttonNum].timerOn >= buttonDelay)
 	    button[buttonNum].pressed = true;
 	else
-	    button[buttonNum].timerOn++;
+	    button[buttonNum].timerOn+=clock10ms;
    }
    
    //retardo desactivacion
@@ -1252,14 +1264,14 @@ void processButton(int pin,int buttonNum)
      if (button[buttonNum].timerOff >= buttonDelay)
 	 button[buttonNum].pressed = false;
      else
-	 button[buttonNum].timerOff++;
+	 button[buttonNum].timerOff+=clock10ms;
    }
    
    //pulsacion larga
    if (button[buttonNum].pressed)
    {
       //contamos pulsacion larga
-      button[buttonNum].timerLong++;
+      button[buttonNum].timerLong+=clock10ms;
       //activamos flag long en primer flanco de cuenta
       if (button[buttonNum].timerLong == buttonLongPress)
       	 button[buttonNum].longPress = true;	
