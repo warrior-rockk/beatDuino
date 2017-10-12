@@ -17,11 +17,11 @@ LDFLAGS=-mmcu=attiny85
 CC=avr-gcc.exe
 ASM=avr-gcc.exe
 LD=avr-gcc.exe
-#  E:/Programacion/BeatAdvanced/Arduino 328/ATtiny85/Release/Release.hex: TOOL=LD
+#  E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATtiny85/Release/Release.hex: TOOL=LD
 #  Post: $(OBJ) avr-objcopy -O ihex -R .eeprom "./Release.elf" "./Release.hex"
 #  Post: $(OBJ) avr-objcopy -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0 --no-change-warnings -O ihex "./Release.elf" "./Release.eep" || exit 0 
-#     E:/Programacion/BeatAdvanced/Arduino 328/ATtiny85/Release/main.o: TOOL=CC
-#        E:/Programacion/BeatAdvanced/Arduino 328/ATtiny85/main.c
+#     E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATtiny85/Release/main.o: TOOL=CC
+#        E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATtiny85/main.c
 
 # Build tree:
 all:	Release

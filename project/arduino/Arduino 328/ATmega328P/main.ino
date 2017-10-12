@@ -173,7 +173,12 @@ void setup()
 	attachInterrupt(0, doEncoder, CHANGE);
 	
 	//inicializamos display
-	display.begin(&Adafruit128x64, 0x3C);
+	#ifdef DEBUG
+		display.begin(&Adafruit128x64, 0x3D);	//adafruit 0,96" y simulacion
+	#else
+		display.begin(&Adafruit128x64, 0x3C);	//display grande ebay
+	#endif
+	
 	display.setFont(Adafruit5x7); 
   
 	//Midi Baud Rate 
