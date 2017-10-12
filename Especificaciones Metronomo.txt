@@ -154,7 +154,13 @@ Los temporizadores tienen varios canales. El overflow que se ejecuta en los cicl
 	}
 
 Realizando pruebas, se ha visto que el ATmega328 no suena muy bien reproduciendo wavs a 8khzs. Se ha encontrado informacion de utilizar Attiny85 para reproduccion PCM que da mejor calidad porque, el timer que utiliza para la frecuencia portadora (la que no es el sample rate), puede alcanzar los 250khz debido a su modo especial de reloj PLL que alcanza 64mhz utilizando el reloj interno de 8mhz. 
-Con lo que se va a usar el Attiny85 para la reproduccion, recibiendo de arduino , 2 salidas para cada tono.
+Con lo que se va a usar el Attiny85 para la reproduccion, recibiendo de arduino la orden de reproducir.
+Esta libreria usa 2 pines PWM. Lo que hace es enviar en la otra salida, la inversa de la primera. De esta manera, no es necesario condensador de acoplamiento AC ya que la señal ya está centrada en 0.
+Por otro lado, el filtro paso bajo debe realizarse sobre la frecuencia portadora de 250khz ya que, esta contiene informacion de alta frecuencia que no lleva audio y que puede dañar los altavoces. Una regla para filtraje paso bajo de estas frecuencias es ajustar la frecuencia de corte a 1/10 de la frecuencia máxima. En este caso, 250khz/10 = 25khz es nuestra frecuencia de corte.
+Utilizaremos una resistencia de 47R y un condensador ceramico de 100nF para filtras aprox 33Khz.
+Como la resistencia de 47 no nos protege la corriente de 40mA por pin, ponemos en serie una de 100R para tener 147R de proteccion.
+Un potenciometro de 10K entre las 2 salidas PMW nos da la señal para el altavoz.
+Para la de linea, saldremos de las 2 resistencias en serie de 147 y conectaremos la salida entre una de las salidas PMW y GND. En la salida positiva pondremos un condensador de 10uF de acoplamiento.
 
 A fin de poder utilizar el Proteus para el código de ambos ICs, se va a programar el Attiny sin los cores de Arduino, con compilador WinAVR en C y sustituyendo las funciones Arduino de pines,etcc.. por macros #define.
 
