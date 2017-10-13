@@ -7,9 +7,12 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
+	-no se oyen los sonidos de prueba
+	-el snd2 no es muy agradable. Cambiar por un sample de clave y bajar la tonalidad del snd1
+	-que la interrupcion del attiny empieza desactivada
 	-indicar modo marcado en el menu de cambiarlo
 	-comprobacion de rango de valores en el load config
-	-que al cancelar la seleccion de una opcion, vuelva el valor original
+	-que al cancelar la seleccion de una opcion, vuelva el valor original (punteros?)
 	-solo debe leer la informacion de cancion al cambiar opcion si estas en modo live
 	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
 	-se esta refrescando lo minimo? ver ciclo de trabajo?
