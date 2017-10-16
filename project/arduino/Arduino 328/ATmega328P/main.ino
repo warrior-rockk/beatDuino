@@ -1022,7 +1022,9 @@ void refreshLCD()
 					//mostramos la cadena
 					display.println(editString);
 					//dibujamos cursor en la posicion actual
-					//display.drawFastHLine((editCursor*6), 15, 6, WHITE);
+					display.clear(0,END_OF_LINE,15,15);
+					display.setCursor((editCursor*6), 15);
+					display.print("-");
 					}
 					break;
 				//cambio de cancion (elegimos primero el orden)
