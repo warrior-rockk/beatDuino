@@ -103,15 +103,19 @@ ISR(TIMER0_COMPA_vect) {
 //reproducir sonido
 void play()
 {
-	//obtenemos el numero de sonido y el beat
-	sound = (PINB & 0b00001100)>>2;
-	beat  = (PINB & 0b00000001);
-	//subimos flag reproduccion
-	is_playing = true;
-	//comenzamos audio desde el principio
-	sample_index = 0; 	
-	//activamos la interrupcion Timer0_COMPA
-	TIMSK = 1<<OCIE0A;
+	//no empieza un sonido hasta terminar el actual
+	if (!is_playing)
+	{
+		//obtenemos el numero de sonido y el beat
+		sound = (PINB & 0b00001100)>>2;
+		beat  = (PINB & 0b00000001);
+		//subimos flag reproduccion
+		is_playing = true;
+		//comenzamos audio desde el principio
+		sample_index = 0; 	
+		//activamos la interrupcion Timer0_COMPA
+		TIMSK = 1<<OCIE0A;
+	}
 }
 
 //inicializacion
@@ -136,7 +140,7 @@ void setup()
 	// Set up Timer/Counter0 for 8kHz interrupt to output samples.
 	TCCR0A = 3<<WGM00;                      // Fast PWM
 	TCCR0B = 1<<WGM02 | 2<<CS00;            // 1/8 prescale
-	TIMSK = 1<<OCIE0A;                      // Enable compare match
+	//TIMSK = 1<<OCIE0A;                      // Enable compare match
 	OCR0A = 124;                            // Divide by 1000
 	
 	//configuramos los pines

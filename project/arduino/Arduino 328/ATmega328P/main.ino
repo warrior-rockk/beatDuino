@@ -8,8 +8,6 @@
 
  TO-DO:
 	-no se oyen los sonidos de prueba
-	-el snd2 no es muy agradable. Cambiar por un sample de clave y bajar la tonalidad del snd1
-	-que la interrupcion del attiny empieza desactivada
 	-indicar modo marcado en el menu de cambiarlo
 	-comprobacion de rango de valores en el load config
 	-que al cancelar la seleccion de una opcion, vuelva el valor original (punteros?)
