@@ -7,7 +7,7 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-no se oyen los sonidos de prueba
+	-agregar un boton mas?
 	-indicar modo marcado en el menu de cambiarlo
 	-comprobacion de rango de valores en el load config
 	-que al cancelar la seleccion de una opcion, vuelva el valor original (punteros?)
@@ -814,8 +814,7 @@ void doMenuState()
 						//si no esta seteado, lo seteamos
 						if (actualMenuOption < SND_1 || actualMenuOption > SND_3)
 							actualMenuOption = SND_1;
-						//actualizamos el sonido actual
-						tickSound = editData;
+						
 						actualMenuPage = TICK_SOUND_PAGE;
 						break;		
 					case MIDI_CLOCK_OPTION:
