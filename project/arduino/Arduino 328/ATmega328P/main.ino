@@ -7,13 +7,10 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-indicar modo marcado en el menu de cambiarlo
 	-comprobacion de rango de valores en el load config
-	-que al cancelar la seleccion de una opcion, vuelva el valor original (punteros?)
 	-solo debe leer la informacion de cancion al cambiar opcion si estas en modo live
 	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
-	-se esta refrescando lo minimo? ver ciclo de trabajo?
-		
+			
  v1.0	-	Release Inicial
  
  */
@@ -965,15 +962,13 @@ void refreshLCD()
 					display.print("\n\n"); 
 					display.set2X();
 					display.print(bpm); 
-					display.print(F(" BPM\n\n")); 
+					display.print(F(" BPM\n")); 
 					display.set1X();	
+					display.setCursor(57,6);
 					display.print(barSignature);
 					display.print("/");
 					display.print(noteDivision*4);
-					display.print("      ");
-					display.setCursor(96,7);
-					play ? display.print(F("START")) : display.print("STOP ");
-					//display.display();
+					play ? drawToolbar(playOpt,NULL,menuOpt) : drawToolbar(stopOpt,NULL,menuOpt);
 					
 					break;
 				//modo metronomo
@@ -993,12 +988,9 @@ void refreshLCD()
 					display.print(barSignature);
 					display.print("/");
 					display.print(noteDivision*4);
-					display.setCursor(0,7);
-					mode ? display.print(F("METRO")) : display.print("LIVE ");
-					display.setCursor(96,7);
-					play ? display.print(F("START")) : display.print("STOP ");
-					//display.display();
-					
+					//dibujamos opciones barra
+					play ? drawToolbar(playOpt,NULL,menuOpt) : drawToolbar(stopOpt,NULL,menuOpt); 
+									
 					break;
 			}
 			
@@ -1029,6 +1021,8 @@ void refreshLCD()
 						display.println(title);
 						free (title);
 					}
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
 					}
 					break;
 				case PLAYLIST_NAME_PAGE:
@@ -1078,6 +1072,8 @@ void refreshLCD()
 					display.print(".");
 					display.println(title);
 					free (title);
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
 					}
 					break;
 				//cambio de cancion (elegimos la cancion)
@@ -1100,6 +1096,8 @@ void refreshLCD()
 					display.print(".");
 					display.println(title);
 					free (title);
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
 					}
 					break;
 				//insertar cancion (elegimos primero el orden)
@@ -1115,6 +1113,8 @@ void refreshLCD()
 					display.print(".");
 					display.println(title);
 					free (title);
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
 					}
 					break;
 				//insertar cancion (elegimos la cancion)
@@ -1127,6 +1127,8 @@ void refreshLCD()
 					display.print(".");
 					display.println(title);
 					free (title);
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
 					}
 					break;
 				//borrar cancion
@@ -1142,6 +1144,8 @@ void refreshLCD()
 					display.print(".");
 					display.println(title);
 					free (title);
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
 					}
 					break;		
 				//elige cancion para editar
@@ -1154,6 +1158,8 @@ void refreshLCD()
 					display.print(".");
 					display.println(title);
 					free (title);
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
 					}
 					break;
 				case CHANGE_SONG_NAME_PAGE:
@@ -1198,6 +1204,8 @@ void refreshLCD()
 					display.clear(0,END_OF_LINE,3,4);
 					display.print(actualMenuOption);
 					display.println(F("  BPM"));
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
 					}
 					break;
 				case CHANGE_SONG_BEAT_PAGE:
@@ -1206,7 +1214,9 @@ void refreshLCD()
 					display.println(F("Tipo Compas:"));
 					display.println("\n");
 					display.clear(0,END_OF_LINE,3,4);
-					display.println(actualMenuOption+2);					
+					display.println(actualMenuOption+2);
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);					
 					}
 					break;
 				//elige cancion para vaciar
@@ -1220,6 +1230,8 @@ void refreshLCD()
 					display.print(".");
 					display.println(title);
 					free (title);
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
 					}
 					break;	
 				//informacion
@@ -1241,6 +1253,8 @@ void refreshLCD()
 					display.print(F("Ciclo Max:"));
 					display.print(maxCycleTime);
 					display.println(F("uS"));
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
 					}
 					break;				
 				//cualquier pagina de menu que solo muestra opciones
@@ -1254,6 +1268,8 @@ void refreshLCD()
 						strcpy_P(buffer, (char*)pgm_read_word(&(menuPage[actualMenuPage].strTable[i])));
 						display.println(buffer);	
 					}
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
 					}
 			}
 			//mostramos pantalla
@@ -1268,16 +1284,27 @@ void refreshLCD()
 void drawToolbar(const char* txt1,const char* txt2,const char* txt3)
 {
 	char buffer[20];
+	//configuramos texto
+	display.setBlackText(true);
+	display.set1X();
+	//comprobamos cada opcion para escribirla
+	if (txt1 != NULL){
+		strcpy_P(buffer,txt1);
+		display.setCursor(0,LAST_LINE);
+		display.print(buffer);
+	}
+	if (txt2 != NULL){
+		strcpy_P(buffer,txt2);
+		display.setCursor((128>>1)-((strlen(buffer)>>1)*7),LAST_LINE);
+		display.print(buffer);
+	}
+	if (txt3 != NULL){
+		strcpy_P(buffer,txt3);
+		display.setCursor(END_OF_LINE-(strlen(buffer)*7),LAST_LINE);
+		display.print(buffer);
+	}
 	
-	strcpy_P(buffer,txt1);
-	display.setCursor(0,LAST_LINE);
-	display.print(buffer);
-	strcpy_P(buffer,txt2);
-	display.setCursor((128>>1)-((strlen(buffer)>>1)*7),LAST_LINE);
-	display.print(buffer);
-	strcpy_P(buffer,txt3);
-	display.setCursor(END_OF_LINE-(strlen(buffer)*7),LAST_LINE);
-	display.print(buffer);
+	display.setBlackText(false);
 }
 
 //callback de la interrupcion 0 para leer el encoder
