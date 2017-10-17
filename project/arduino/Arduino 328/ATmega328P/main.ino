@@ -108,7 +108,7 @@ byte mode          	= METRONOME_MODE;			//modo general
 byte state         	= MAIN_STATE;				//estado general
 byte lastState		= 255;						//estado anterior
 boolean refresh		= true;						//refresco LCD
-unsigned int bpm 					= 100;//160;		//tempo general
+unsigned int bpm 					= 120;		//tempo general
 unsigned int lastBpm				= 0;		//tempo anterior
 unsigned int clickDuration 			= 50;		//duración pulso click
 unsigned long clickLastTime			= 0;		//cuenta del inicio pulso click
@@ -300,10 +300,15 @@ void loop()
 //callback de la interrupcion que se ejecuta 24 veces por negra al tempo actual
 void sendMidiClock()
 {
-	//si se cumple el ancho de pulso del tick, quitamos las señales de tick
+	//si se cumple el ancho de pulso del tick
 	if (millis() - clickLastTime > clickDuration)
+	{
+		//quitamos señales tick
 		PORTB &= 0xF8;
-		
+		//apagamos led (PB5)
+		PORTB &= ~(1<<5);
+	}
+	
 	//comprobamos iteraccion del midiClock
 	if (midiCounter >= (MIDI_TICKS_BEAT/noteDivision))
 	{
@@ -316,7 +321,9 @@ void sendMidiClock()
 			//guardamos tiempo inicio tick
 			clickLastTime = millis();
 			//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
-			PORTB |= ((tickSound*2)+2) + (actualTick == 0 && !equalTicks);							
+			PORTB |= ((tickSound*2)+2) + (actualTick == 0 && !equalTicks);	
+			//encendemos led (13 es PB5)
+			PORTB |= 1 << 5;
 		}
 	}
 	else
