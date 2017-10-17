@@ -61,7 +61,7 @@
 #define MAX_PLAYLISTS		3
 #define MAX_PLAYLIST_TITLE  8
 #define MAX_SONGS       	30
-#define MAX_SONG_TITLE  	10
+#define MAX_SONG_TITLE  	16
 
 //tipos de sonido click
 #define SND_1 			0
