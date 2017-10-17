@@ -4,7 +4,6 @@
  by Warrior / Warcom Ing.
  v1.0
  */
- 
 //textos opciones menu
 const char str0[] PROGMEM = "Repertorios";
 const char str1[] PROGMEM = "Canciones";

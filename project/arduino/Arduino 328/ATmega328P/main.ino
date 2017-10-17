@@ -1039,16 +1039,18 @@ void refreshLCD()
 					//cambio de caracter con encoder
 					if (deltaEnc > 0)
 					{
-						if ((byte)editString[editCursor] == 0) // \0'
+						if ((byte)editString[editCursor] < 32) 
 							editString[editCursor] = 32; //'space'
-						if ((byte)editString[editCursor] < 'z') 
+						else if ((byte)editString[editCursor] == 32) //'space'
+							editString[editCursor] = 'A'; 
+						else if ((byte)editString[editCursor] < 'z') 
 							editString[editCursor] = editString[editCursor]+1;						
 						
 						deltaEnc = 0; //para que no se mueva
 					}
 					if (deltaEnc < 0)
 					{
-						if ((byte)editString[editCursor] > 32) //'space'
+						if ((byte)editString[editCursor] > 'A')
 							editString[editCursor] = editString[editCursor]-1;
 						
 						deltaEnc = 0; //para que no se mueva						
@@ -1162,18 +1164,20 @@ void refreshLCD()
 					//cambio de caracter con encoder
 					if (deltaEnc > 0)
 					{
-						if ((byte)editString[editCursor] == 0) // \0'
+						if ((byte)editString[editCursor] < 32) 
 							editString[editCursor] = 32; //'space'
-						if ((byte)editString[editCursor] < 'z') 
-							editString[editCursor] = editString[editCursor]+1;		
-			
-						deltaEnc = 0; //para que no se mueva										
+						else if ((byte)editString[editCursor] == 32) //'space'
+							editString[editCursor] = 'A'; 
+						else if ((byte)editString[editCursor] < 'z') 
+							editString[editCursor] = editString[editCursor]+1;						
+						
+						deltaEnc = 0; //para que no se mueva
 					}
 					if (deltaEnc < 0)
 					{
-						if ((byte)editString[editCursor] > 32) //'space'
+						if ((byte)editString[editCursor] > 'A')
 							editString[editCursor] = editString[editCursor]-1;
-												
+						
 						deltaEnc = 0; //para que no se mueva						
 					}	
 					//mostramos la cadena
