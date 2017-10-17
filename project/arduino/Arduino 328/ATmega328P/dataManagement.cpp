@@ -154,11 +154,13 @@ void writePlayListTitle(byte playListNum,char * title)
 	
 	
 	//escribimos el titulo del playlist
-	for (int i=0;i<MAX_PLAYLIST_TITLE;i++)		
+	for (int i=0;i<MAX_PLAYLIST_TITLE-1;i++)		
 	{
 		EEPROM_Write(memPos,title[i]);
 		memPos++;
 	}
+	//escribimos caracter terminacion
+	EEPROM_Write(memPos,'\0');
 }
 
 //funcion para guardar una cancion en el repertorio
@@ -179,11 +181,13 @@ void writeSongTitle(byte songNum,char * title)
 	unsigned int memPos = EEPROM_SONGS_POS+((MAX_SONG_TITLE+3)*songNum);
 	
 	//escribimos el titulo de la cancion
-	for (int i=0;i<MAX_SONG_TITLE;i++)		
+	for (int i=0;i<MAX_SONG_TITLE-1;i++)		
 	{
 		EEPROM_Write(memPos,title[i]);
 		memPos++;
 	}
+	//escribimos caracter terminacion
+	EEPROM_Write(memPos,'\0');
 }
 
 //funcion para escribitr el tempo de una cancion
@@ -216,7 +220,8 @@ void initSongs()
 	{
 		for (int i=0;i<MAX_SONG_TITLE-1;i++)
 		{
-			EEPROM_Write(memPos,0xFF);
+			//EEPROM_Write(memPos,0xFF);
+			EEPROM_Write(memPos,pgm_read_byte(&emptySongStr[i]));
 			memPos++;
 		}
 		EEPROM_Write(memPos,'\0');
@@ -240,7 +245,8 @@ void initPlayLists()
 	{
 		for (int i=0;i<MAX_PLAYLIST_TITLE-1;i++)
 		{
-			EEPROM_Write(memPos,0xFF);
+			//EEPROM_Write(memPos,0xFF);
+			EEPROM_Write(memPos,pgm_read_byte(&emptyPlayListStr[i]));
 			memPos++;
 		}
 		EEPROM_Write(memPos,'\0');

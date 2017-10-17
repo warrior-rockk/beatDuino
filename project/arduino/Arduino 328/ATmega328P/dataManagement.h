@@ -21,8 +21,8 @@ const unsigned int EEPROM_CONFIG_TICK_SOUND		= 0x1FE;		//Posicion Inicio Configu
 
 
 //textos por defecto
-const char emptyPlayListStr[] PROGMEM = "VACIO";
-const char emptySongStr[] PROGMEM = "Vacio";
+const char emptyPlayListStr[] PROGMEM = "VACIO  ";
+const char emptySongStr[] PROGMEM = "Vacio    ";
 
 //==============================================
 

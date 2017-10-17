@@ -589,7 +589,7 @@ void doMenuState()
 				break;
 			case PLAYLIST_NAME_PAGE:
 				//avanzamos el cursor de edicion de nombre
-				editCursor < MAX_PLAYLIST_TITLE ? editCursor++ : editCursor = 0;							
+				editCursor < MAX_PLAYLIST_TITLE-2 ? editCursor++ : editCursor = 0;							
 				
 				break;
 			case ORDER_PAGE:
@@ -772,7 +772,7 @@ void doMenuState()
 			case CHANGE_SONG_NAME_PAGE:
 				//avanzamos el cursor de edicion de nombre 
 				//avanzamos cursor
-				editCursor < MAX_SONG_TITLE ? editCursor++ : editCursor = 0;							
+				editCursor < (MAX_SONG_TITLE-2) ? editCursor++ : editCursor = 0;							
 				
 				break;
 			case CHANGE_SONG_TEMPO_PAGE:
