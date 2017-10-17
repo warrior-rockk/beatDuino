@@ -70,3 +70,9 @@ const char str30[] PROGMEM = "Sonido 2";
 const char str31[] PROGMEM = "Sonido 3";
 
 const char* const soundsStr[] PROGMEM = {str29, str30, str31};
+
+//Opciones toolbar
+const char delOpt[] PROGMEM = "DEL";
+const char saveOpt[] PROGMEM = "SAVE";
+const char backOpt[] PROGMEM = "BACK";
+

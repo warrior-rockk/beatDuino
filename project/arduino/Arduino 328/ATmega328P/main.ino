@@ -7,7 +7,6 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-agregar un boton mas?
 	-indicar modo marcado en el menu de cambiarlo
 	-comprobacion de rango de valores en el load config
 	-que al cancelar la seleccion de una opcion, vuelva el valor original (punteros?)
@@ -48,7 +47,7 @@ struct button_
    unsigned int timerOn;
    unsigned int timerOff;
    unsigned int timerLong;
-}button[3];
+}button[4];
 
 //tipo de estructura de una cancion (13 bytes por cancion)
 struct song_
@@ -150,7 +149,7 @@ unsigned long startTime     = 0;				//tiempo de inicio de ejecucion ciclo para m
 unsigned long lastCycleTime = 0;				//tiempo que tardo el ultimo ciclo
 unsigned long minCycleTime  = 2000000;			//tiempo de ciclo minimo
 unsigned long maxCycleTime  = 0;				//tiempo de ciclo maximo
-byte general;
+int general;
 
 //================================
 
@@ -165,6 +164,7 @@ void setup()
 	pinMode(START_STOP,INPUT_PULLUP);
 	pinMode(MENU_PIN,INPUT_PULLUP);
 	pinMode(ENTER_PIN,INPUT_PULLUP);
+	pinMode(FUNCTION_PIN,INPUT_PULLUP);
 	
 	pinMode(BEAT1_CLICK,OUTPUT);
 	pinMode(SND0_CLICK,OUTPUT);
@@ -228,12 +228,25 @@ void loop()
 	processButton(START_STOP,START_STOP_BT);
 	processButton(MENU_PIN,MENU_BT);
 	processButton(ENTER_PIN,ENTER_BT);
+	processButton(FUNCTION_PIN,FUNCTION_BT);
 	
 	//si pulsamos boton menu/cancelar-atras
 	if (button[MENU_BT].pEdgePress)
 	{
 		doMenuButton();
 	}		
+	
+	//si pulsamos boton funcion
+	if (button[FUNCTION_BT].pEdgePress)
+	{
+		doFunctionButton();
+	}
+	
+	//si pulsamos boton start/stop
+	if (button[START_STOP_BT].pEdgePress)
+	{
+		doStartStopButton();
+	}
 	
 	//comprobamos estado
 	switch (state)
@@ -340,10 +353,78 @@ void doMenuButton()
 		default:
 			state = MENU_STATE;
 			actualMenuOption = 0;
+			editCursor       = 0;
 			actualMenuPage = MAIN_PAGE;
 			
 			break;
 	}	
+	refresh = true;
+}
+
+//acciones del botón de function
+void doFunctionButton()
+{
+	//comprobamos estado
+	switch (state)
+	{
+		//si está en el menu
+		case MENU_STATE:
+			//dependiendo de la pagina, hace una funcion
+			switch(actualMenuPage)
+			{
+			case PLAYLIST_NAME_PAGE: //funcion SAVE
+				//guardamos titulo
+				writePlayListTitle(actualPlayListNum,editString);
+				free(editString);
+				//salimos del menu
+				actualMenuPage = menuPage[actualMenuPage].prevPage;
+				actualMenuOption = 0;
+				readPlayListData();
+				
+				break;
+			case CHANGE_SONG_NAME_PAGE: //SAVE
+				//guardamos el nuevo nombre
+				writeSongTitle(editSelection,editString);
+				free(editString);
+				//salimos del menu
+				actualMenuOption=0;
+				actualMenuPage = menuPage[actualMenuPage].prevPage;
+				readSongData();
+
+				break;
+			}				
+			break;
+		//si no esta en el menu, no hace nada (de momento)
+		default:			
+			break;
+	}	
+	refresh = true;
+}
+
+//funcion del boton Start/Stop
+void doStartStopButton()
+{
+	//comprobamos estado
+	switch (state)
+	{
+		//modo principal: para y arranca el metronomo
+		case MAIN_STATE:
+			play = !play;
+			break;
+		//modo menu: segun la pantalla
+		case MENU_STATE:
+			switch(actualMenuPage)
+			{
+				case PLAYLIST_NAME_PAGE: //funcion borra caracter
+					editString[editCursor] = 32;				
+					break;
+				case CHANGE_SONG_NAME_PAGE: //funcion borra caracter
+					editString[editCursor] = 32;				
+					break;
+			}		
+			break;
+	}
+	
 	refresh = true;
 }
 
@@ -376,13 +457,6 @@ void doMainState()
 			noteDivision 	= actualSong.noteDivision;
 			barSignature 	= actualSong.barSignature;
 
-			//arranque-paro del sonido
-			if (button[START_STOP_BT].pEdgePress)
-			{
-				play = !play;
-				refresh = true;
-			}
-			
 			break;
 			
 		//modo metronomo normal. Con la ruleta cambias el tempo.
@@ -404,13 +478,6 @@ void doMainState()
 				deltaEnc = 0;
 				refresh = true;
 			}
-						
-			//arranque-paro del sonido
-			if (button[START_STOP_BT].pEdgePress)
-			{
-				play = !play;
-				refresh = true;
-			}	
 								
 			break;
 	}
@@ -517,24 +584,9 @@ void doMenuState()
 				}
 				break;
 			case PLAYLIST_NAME_PAGE:
-				//avanzamos el cursor de edicion de nombre o aceptamos cadena si el ultimo caracter es un enter
-				if ((byte)editString[editCursor] == 216)
-				{
-					//sustituimos ultimo caracter enter
-					editString[editCursor] = '\0';
-					//guardamos titulo
-					writePlayListTitle(actualPlayListNum,editString);
-					free(editString);
-					//salimos del menu
-					actualMenuPage = menuPage[actualMenuPage].prevPage;
-					actualMenuOption = 0;
-					readPlayListData();
-				}
-				else 
-				{
-					//avanzamos cursor
-					editCursor < MAX_PLAYLIST_TITLE ? editCursor++ : editCursor = 0;							
-				}
+				//avanzamos el cursor de edicion de nombre
+				editCursor < MAX_PLAYLIST_TITLE ? editCursor++ : editCursor = 0;							
+				
 				break;
 			case ORDER_PAGE:
 				switch (actualMenuOption)
@@ -714,23 +766,10 @@ void doMenuState()
 				}
 				break;
 			case CHANGE_SONG_NAME_PAGE:
-				//avanzamos el cursor de edicion de nombre o aceptamos cadena si el ultimo caracter es un enter
-				if ((byte)editString[editCursor] == 216)
-				{
-					//sustituimos ultimo caracter enter
-					editString[editCursor] = '\0';
-					//guardamos el nuevo nombre
-					writeSongTitle(editSelection,editString);
-					free(editString);
-					actualMenuOption=0;
-					actualMenuPage = menuPage[actualMenuPage].prevPage;
-					readSongData();							
-				}
-				else 
-				{
-					//avanzamos cursor
-					editCursor < MAX_SONG_TITLE ? editCursor++ : editCursor = 0;							
-				}
+				//avanzamos el cursor de edicion de nombre 
+				//avanzamos cursor
+				editCursor < MAX_SONG_TITLE ? editCursor++ : editCursor = 0;							
+				
 				break;
 			case CHANGE_SONG_TEMPO_PAGE:
 				writeSongTempo(editSelection,actualMenuOption);
@@ -927,7 +966,7 @@ void refreshLCD()
 					display.set2X();
 					display.print(bpm); 
 					display.print(F(" BPM\n\n")); 
-					display.set1X();
+					display.set1X();	
 					display.print(barSignature);
 					display.print("/");
 					display.print(noteDivision*4);
@@ -1002,8 +1041,6 @@ void refreshLCD()
 					{
 						if ((byte)editString[editCursor] == 0) // \0'
 							editString[editCursor] = 32; //'space'
-						if ((byte)editString[editCursor] == 'z') 
-							editString[editCursor] = 216; //'simbolo enter'
 						if ((byte)editString[editCursor] < 'z') 
 							editString[editCursor] = editString[editCursor]+1;						
 						
@@ -1011,9 +1048,7 @@ void refreshLCD()
 					}
 					if (deltaEnc < 0)
 					{
-						if ((byte)editString[editCursor] == 216) //'simbolo enter'
-							editString[editCursor] = 'z';
-						else if ((byte)editString[editCursor] > 32) //'space'
+						if ((byte)editString[editCursor] > 32) //'space'
 							editString[editCursor] = editString[editCursor]-1;
 						
 						deltaEnc = 0; //para que no se mueva						
@@ -1021,9 +1056,11 @@ void refreshLCD()
 					//mostramos la cadena
 					display.println(editString);
 					//dibujamos cursor en la posicion actual
-					display.clear(0,END_OF_LINE,15,15);
-					display.setCursor((editCursor*6), 15);
+					display.clear(0,END_OF_LINE,2,2);
+					display.setCursor((editCursor*6), 2);
 					display.print("-");
+					//dibujamos opciones toolbar
+					drawToolbar(delOpt,saveOpt,backOpt);
 					}
 					break;
 				//cambio de cancion (elegimos primero el orden)
@@ -1127,8 +1164,6 @@ void refreshLCD()
 					{
 						if ((byte)editString[editCursor] == 0) // \0'
 							editString[editCursor] = 32; //'space'
-						if ((byte)editString[editCursor] == 'z') 
-							editString[editCursor] = 216; //'simbolo enter'
 						if ((byte)editString[editCursor] < 'z') 
 							editString[editCursor] = editString[editCursor]+1;		
 			
@@ -1136,9 +1171,7 @@ void refreshLCD()
 					}
 					if (deltaEnc < 0)
 					{
-						if ((byte)editString[editCursor] == 216) //'simbolo enter'
-							editString[editCursor] = 'z';
-						else if ((byte)editString[editCursor] > 32) //'space'
+						if ((byte)editString[editCursor] > 32) //'space'
 							editString[editCursor] = editString[editCursor]-1;
 												
 						deltaEnc = 0; //para que no se mueva						
@@ -1146,7 +1179,11 @@ void refreshLCD()
 					//mostramos la cadena
 					display.println(editString);
 					//dibujamos cursor en la posicion actual
-					//display.drawFastHLine((editCursor*6), 15, 6, WHITE);
+					display.clear(0,END_OF_LINE,2,2);
+					display.setCursor((editCursor*6), 2);
+					display.print("-");
+					//dibujamos opciones toolbar
+					drawToolbar(delOpt,saveOpt,backOpt);
 					}
 					break;
 				case CHANGE_SONG_TEMPO_PAGE:
@@ -1221,6 +1258,22 @@ void refreshLCD()
 			break;
 	}
 	
+}
+
+//funcion que dibuja las opciones de toolbar centradas
+void drawToolbar(const char* txt1,const char* txt2,const char* txt3)
+{
+	char buffer[20];
+	
+	strcpy_P(buffer,txt1);
+	display.setCursor(0,LAST_LINE);
+	display.print(buffer);
+	strcpy_P(buffer,txt2);
+	display.setCursor((128>>1)-((strlen(buffer)>>1)*7),LAST_LINE);
+	display.print(buffer);
+	strcpy_P(buffer,txt3);
+	display.setCursor(END_OF_LINE-(strlen(buffer)*7),LAST_LINE);
+	display.print(buffer);
 }
 
 //callback de la interrupcion 0 para leer el encoder
@@ -1347,7 +1400,7 @@ void resetDefault()
 	{}
 }
 
- //funcion que realiza mensaje de inicio y test luces
+//funcion que realiza mensaje de inicio y test luces
 void wellcomeTest()
 {
 	unsigned char welcome[] = {'B','e','a','t','D','u','i','n','o'};

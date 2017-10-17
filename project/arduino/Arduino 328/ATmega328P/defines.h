@@ -28,12 +28,14 @@
 #define SND0_CLICK 	9		
 #define SND1_CLICK 	10		
 
+#define FUNCTION_PIN 11
 #define LED_CLICK   13
 
 //botones
 #define START_STOP_BT 	0
 #define MENU_BT 		1
 #define ENTER_BT		2
+#define FUNCTION_BT		3
 
 //comandos midi
 #define MIDI_CLOCK_MSG		0xF8
