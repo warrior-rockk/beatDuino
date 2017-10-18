@@ -7,8 +7,6 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-comprobacion de rango de valores en el load config
-	-solo debe leer la informacion de cancion al cambiar opcion si estas en modo live
 	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
 			
  v1.0	-	Release Inicial
@@ -376,6 +374,11 @@ void doFunctionButton()
 			//dependiendo de la pagina, hace una funcion
 			switch(actualMenuPage)
 			{
+			case INFO_PAGE:			//reset tiempos
+				minCycleTime  = 2000000;
+				maxCycleTime  = 0;
+
+				break;
 			case PLAYLIST_NAME_PAGE: //funcion SAVE
 				//guardamos titulo
 				writePlayListTitle(actualPlayListNum,editString);
@@ -1251,17 +1254,20 @@ void refreshLCD()
 					display.print(majorVersion);
 					display.print(".");
 					display.println(minorVersion);
-					display.print(F("Ciclo Act:"));
+					display.clear(0,END_OF_LINE,3,3);
+					display.print(F("Ciclo Act:"));					
 					display.print(lastCycleTime);
 					display.println(F("uS"));
-					display.print(F("Ciclo Min:"));
+					display.clear(0,END_OF_LINE,4,4);
+					display.print(F("Ciclo Min:"));					
 					display.print(minCycleTime);
 					display.println(F("uS"));
-					display.print(F("Ciclo Max:"));
+					display.clear(0,END_OF_LINE,5,5);
+					display.print(F("Ciclo Max:"));					
 					display.print(maxCycleTime);
 					display.println(F("uS"));
 					//dibujamos opciones barra
-					drawToolbar(NULL,NULL,backOpt);
+					drawToolbar(NULL,resetOpt,backOpt);
 					}
 					break;				
 				//cualquier pagina de menu que solo muestra opciones
@@ -1401,19 +1407,20 @@ void readSongData()
 	actualSong.barSignature = getSongBarSignature(actualSongPos);		
 }
 
-//funcion para leer la configuracion de EEPROM
+//funcion para leer la configuracion de EEPROM. Comprueba los valores y si no son buenos o no están 
+//seteados, carga los valores por defecto
 void loadConfig()
 {
 	byte data;
 	
 	data = EEPROM.read(EEPROM_CONFIG_MODE);
-	data != 0xFF ? mode =data : mode = mode;
+	data >= METRONOME_MODE && data <= LIVE_MODE ? mode =data : mode = mode;
 	
 	data = EEPROM.read(EEPROM_CONFIG_EQUAL_TICKS);
-	data != 0xFF ? equalTicks =data : equalTicks = equalTicks;
+	data >= 0 && data <= 1 ? equalTicks =data : equalTicks = equalTicks;
 	
 	data = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
-	data != 0xFF ? midiClock =data : midiClock = midiClock;
+	data >= 0 && data <= 1 ? midiClock =data : midiClock = midiClock;
 	
 	data = EEPROM.read(EEPROM_CONFIG_TICK_SOUND);
 	data >= SND_1 && data <= SND_3 ? tickSound =data : tickSound = tickSound;

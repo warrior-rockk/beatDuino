@@ -50,8 +50,8 @@
 #define SIXTEENTH   4
 
 //modos
-#define LIVE_MODE        0
-#define METRONOME_MODE   1
+#define METRONOME_MODE   0
+#define LIVE_MODE        1
 
 //estados
 #define MAIN_STATE		0

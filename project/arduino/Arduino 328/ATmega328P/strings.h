@@ -77,4 +77,5 @@ const char menuOpt[] PROGMEM = "MENU";
 const char delOpt[] PROGMEM = "DEL";
 const char saveOpt[] PROGMEM = "SAVE";
 const char backOpt[] PROGMEM = "BACK";
+const char resetOpt[] PROGMEM = "RESET";
 
