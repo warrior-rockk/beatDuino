@@ -11,10 +11,11 @@ const char str2[] PROGMEM = "Ajustes";
 const char str2_1[] PROGMEM = "Info";
 const char* const mainStr[] PROGMEM = {str0, str1, str2, str2_1};
 
-const char str3[] PROGMEM = "Cambiar Repertorio";
+const char str3[] PROGMEM = "Cambiar de Repertorio";
 const char str4[] PROGMEM = "Editar Repertorio";
+const char str4_1[] PROGMEM = "Copiar Repertorio";
 const char str5[] PROGMEM = "Eliminar Repertorio";
-const char* const playListStr[] PROGMEM = {str3, str4, str5};
+const char* const playListStr[] PROGMEM = {str3, str4, str4_1, str5};
 
 const char str6[] PROGMEM = "Cambiar Nombre";
 const char str7[] PROGMEM = "Cambiar Orden";

@@ -65,8 +65,8 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[29] = {	4,MAIN_PAGE,mainStr,
-					3,MAIN_PAGE,playListStr,
+} menuPage[30] = {	4,MAIN_PAGE,mainStr,
+					4,MAIN_PAGE,playListStr,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
 					0,PLAYLIST_EDIT_PAGE,NULL,
@@ -77,6 +77,7 @@ const struct {
 					MAX_SONGS,ORDER_PAGE,NULL,
 					MAX_SONGS,ORDER_PAGE,NULL,
 					2,ORDER_PAGE,confirmStr,
+					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,confirmStr,
 					2,MAIN_PAGE,songStr,
 					MAX_SONGS,SONG_PAGE,NULL,
@@ -555,7 +556,12 @@ void doMenuState()
 						actualMenuOption = 0;
 						actualMenuPage = PLAYLIST_EDIT_PAGE;
 						
-						break;		
+						break;	
+					case COPY_PLAYLIST_OPTION:
+						actualMenuOption = 0;
+						actualMenuPage = PLAYLIST_COPY_PAGE;
+						
+						break;	
 					case DELETE_PLAYLIST_OPTION:
 						actualMenuOption = 0;
 						actualMenuPage = PLAYLIST_DELETE_PAGE;
@@ -695,6 +701,20 @@ void doMenuState()
 					}
 				}
 										
+				actualMenuOption=0;
+				actualMenuPage = menuPage[actualMenuPage].prevPage;
+				readSongData();
+				
+				break;
+			case PLAYLIST_COPY_PAGE: 	
+				//copiamos el orden actual al seleccionado
+				for (int i=0;i<MAX_SONGS;i++)
+				{
+					writePlayListSong(actualMenuOption,i,getSongNum(actualPlayListNum,i));
+				}
+				//cambiamos el nombre
+				writePlayListTitle(actualMenuOption,readPlayListTitle(actualPlayListNum));
+				
 				actualMenuOption=0;
 				actualMenuPage = menuPage[actualMenuPage].prevPage;
 				readSongData();
