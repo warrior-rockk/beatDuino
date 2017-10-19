@@ -8,6 +8,7 @@
 
  TO-DO:
 	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
+	-copiar orden
 			
  v1.0	-	Release Inicial
  
@@ -103,7 +104,7 @@ const unsigned int buttonLongPress	= 200;				//Tiempo pulsacion larga para otras
 
 //Variables generales===========================
 byte mode          	= METRONOME_MODE;			//modo general
-byte state         	= MAIN_STATE;				//estado general
+byte state         	= MENU_STATE;//MAIN_STATE;				//estado general
 byte lastState		= 255;						//estado anterior
 boolean refresh		= true;						//refresco LCD
 unsigned int bpm 					= 120;		//tempo general
@@ -130,9 +131,9 @@ volatile signed int deltaEnc= 0;				//incremento o decremento del encoder
 unsigned long countClockTime= 0;				//contador de tiempo para las bases 10ms
 boolean clock10ms			= false;			//flanco de 10ms
 //menu
-byte actualMenuPage         = MAIN_PAGE;		//página del menu actual
+byte actualMenuPage         = CHANGE_ORDER_PAGE;//MAIN_PAGE;		//página del menu actual
 byte lastMenuPage			= 255;				//pagina anterior del menu
-byte actualMenuOption 		= CHANGE_PLAYLIST_OPTION;	//opcion seleccionada del menu
+byte actualMenuOption 		= 0;				//opcion seleccionada del menu
 //entrada texto o parametros
 byte editCursor             = 0;				//posicion cursor edicion
 char * editString;								//cadena a editar
@@ -496,7 +497,8 @@ void doMenuState()
 	//cambio de opcion
 	if (deltaEnc > 0 )
 	{
-		actualMenuOption < menuPage[actualMenuPage].numOptions-1 ? actualMenuOption++ : actualMenuOption=0;
+		//actualMenuOption < menuPage[actualMenuPage].numOptions-1 ? actualMenuOption++ : actualMenuOption=0;
+		if (actualMenuOption < menuPage[actualMenuPage].numOptions-1) actualMenuOption++;
 		//si tiene el numero de opciones definido, reseteamos el encoder
 		if (menuPage[actualMenuPage].numOptions != 0)
 			deltaEnc = 0; //para que no se mueva						
@@ -504,7 +506,8 @@ void doMenuState()
 	}
 	if (deltaEnc < 0 )
 	{
-		actualMenuOption > 0 ? actualMenuOption-- : actualMenuOption = menuPage[actualMenuPage].numOptions-1;
+		//actualMenuOption > 0 ? actualMenuOption-- : actualMenuOption = menuPage[actualMenuPage].numOptions-1;
+		if (actualMenuOption > 0)  actualMenuOption-- ;
 		//si tiene el numero de opciones definido, reseteamos el encoder
 		if (menuPage[actualMenuPage].numOptions != 0)
 			deltaEnc = 0; //para que no se mueva						
@@ -1072,16 +1075,22 @@ void refreshLCD()
 				//cambio de cancion (elegimos primero el orden)
 				case CHANGE_ORDER_PAGE:
 					{
-					display.println(F("Elige la posicion:"));
-					display.clear(0,END_OF_LINE,1,1);
-					display.setBlackText(false);
-					//leemos el titulo de la cancion de la posicion de edicion
-					char * title = readSongTitle(getSongNum(actualPlayListNum,actualMenuOption));
-					//lo mostramos
-					display.print(actualMenuOption+1);
-					display.print(".");
-					display.println(title);
-					free (title);
+					int index = actualMenuOption < (LAST_MENU_LINE-1) ? 0 : actualMenuOption-(LAST_MENU_LINE-1);
+					
+					//mostramos listado del orden
+					for (int i = index;i<index+LAST_MENU_LINE;i++)
+					{
+						char * title;
+					
+						//leemos el titulo de la cancion actual
+						title = readSongTitle(getSongNum(actualPlayListNum,i));
+						//lo mostramos
+						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
+						display.print(i+1);
+						display.print(".");
+						display.println(title);
+						free (title);
+					}					
 					//dibujamos opciones barra
 					drawToolbar(NULL,NULL,backOpt);
 					}

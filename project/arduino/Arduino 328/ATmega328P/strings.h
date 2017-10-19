@@ -59,8 +59,8 @@ const char str26_1[] PROGMEM= "Reset Fabrica";
 
 const char* const settingsStr[] PROGMEM = {str23, str24, str25, str26, str26_1};
 
-const char str27[] PROGMEM = "Repertorio";
-const char str28[] PROGMEM = "Metronomo";
+const char str27[] PROGMEM = "Metronomo";
+const char str28[] PROGMEM = "Repertorio";
 
 const char* const modeStr[] PROGMEM = {str27, str28};
 

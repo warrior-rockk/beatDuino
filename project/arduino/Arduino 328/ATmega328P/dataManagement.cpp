@@ -45,6 +45,7 @@ char * readPlayListTitle(byte numPlayList)
 //funcion para leer el titulo de una cancion de memoria
 char * readSongTitle(byte numSong)
 {
+	 
 	//alocamos el espacio de memoria para el titulo de la cancion
 	char * buf = (char *) malloc (MAX_SONG_TITLE);
 	
@@ -63,7 +64,7 @@ char * readSongTitle(byte numSong)
 			memPos++;
 		}
 	}
-	
+		
 	//devolvemos el puntero al string
 	return buf;
 }
