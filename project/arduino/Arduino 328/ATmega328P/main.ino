@@ -7,7 +7,8 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	copiar orden
+	-que los indices de canciones y orden lleven 01,02,03
+	-las cifras de bpm que cambien en repertorio y los tipos de compas salen mal
 			
  v1.0	-	Release Inicial
  
@@ -167,7 +168,6 @@ void setup()
 	pinMode(SND1_CLICK,OUTPUT);
 	
 	pinMode(LED_CLICK,OUTPUT);
-	pinMode(OLED_RESET,OUTPUT); 
 	
 	//asignamos interrupcion a entrada encoder A	
 	attachInterrupt(0, doEncoder, CHANGE);

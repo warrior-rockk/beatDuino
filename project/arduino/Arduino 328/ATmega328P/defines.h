@@ -15,21 +15,20 @@
 #define minorVersion 0
 
 //pines IO
-#define MIDI_RX		0 
-#define MIDI_TX		1
-#define ENC_A		2		
-#define MENU_PIN   	3		
-#define OLED_RESET 	4
-#define START_STOP  5
-#define ENC_B   	6		
-#define ENTER_PIN	7
+#define MIDI_RX			0 
+#define MIDI_TX			1
+#define ENC_A			2		
+#define MENU_PIN   		3		
+#define FUNCTION_PIN	4
+#define START_STOP  	5
+#define ENC_B   		6		
+#define ENTER_PIN		7
 
-#define BEAT1_CLICK	8		
-#define SND0_CLICK 	9		
-#define SND1_CLICK 	10		
+#define BEAT1_CLICK		8		
+#define SND0_CLICK 		9		
+#define SND1_CLICK 		10		
 
-#define FUNCTION_PIN 11
-#define LED_CLICK   13
+#define LED_CLICK   	13
 
 //botones
 #define START_STOP_BT 	0
