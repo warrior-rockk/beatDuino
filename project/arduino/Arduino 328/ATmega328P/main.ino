@@ -7,7 +7,7 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-un menu de repertorio que salgan mas de un registro y te desplaces en lista?
+	-que al borrar una cancion de reper, ponga vacio en la ultima
 	-copiar orden
 			
  v1.0	-	Release Inicial
@@ -74,7 +74,7 @@ const struct {
 					4,PLAYLIST_PAGE,changeOrderStr,
 					MAX_SONGS,ORDER_PAGE,NULL,
 					MAX_SONGS,ORDER_PAGE,NULL,
-					MAX_SONGS-1,ORDER_PAGE,NULL, 
+					MAX_SONGS,ORDER_PAGE,NULL, 
 					MAX_SONGS,ORDER_PAGE,NULL,
 					MAX_SONGS,ORDER_PAGE,NULL,
 					2,ORDER_PAGE,confirmStr,
@@ -646,10 +646,14 @@ void doMenuState()
 				readSongData();
 				break;
 			case INSERT_SONG_PAGE:  
-				//elegimos posicion de la inserccion
-				editData = actualMenuOption;
-				actualMenuOption = 0;
-				actualMenuPage = INSERT_SONG_PAGE_2;
+				//comprobamos que no quieras insertar en la ultima cancion (no caben mas)
+				if (actualMenuOption < 29)
+				{
+					//elegimos posicion de la inserccion
+					editData = actualMenuOption;
+					actualMenuOption = 0;
+					actualMenuPage = INSERT_SONG_PAGE_2;
+				}
 				
 				break; 
 			case INSERT_SONG_PAGE_2: 	
@@ -663,9 +667,9 @@ void doMenuState()
 				//escribimos la nueva cancion en la posicion de inserccion
 				writePlayListSong(actualPlayListNum,editData+1,actualMenuOption);
 				
-				actualMenuOption=0;
+				actualMenuOption=editData+1;	//marcamos la nueva cancion insertada
 				editData=0;
-				actualMenuPage = menuPage[actualMenuPage].prevPage;
+				actualMenuPage = INSERT_SONG_PAGE;
 				readSongData();
 									
 				break;
@@ -676,9 +680,9 @@ void doMenuState()
 					writePlayListSong(actualPlayListNum,i,getSongNum(actualPlayListNum,i+1));
 				}
 				
-				actualMenuOption=0;
+				actualMenuOption=editData;
 				editData=0;
-				actualMenuPage = menuPage[actualMenuPage].prevPage;
+				actualMenuPage =  DELETE_SONG_PAGE;
 				readSongData();
 				break;
 			case EMPTY_ORDER_PAGE: 	
@@ -1122,16 +1126,22 @@ void refreshLCD()
 				//insertar cancion (elegimos primero el orden)
 				case INSERT_SONG_PAGE:
 					{
-					display.println(F("Insertar despues de:"));
-					display.setBlackText(false);
-					display.clear(0,END_OF_LINE,1,1);
-					//leemos el titulo de la cancion de la posicion de edicion
-					char * title = readSongTitle(getSongNum(actualPlayListNum,actualMenuOption));
-					//lo mostramos
-					display.print(actualMenuOption+1);
-					display.print(".");
-					display.println(title);
-					free (title);
+					int index = actualMenuOption < (LAST_MENU_LINE-1) ? 0 : actualMenuOption-(LAST_MENU_LINE-1);
+					
+					//mostramos listado del orden
+					for (int i = index;i<index+LAST_MENU_LINE;i++)
+					{
+						char * title;
+					
+						//leemos el titulo de la cancion actual
+						title = readSongTitle(getSongNum(actualPlayListNum,i));
+						//lo mostramos
+						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
+						display.print(i+1);
+						display.print(".");
+						display.println(title);
+						free (title);
+					}					
 					//dibujamos opciones barra
 					drawToolbar(NULL,NULL,backOpt);
 					}
@@ -1139,10 +1149,20 @@ void refreshLCD()
 				//insertar cancion (elegimos la cancion)
 				case INSERT_SONG_PAGE_2:
 					{
-					display.println(F("Cancion a insertar:"));
-					display.clear(0,END_OF_LINE,1,1);
-					char * title = readSongTitle(actualMenuOption);
-					display.print(editData+2); //se insertará en la siguiente posicion 
+					display.println(F("Insertar tras:"));
+					//leemos el titulo de la cancion de la posicion de edicion
+					char * title = readSongTitle(getSongNum(actualPlayListNum,editData));
+					//lo mostramos
+					display.print(editData+1);
+					display.print(".");
+					display.println(title);
+					display.println("\n");
+					display.println(F("Elige la cancion:"));
+					display.clear(0,END_OF_LINE,5,6);
+					free(title);
+					
+					title = readSongTitle(actualMenuOption);
+					display.print(actualMenuOption+1); //se insertará en la siguiente posicion 
 					display.print(".");
 					display.println(title);
 					free (title);
@@ -1153,16 +1173,22 @@ void refreshLCD()
 				//borrar cancion
 				case DELETE_SONG_PAGE:
 					{
-					display.println(F("Borrar cancion"));
-					display.clear(0,END_OF_LINE,1,1);
-					display.setBlackText(false);
-					//leemos el titulo de la cancion de la posicion de edicion
-					char * title = readSongTitle(getSongNum(actualPlayListNum,actualMenuOption));
-					//lo mostramos
-					display.print(actualMenuOption+1);
-					display.print(".");
-					display.println(title);
-					free (title);
+					int index = actualMenuOption < (LAST_MENU_LINE-1) ? 0 : actualMenuOption-(LAST_MENU_LINE-1);
+					
+					//mostramos listado del orden
+					for (int i = index;i<index+LAST_MENU_LINE;i++)
+					{
+						char * title;
+					
+						//leemos el titulo de la cancion actual
+						title = readSongTitle(getSongNum(actualPlayListNum,i));
+						//lo mostramos
+						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
+						display.print(i+1);
+						display.print(".");
+						display.println(title);
+						free (title);
+					}					
 					//dibujamos opciones barra
 					drawToolbar(NULL,NULL,backOpt);
 					}
