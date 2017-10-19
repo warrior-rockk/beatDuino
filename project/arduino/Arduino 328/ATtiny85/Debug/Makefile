@@ -17,11 +17,11 @@ LDFLAGS=-mmcu=attiny85
 CC=avr-gcc.exe
 ASM=avr-gcc.exe
 LD=avr-gcc.exe
-#  E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATtiny85/Debug/Debug.elf: TOOL=LD
+#  E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATtiny85/Debug/Debug.elf: TOOL=LD
 #  Post: $(OBJ) avr-objcopy -O ihex -R .eeprom "./Debug.elf" "./Debug.hex"
 #  Post: $(OBJ) avr-objcopy -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0 --no-change-warnings -O ihex "./Debug.elf" "./Debug.eep" || exit 0 
-#     E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATtiny85/Debug/main.o: TOOL=CC
-#        E:/Instalables/Proyectos/BeatDuino/project/arduino/Arduino 328/ATtiny85/main.c
+#     E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATtiny85/Debug/main.o: TOOL=CC
+#        E:/Programacion/BeatDuino/project/arduino/Arduino 328/ATtiny85/main.c
 
 # Build tree:
 all:	Debug

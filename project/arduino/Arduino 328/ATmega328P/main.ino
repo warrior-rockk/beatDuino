@@ -1212,7 +1212,26 @@ void refreshLCD()
 					//dibujamos opciones barra
 					drawToolbar(NULL,NULL,backOpt);
 					}
-					break;		
+					break;	
+				//copiar de repertorio
+				case PLAYLIST_COPY_PAGE:
+					{
+					display.setBlackText(false);
+					display.println(F("Copiar actual en:"));
+					display.clear(0,END_OF_LINE,1,1);
+					for (int i=0;i<MAX_PLAYLISTS;i++)
+					{
+						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
+						char * title = readPlayListTitle(i);
+						display.print(i+1);
+						display.print(".");
+						display.println(title);
+						free (title);
+					}
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
+					}
+					break;	
 				//elige cancion para editar
 				case SELECT_EDIT_SONG_PAGE:
 					{
