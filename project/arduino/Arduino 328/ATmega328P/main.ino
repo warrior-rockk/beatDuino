@@ -7,8 +7,7 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-que al borrar una cancion de reper, ponga vacio en la ultima
-	-copiar orden
+	copiar orden
 			
  v1.0	-	Release Inicial
  
@@ -679,8 +678,9 @@ void doMenuState()
 				{
 					writePlayListSong(actualPlayListNum,i,getSongNum(actualPlayListNum,i+1));
 				}
-				
-				actualMenuOption=editData;
+				//la ultima cancion se queda vacía
+				writePlayListSong(actualPlayListNum,MAX_SONGS-1,0);
+				actualMenuOption=actualMenuOption;
 				editData=0;
 				actualMenuPage =  DELETE_SONG_PAGE;
 				readSongData();
