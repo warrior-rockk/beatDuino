@@ -99,7 +99,7 @@ const struct {
 
 const unsigned int buttonDelay    	= 5;				//Tiempo antirebote (*10ms)
 const unsigned int buttonLongPress	= 200;				//Tiempo pulsacion larga para otras funciones (*10ms)				
-
+const unsigned int encoderDelay		= 1;				//pulsos retardo modificacion encoder
 //==============================================
 
 //Variables generales===========================
@@ -127,9 +127,10 @@ volatile byte midiCounter	= 0;				//contador clocks midi
 //display Oled
 SSD1306AsciiAvrI2c display;
 //interfaz
-volatile signed int deltaEnc= 0;				//incremento o decremento del encoder
-unsigned long countClockTime= 0;				//contador de tiempo para las bases 10ms
-boolean clock10ms			= false;			//flanco de 10ms
+volatile signed int deltaEnc		= 0;				//incremento o decremento del encoder
+volatile unsigned int deltaCount	= 0;				//contador pulsos para el encoder
+unsigned long countClockTime		= 0;				//contador de tiempo para las bases 10ms
+boolean clock10ms					= false;			//flanco de 10ms
 //menu
 byte actualMenuPage         = CHANGE_ORDER_PAGE;//MAIN_PAGE;		//página del menu actual
 byte lastMenuPage			= 255;				//pagina anterior del menu
@@ -1399,11 +1400,16 @@ void drawToolbar(const char* txt1,const char* txt2,const char* txt3)
 //callback de la interrupcion 0 para leer el encoder
 void doEncoder()
 {
-  //si el canal A y el B son iguales, estamos incrementando, si no, decrementando
-  if (digitalRead(ENC_B) == digitalRead(ENC_A)) 
-	deltaEnc=1;
-  else
- 	deltaEnc=-1;  
+	//pulsos de retraso encoder
+	if (deltaCount >= encoderDelay)
+	{
+		//si el canal A y el B son iguales, estamos incrementando, si no, decrementando
+		deltaEnc = (digitalRead(ENC_B) == digitalRead(ENC_A)) ? 1: -1; 
+		deltaCount = 0;
+	}
+	else
+		deltaCount++;
+
 }
 
 
