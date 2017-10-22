@@ -71,6 +71,7 @@
 #define END_OF_LINE		128
 #define LAST_LINE		7
 #define LAST_MENU_LINE  6
+#define LAST_CHAR       21
 
 //MENU
 //páginas del menu

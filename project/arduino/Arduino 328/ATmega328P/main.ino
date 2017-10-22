@@ -7,8 +7,7 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-que los indices de canciones y orden lleven 01,02,03
-	-las cifras de bpm que cambien en repertorio y los tipos de compas salen mal
+	-que los indices de canciones y orden lleven 01,02,03	
 			
  v1.0	-	Release Inicial
  
@@ -998,10 +997,13 @@ void refreshLCD()
 					display.print(actualSong.title);
 					display.print("\n\n"); 
 					display.set2X();
+					display.clear(0,39,3,4);
 					display.print(bpm); 
+					display.setCursor(40,3);
 					display.print(F(" BPM\n")); 
 					display.set1X();	
-					display.setCursor(57,6);
+					display.clear(57,80,6,6);
+					//display.setCursor(57,6);
 					display.print(barSignature);
 					display.print("/");
 					display.print(noteDivision*4);
@@ -1012,10 +1014,10 @@ void refreshLCD()
 				case METRONOME_MODE:
 					//actualizamos display del modo metronomo
 					//display.clear(0,(display.fontWidth()+4)*5,2,3);
-					display.clear(0,32,1,2);
-					display.setCursor(11,1);
-					display.setBlackText(false);
 					display.set2X();
+					display.clear(0,63,1,2);
+					display.setCursor(11,1);
+					display.setBlackText(false);					
 					display.print(bpm); 
 					//display.setCursor(display.fontWidth()*5,2);
 					display.setCursor(64,1);
