@@ -7,7 +7,7 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-que los indices de canciones y orden lleven 01,02,03	
+	-mostrar las canciones como listado ordenes?	
 			
  v1.0	-	Release Inicial
  
@@ -1113,6 +1113,7 @@ void refreshLCD()
 						title = readSongTitle(getSongNum(actualPlayListNum,i));
 						//lo mostramos
 						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
+						if (i < 9) display.print("0");
 						display.print(i+1);
 						display.print(".");
 						display.println(title);
@@ -1160,6 +1161,7 @@ void refreshLCD()
 						title = readSongTitle(getSongNum(actualPlayListNum,i));
 						//lo mostramos
 						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
+						if (i < 9) display.print("0");
 						display.print(i+1);
 						display.print(".");
 						display.println(title);
@@ -1207,6 +1209,7 @@ void refreshLCD()
 						title = readSongTitle(getSongNum(actualPlayListNum,i));
 						//lo mostramos
 						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
+						if (i < 9) display.print("0");
 						display.print(i+1);
 						display.print(".");
 						display.println(title);
