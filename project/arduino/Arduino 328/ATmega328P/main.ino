@@ -107,7 +107,7 @@ const unsigned int encoderDelay		= 1;				//pulsos retardo modificacion encoder
 
 //Variables generales===========================
 byte mode          	= METRONOME_MODE;			//modo general
-byte state         	= MENU_STATE;//MAIN_STATE;				//estado general
+byte state         	= MAIN_STATE;				//estado general
 byte lastState		= 255;						//estado anterior
 boolean refresh		= true;						//refresco LCD
 unsigned int bpm 					= 120;		//tempo general
@@ -135,7 +135,7 @@ volatile unsigned int deltaCount	= 0;				//contador pulsos para el encoder
 unsigned long countClockTime		= 0;				//contador de tiempo para las bases 10ms
 boolean clock10ms					= false;			//flanco de 10ms
 //menu
-byte actualMenuPage         = CHANGE_ORDER_PAGE;//MAIN_PAGE;		//página del menu actual
+byte actualMenuPage         = MAIN_PAGE;		//página del menu actual
 byte lastMenuPage			= 255;				//pagina anterior del menu
 byte actualMenuOption 		= 0;				//opcion seleccionada del menu
 //entrada texto o parametros
