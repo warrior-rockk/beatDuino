@@ -202,9 +202,6 @@ void setup()
 	Timer1.initialize(midiClockTime); //uSecs
 	Timer1.attachInterrupt(sendMidiClock);
 	
-	//activamos el watchdog a 2 segundos
-	wdt_enable(WDTO_2S);
-	
 	//prueba de elementos
 	//debugWriteSongs();
 	//debugWritePlayLists();
@@ -220,7 +217,9 @@ void setup()
 	//leemos los datos actuales
 	readPlayListData();
 	readSongData();
- 
+	
+	//activamos el watchdog a 2 segundos
+	wdt_enable(WDTO_2S);
 }
 
 void loop()
@@ -1539,10 +1538,11 @@ void resetDefault()
 }
 
 //funcion para cargar el contenido del import.h en EEPROM
-
 void importEeprom()
 {
 	#ifdef INITIALIZE
+	display.clear();
+	display.print("Importando EEPROM...");
 	//recorremos el array de importacion
 	for (unsigned int i = 0; i < EEPROM_CONFIG_MODE; i++)
 		{
