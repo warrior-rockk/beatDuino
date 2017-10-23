@@ -7,8 +7,7 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-mostrar las canciones como listado ordenes?	
-	-posibilidad importar/exportar EEPROM?		
+	-posibilidad exportar EEPROM?		
  v1.0	-	Release Inicial
  
  */
@@ -1248,13 +1247,23 @@ void refreshLCD()
 				//elige cancion para editar
 				case SELECT_EDIT_SONG_PAGE:
 					{
-					display.println(F("Elige la cancion:"));
-					char * title = readSongTitle(actualMenuOption);
-					display.clear(0,END_OF_LINE,1,1);
-					display.print(actualMenuOption+1);
-					display.print(".");
-					display.println(title);
-					free (title);
+					int index = actualMenuOption < (LAST_MENU_LINE-1) ? 0 : actualMenuOption-(LAST_MENU_LINE-1);
+					
+					//mostramos listado del orden
+					for (int i = index;i<index+LAST_MENU_LINE;i++)
+					{
+						char * title;
+					
+						//leemos el titulo de la cancion actual
+						title = readSongTitle(i);
+						//lo mostramos
+						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
+						if (i < 9) display.print("0");
+						display.print(i+1);
+						display.print(".");
+						display.println(title);
+						free (title);
+					}		
 					//dibujamos opciones barra
 					drawToolbar(NULL,NULL,backOpt);
 					}
@@ -1319,14 +1328,23 @@ void refreshLCD()
 				//elige cancion para vaciar
 				case SELECT_EMPTY_SONG_PAGE:
 					{
-					display.setBlackText(false);
-					display.println(F("Elige la cancion:"));
-					display.clear(0,END_OF_LINE,1,1);
-					char * title = readSongTitle(actualMenuOption);
-					display.print(actualMenuOption+1);
-					display.print(".");
-					display.println(title);
-					free (title);
+					int index = actualMenuOption < (LAST_MENU_LINE-1) ? 0 : actualMenuOption-(LAST_MENU_LINE-1);
+					
+					//mostramos listado del orden
+					for (int i = index;i<index+LAST_MENU_LINE;i++)
+					{
+						char * title;
+					
+						//leemos el titulo de la cancion actual
+						title = readSongTitle(i);
+						//lo mostramos
+						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
+						if (i < 9) display.print("0");
+						display.print(i+1);
+						display.print(".");
+						display.println(title);
+						free (title);
+					}		
 					//dibujamos opciones barra
 					drawToolbar(NULL,NULL,backOpt);
 					}
@@ -1533,6 +1551,8 @@ void resetDefault()
 	EEPROM.update(EEPROM_CONFIG_TICK_SOUND,(byte)SND_1);
 	
 	//reiniciamos
+	display.clear();
+	display.print(F("Reiniciando..."));
 	while(true)
 	{}
 }
@@ -1542,7 +1562,7 @@ void importEeprom()
 {
 	#ifdef INITIALIZE
 	display.clear();
-	display.print("Importando EEPROM...");
+	display.print(F("Importando EEPROM..."));
 	//recorremos el array de importacion
 	for (unsigned int i = 0; i < EEPROM_CONFIG_MODE; i++)
 		{
