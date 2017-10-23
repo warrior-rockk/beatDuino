@@ -8,7 +8,7 @@
 
  TO-DO:
 	-mostrar las canciones como listado ordenes?	
-			
+	-posibilidad importar/exportar EEPROM?		
  v1.0	-	Release Inicial
  
  */
@@ -26,7 +26,10 @@
 #include <dataManagement.h>
 //midi
 #include <TimerOne.h>
-
+//importacion EEPROM (solo en modo compilacion INITIALIZE)
+#ifdef INITIALIZE
+#include <import.h>
+#endif
 //==============================================
 //Constantes ===================================
 
@@ -208,6 +211,11 @@ void setup()
 	
 	//leemos la configuracion
 	loadConfig();
+	
+	//si hemos compilado como INITIALIZE, escribimos la EEPROM
+	#ifdef INITIALIZE
+		importEeprom();
+	#endif
 	
 	//leemos los datos actuales
 	readPlayListData();
@@ -1528,6 +1536,19 @@ void resetDefault()
 	//reiniciamos
 	while(true)
 	{}
+}
+
+//funcion para cargar el contenido del import.h en EEPROM
+
+void importEeprom()
+{
+	#ifdef INITIALIZE
+	//recorremos el array de importacion
+	for (unsigned int i = 0; i < EEPROM_CONFIG_MODE; i++)
+		{
+			EEPROM_Write(EEPROM_SONGS_POS+i,pgm_read_byte(&eepromData[i]));
+		}
+	#endif
 }
 
 //funcion que realiza mensaje de inicio y test luces
