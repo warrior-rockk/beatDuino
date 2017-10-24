@@ -7,7 +7,9 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-posibilidad exportar EEPROM?		
+	-posibilidad exportar EEPROM?	
+	-boton de funcion ir al final en lista canciones?
+	
  v1.0	-	Release Inicial
  
  */
@@ -658,7 +660,7 @@ void doMenuState()
 				break;
 			case INSERT_SONG_PAGE:  
 				//comprobamos que no quieras insertar en la ultima cancion (no caben mas)
-				if (actualMenuOption < 29)
+				if (actualMenuOption < (MAX_SONGS-1))
 				{
 					//elegimos posicion de la inserccion
 					editData = actualMenuOption;

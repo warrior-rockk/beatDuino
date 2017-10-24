@@ -12,12 +12,12 @@
 
 //definimos la estructura datos EEPROM
 
-const byte EEPROM_SONGS_POS						= 0x00;			//Posicion Inicio Memoria Canciones
-const unsigned int EEPROM_PLAYLIST_POS			= 0x23A;		//Posicion Inicio Memoria Repertorio
-const unsigned int EEPROM_CONFIG_MODE			= 0x2AC;		//Posicion Inicio Configuracion Modo
-const unsigned int EEPROM_CONFIG_EQUAL_TICKS	= 0x2AD;		//Posicion Inicio Configuracion Ticks Iguales
-const unsigned int EEPROM_CONFIG_MIDI_CLOCK		= 0x2AE;		//Posicion Inicio Configuracion Midi Clock
-const unsigned int EEPROM_CONFIG_TICK_SOUND		= 0x2AF;		//Posicion Inicio Configuracion Sonido Ticks
+const byte EEPROM_SONGS_POS						= 0x00;												//Posicion Inicio Memoria Canciones
+const unsigned int EEPROM_PLAYLIST_POS			= ((MAX_SONG_TITLE+3)*MAX_SONGS)+EEPROM_SONGS_POS; 	//Posicion Inicio Memoria Repertorio
+const unsigned int EEPROM_CONFIG_MODE			= ((MAX_PLAYLIST_TITLE+MAX_SONGS)*MAX_PLAYLISTS)+EEPROM_PLAYLIST_POS;//Posicion Inicio Configuracion Modo
+const unsigned int EEPROM_CONFIG_EQUAL_TICKS	= EEPROM_CONFIG_MODE+1;								//Posicion Inicio Configuracion Ticks Iguales
+const unsigned int EEPROM_CONFIG_MIDI_CLOCK		= EEPROM_CONFIG_EQUAL_TICKS+1;						//Posicion Inicio Configuracion Midi Clock
+const unsigned int EEPROM_CONFIG_TICK_SOUND		= EEPROM_CONFIG_MIDI_CLOCK+1;						//Posicion Inicio Configuracion Sonido Ticks
 
 
 //textos por defecto
