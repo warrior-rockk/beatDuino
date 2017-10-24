@@ -7,7 +7,6 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-posibilidad exportar EEPROM?	
 	-boton de funcion ir al final en lista canciones?
 	
  v1.0	-	Release Inicial
@@ -187,6 +186,13 @@ void setup()
   
 	//Midi Baud Rate 
 	Serial.begin(31250);
+	
+	//si se enciende con la tecla del enter pulsada
+	if (digitalRead(ENTER_PIN) == LOW)
+	{
+		//enviamos el contenido del EEPROM por serie
+		dumpEepromData();		
+	}	
 	
 	//Mensaje de inicio
 	#ifndef DEBUG
@@ -1571,6 +1577,15 @@ void importEeprom()
 			EEPROM_Write(EEPROM_SONGS_POS+i,pgm_read_byte(&eepromData[i]));
 		}
 	#endif
+}
+
+//funcion para dumpear por puerto serie el contenido del eeprom
+void dumpEepromData()
+{
+	display.clear();
+	display.print(F("Exportando EEPROM..."));
+	for (unsigned int i = EEPROM_SONGS_POS; i<EEPROM_CONFIG_MODE;i++) 
+		Serial.write(EEPROM.read(i));		
 }
 
 //funcion que realiza mensaje de inicio y test luces
