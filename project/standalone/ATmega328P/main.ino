@@ -7,8 +7,7 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-boton de funcion ir al final en lista canciones?
-	
+		
  v1.0	-	Release Inicial
  
  */
@@ -404,6 +403,10 @@ void doFunctionButton()
 				readPlayListData();
 				
 				break;
+			case SELECT_EDIT_SONG_PAGE: //ir al ultimo
+				actualMenuOption = MAX_SONGS-1;
+				
+				break;
 			case CHANGE_SONG_NAME_PAGE: //SAVE
 				//guardamos el nuevo nombre
 				writeSongTitle(editSelection,editString);
@@ -439,6 +442,9 @@ void doStartStopButton()
 			{
 				case PLAYLIST_NAME_PAGE: //funcion borra caracter
 					editString[editCursor] = 32;				
+					break;
+				case SELECT_EDIT_SONG_PAGE: //ir al primero
+					actualMenuOption = 0;
 					break;
 				case CHANGE_SONG_NAME_PAGE: //funcion borra caracter
 					editString[editCursor] = 32;				
@@ -1273,7 +1279,7 @@ void refreshLCD()
 						free (title);
 					}		
 					//dibujamos opciones barra
-					drawToolbar(NULL,NULL,backOpt);
+					drawToolbar(firstOpt,lastOpt,backOpt);
 					}
 					break;
 				case CHANGE_SONG_NAME_PAGE:
