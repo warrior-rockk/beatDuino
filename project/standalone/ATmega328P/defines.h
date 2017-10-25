@@ -27,8 +27,7 @@
 #define BEAT1_CLICK		8		
 #define SND0_CLICK 		9		
 #define SND1_CLICK 		10		
-
-#define LED_CLICK   	13
+#define LED_CLICK   	11
 
 //botones
 #define START_STOP_BT 	0

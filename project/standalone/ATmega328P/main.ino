@@ -318,8 +318,8 @@ void sendMidiClock()
 	{
 		//quitamos señales tick
 		PORTB &= 0xF8;
-		//apagamos led (PB5)
-		PORTB &= ~(1<<5);
+		//apagamos led (PB3)
+		PORTB &= ~(1<<3);
 	}
 	
 	//comprobamos iteraccion del midiClock
@@ -335,8 +335,8 @@ void sendMidiClock()
 			clickLastTime = millis();
 			//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
 			PORTB |= ((tickSound*2)+2) + (actualTick == 0 && !equalTicks);	
-			//encendemos led (13 es PB5)
-			PORTB |= 1 << 5;
+			//encendemos led (11 es PB3)
+			PORTB |= 1 << 3;
 		}
 	}
 	else
