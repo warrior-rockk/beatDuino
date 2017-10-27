@@ -1669,6 +1669,7 @@ void importEeprom()
 			EEPROM_Write(EEPROM_SONGS_POS+i,pgm_read_byte(&eepromData[i]));
 		}
 	#endif
+	delay(1000);
 }
 
 //funcion para dumpear por puerto serie el contenido del eeprom
