@@ -56,10 +56,10 @@
 #define MENU_STATE		1
 
 //repertorios y canciones
-#define MAX_PLAYLISTS		3
-#define MAX_PLAYLIST_TITLE  8
 #define MAX_SONGS       	40
 #define MAX_SONG_TITLE  	16
+#define MAX_PLAYLISTS		3
+#define MAX_PLAYLIST_TITLE  8
 
 //tipos de sonido click
 #define SND_1 			0
