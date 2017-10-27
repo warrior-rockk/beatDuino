@@ -7,7 +7,8 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-		
+	-Grabar Sonido metronomo Pau
+			
  v1.0	-	Release Inicial
  
  */
@@ -67,7 +68,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[30] = {	4,MAIN_PAGE,mainStr,
+} menuPage[31] = {	4,MAIN_PAGE,mainStr,
 					4,MAIN_PAGE,playListStr,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -90,10 +91,11 @@ const struct {
 					6,EDIT_SONG_PAGE,NULL,
 					MAX_SONGS,SONG_PAGE,NULL,
 					2,SONG_PAGE,confirmStr,
-					5,MAIN_PAGE,settingsStr,
+					6,MAIN_PAGE,settingsStr,
 					2,SETTINGS_PAGE,modeStr,
 					2,SETTINGS_PAGE,confirmStr,
 					3,SETTINGS_PAGE,soundsStr,
+					255,SETTINGS_PAGE,NULL,
 					2,SETTINGS_PAGE,confirmStr,					
 					2,SETTINGS_PAGE,confirmStr,					
 					0,MAIN_PAGE,NULL,
@@ -122,6 +124,10 @@ boolean play				= true;				//flag de activar metronomo
 boolean equalTicks			= false;			//flag de mismo sonido para todos los ticks
 byte actualNumSong			= 0;				//cancion actual del repertorio
 byte actualPlayListNum      = 0;				//numero de repetorio actual
+boolean stopTimer           = false;			//flag de temporizador parar metronomo
+byte timeStopTimer 			= 5;				//tiempo predeterminado para parar el metronomo (s)
+byte countStopTimer			= 0;				//contador temporizador parar metronomo
+unsigned long iniStopTimer	= 0;				//tiempo inicial temporizador parar metronomo
 //midi
 boolean midiClock			= false;			//flag de envio de midi clock
 float midiClockTime;							//intervalo midi interrupcion
@@ -383,6 +389,24 @@ void doFunctionButton()
 	//comprobamos estado
 	switch (state)
 	{
+		//si está en modo principal
+		case MAIN_STATE:
+			switch(mode)
+			{
+			//si esta en modo repertorio
+			case LIVE_MODE:
+				if (!stopTimer){
+					stopTimer = true;
+					iniStopTimer = millis();
+					play = true;
+				}else{
+					stopTimer = false;
+					iniStopTimer = 0;
+					countStopTimer = 0;
+				}
+			break;
+			}
+			break;
 		//si está en el menu
 		case MENU_STATE:
 			//dependiendo de la pagina, hace una funcion
@@ -484,7 +508,30 @@ void doMainState()
 			bpm 			= actualSong.tempo;
 			noteDivision 	= actualSong.noteDivision;
 			barSignature 	= actualSong.barSignature;
-
+			
+			//temporizador parada metronomo
+			if (stopTimer){
+				//si se ha alcanzado el tiempo
+				if (countStopTimer >= timeStopTimer){	
+					//parametros el metronomo
+					play = false;
+					//quitamos el temporizador
+					stopTimer = false;
+					countStopTimer = 0;
+					iniStopTimer   = 0;
+					refresh= true;
+				}else{
+					//si pasa un segundo, incrementamos
+					if ((millis() - iniStopTimer)>=1000){
+						countStopTimer++;
+						iniStopTimer = millis();
+					}	
+				}
+			}else{
+				countStopTimer = 0;
+				iniStopTimer   = 0;
+			}
+			
 			break;
 			
 		//modo metronomo normal. Con la ruleta cambias el tempo.
@@ -506,7 +553,10 @@ void doMainState()
 				deltaEnc = 0;
 				refresh = true;
 			}
-								
+			
+			//desactivamos temporizador 
+			stopTimer = false;
+			
 			break;
 	}
 }
@@ -909,7 +959,14 @@ void doMenuState()
 							actualMenuOption = SND_1;
 						
 						actualMenuPage = TICK_SOUND_PAGE;
-						break;		
+						break;	
+					case STOP_TIMER_OPTION:
+						//leemos el stop timer
+						editData = EEPROM.read(EEPROM_CONFIG_STOP_TIMER);
+						//si no esta seteado, lo seteamos
+						editData >= 0 || editData <= 255  ? actualMenuOption = editData : actualMenuOption = timeStopTimer;
+						actualMenuPage = STOP_TIMER_PAGE;
+						break;	
 					case MIDI_CLOCK_OPTION:
 						//leemos el canal midi
 						editData = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
@@ -951,6 +1008,17 @@ void doMenuState()
 				tickSound = actualMenuOption;
 				//guardamos en config
 				EEPROM_Write(EEPROM_CONFIG_TICK_SOUND,tickSound);
+				actualMenuOption = 0;
+				actualMenuPage = menuPage[actualMenuPage].prevPage;
+				break;
+			}
+			case STOP_TIMER_PAGE:
+			{
+				//cambiamos el tiempo
+				timeStopTimer = actualMenuOption;
+				//guardamos en config
+				EEPROM_Write(EEPROM_CONFIG_STOP_TIMER,timeStopTimer);
+				
 				actualMenuOption = 0;
 				actualMenuPage = menuPage[actualMenuPage].prevPage;
 				break;
@@ -1021,15 +1089,18 @@ void refreshLCD()
 					display.clear(0,39,3,4);
 					display.print(bpm); 
 					display.setCursor(40,3);
-					display.print(F(" BPM\n")); 
+					display.print(F(" BPM")); 
 					display.set1X();	
-					display.clear(57,80,6,6);
+					//display.clear(57,80,6,6);
+					display.clear(0,23,5,5);
 					//display.setCursor(57,6);
 					display.print(barSignature);
 					display.print("/");
 					display.print(noteDivision*4);
-					play ? drawToolbar(playOpt,NULL,menuOpt) : drawToolbar(stopOpt,NULL,menuOpt);
-					
+					if (play)
+						stopTimer ? drawToolbar(playOpt,timerOnOpt,menuOpt) : drawToolbar(playOpt,timerOffOpt,menuOpt);
+					else
+						stopTimer ? drawToolbar(stopOpt,timerOnOpt,menuOpt) : drawToolbar(stopOpt,timerOffOpt,menuOpt);
 					break;
 				//modo metronomo
 				case METRONOME_MODE:
@@ -1363,6 +1434,19 @@ void refreshLCD()
 					drawToolbar(NULL,NULL,backOpt);
 					}
 					break;	
+				//stop Timer
+				case STOP_TIMER_PAGE:
+					{
+					display.setBlackText(false);
+					display.println(F("Tiempo para parar:"));
+					display.println("\n");
+					display.clear(0,END_OF_LINE,3,4);
+					display.print(actualMenuOption);
+					display.println(F("  seg"));
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);
+					}
+					break;
 				//informacion
 				case INFO_PAGE:
 					{
@@ -1549,6 +1633,8 @@ void loadConfig()
 	data = EEPROM.read(EEPROM_CONFIG_TICK_SOUND);
 	data >= SND_1 && data <= SND_3 ? tickSound =data : tickSound = tickSound;
 	
+	data = EEPROM.read(EEPROM_CONFIG_STOP_TIMER);
+	data >= 0 && data <= 255 ? timeStopTimer =data : timeStopTimer = timeStopTimer;
 }
 
 //funcion para inicializar la EEPROM por defecto
@@ -1563,7 +1649,7 @@ void resetDefault()
 	EEPROM.update(EEPROM_CONFIG_EQUAL_TICKS,(byte)0xFF);
 	EEPROM.update(EEPROM_CONFIG_MIDI_CLOCK,(byte)0xFF);
 	EEPROM.update(EEPROM_CONFIG_TICK_SOUND,(byte)SND_1);
-	
+	EEPROM.update(EEPROM_CONFIG_STOP_TIMER,timeStopTimer);
 	//reiniciamos
 	display.clear();
 	display.print(F("Reiniciando..."));

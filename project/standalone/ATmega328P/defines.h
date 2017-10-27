@@ -101,9 +101,10 @@
 		#define MODE_PAGE					24
 		#define EQUAL_TICKS_PAGE			25
 		#define TICK_SOUND_PAGE				26
-		#define MIDI_CLOCK_PAGE				27
-		#define RESET_FABRIC_PAGE			28
-	#define INFO_PAGE				29
+		#define STOP_TIMER_PAGE				28		
+		#define MIDI_CLOCK_PAGE				29		
+		#define RESET_FABRIC_PAGE			30
+	#define INFO_PAGE				31
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
@@ -128,8 +129,9 @@
 	#define MODE_OPTION					0
 	#define EQUAL_TICKS_OPTION			1
 	#define TICK_SOUND_OPTION			2
-	#define MIDI_CLOCK_OPTION			3
-	#define RESET_FABRIC_OPTION			4
+	#define STOP_TIMER_OPTION			3
+	#define MIDI_CLOCK_OPTION			4
+	#define RESET_FABRIC_OPTION			5
 #define INFO_OPTION					3
 
 

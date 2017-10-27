@@ -18,7 +18,7 @@ const unsigned int EEPROM_CONFIG_MODE			= ((MAX_PLAYLIST_TITLE+MAX_SONGS)*MAX_PL
 const unsigned int EEPROM_CONFIG_EQUAL_TICKS	= EEPROM_CONFIG_MODE+1;								//Posicion Inicio Configuracion Ticks Iguales
 const unsigned int EEPROM_CONFIG_MIDI_CLOCK		= EEPROM_CONFIG_EQUAL_TICKS+1;						//Posicion Inicio Configuracion Midi Clock
 const unsigned int EEPROM_CONFIG_TICK_SOUND		= EEPROM_CONFIG_MIDI_CLOCK+1;						//Posicion Inicio Configuracion Sonido Ticks
-
+const unsigned int EEPROM_CONFIG_STOP_TIMER		= EEPROM_CONFIG_TICK_SOUND+1;						//Posicion Inicio Configuracion Tiempo Temporizador Parada
 
 //textos por defecto
 const char emptyPlayListStr[] PROGMEM = "VACIO  ";

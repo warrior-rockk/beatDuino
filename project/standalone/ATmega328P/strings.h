@@ -55,10 +55,11 @@ const char* const noteDivisionStr[] PROGMEM = {str20, str21, str22};
 const char str23[] PROGMEM 	= "Modo";
 const char str24[] PROGMEM 	= "Ticks iguales";
 const char str25[] PROGMEM 	= "Sonido Tick";
+const char str25_1[] PROGMEM 	= "Temporizador";
 const char str26[] PROGMEM 	= "Midi Clock";
 const char str26_1[] PROGMEM= "Reset Fabrica";
 
-const char* const settingsStr[] PROGMEM = {str23, str24, str25, str26, str26_1};
+const char* const settingsStr[] PROGMEM = {str23, str24, str25, str25_1, str26, str26_1};
 
 const char str27[] PROGMEM = "Metronomo";
 const char str28[] PROGMEM = "Repertorio";
@@ -81,3 +82,5 @@ const char backOpt[] PROGMEM = "BACK";
 const char resetOpt[] PROGMEM = "RESET";
 const char firstOpt[] PROGMEM = "FIRST";
 const char lastOpt[] PROGMEM = "LAST";
+const char timerOnOpt[] PROGMEM = "T ON ";
+const char timerOffOpt[] PROGMEM = "T OFF";
