@@ -150,6 +150,9 @@ void setup()
 	pinInputPullup(BEAT_CLICK);
 	pinInputPullup(SND0_CLICK);
 	pinInputPullup(SND1_CLICK);
+	
+	//retraso en el arranque para esperar a que arranque Arduino
+	_delay_ms(1000);
 }
 
 //bucle principal
