@@ -232,3 +232,7 @@ El tempo midi es un mensaje midi llamado midi clock que es enviar 0xF8. La parti
 Consumos
 --------
 Pantalla LCD: 16mA (0,08W)
+
+Nota:
+-----
+-El bornero de 3 polos es 8mm de alto.
