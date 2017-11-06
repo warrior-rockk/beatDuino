@@ -3,32 +3,36 @@ Generales
 
 Componentes
 -----------
-1 Pantalla OLED 0,96" con interfaz I2C y que acepte 5V. (pedir 2)
-1 Encoder rotativo con pulsador (pedir 2) (comprobar tamaño para acoplar rueda)
-2 Condensadores ceramicos de 1uF - los pasamos a 100nF
-1 Potenciometro 10K (con perilla)
-2 Resistencias 160
-1 Resistencia 1K
-1 Resistencia 1,5K
-1 Resistencia 220
-2 Condensadores electrolíticos de 0,47uF 5V (pido de los 2. electrolitico y ceramico)
-	0,47uF electrolitico - bm-electronique 2,90€ 10 uds
-	470nF ceramico - therecicler 3,15€ 10 uds)
-Componentes version standalone
-------------------------------
-1 Atmega328 con bootloader Arduino (o sin) 
+1 Diodo protección
+1 Estabilizador tension 7805
+5 Condensadores ceramicos 100nF
+1 Atmega328
 1 portachip dip socket (5uds 2,50€ bm-electr)
 1 Cristal 16Mhz
-2 Condensadores ceramicos de 18 a 22pF
-1 Resistencia 10K
-1 Estabilizador tension 7805
-2 Condensadores ceramicos 100nF
-
+2 Condensadores ceramicos 22pF
+2 Resistencia 10K
+1 Potenciometro 10K (con perilla)
+1 Resistencia 47Ohm
+1 Resistencia 100Ohm
+1 Condensador electrolitico 10uF
+1 Condensador electrolitico 1000uF
+1 Attiny85
+1 portachip dip socket 8
+2 resistencia 220
+1 led verde
+1 Al final, pantalla de 2,42" interfaz I2C
+1 Encoder rotativo con pulsador
+	
 Materiales mecánicos
 ====================
 1 conector barrel-jack para alimentacion 9V (trcquinto = 1,55€)
 1 conector midi mural hembra (2,75€ forum_orbis1)
 1 conector mural minijack hembra estereo
 1 conector mural jack hembra mono
-1 scrubber o perilla de rueda para el encoder (comprobar tamaño)
-1 interruptor ON/OFF chulo (electroMod 1€)
+1 scrubber o perilla de rueda para el encoder
+1 interruptor ON/OFF (electroMod 1€)
+1 portaled
+3 pulsadores NA
+1 borna tornillo 2 polos
+1 borna tornillos 3 polos
+x conectores dupont
