@@ -93,7 +93,7 @@ const struct {
 					2,SONG_PAGE,confirmStr,
 					6,MAIN_PAGE,settingsStr,
 					2,SETTINGS_PAGE,modeStr,
-					2,SETTINGS_PAGE,confirmStr,
+					3,SETTINGS_PAGE,equalTicksStr,
 					3,SETTINGS_PAGE,soundsStr,
 					255,SETTINGS_PAGE,NULL,
 					2,SETTINGS_PAGE,confirmStr,					
@@ -120,8 +120,8 @@ unsigned int barSignature   		= 4;		//tipo compas
 volatile unsigned int actualTick    = 0;		//tiempo actual
 byte tickSound				= SND_1;			//sonido del tick
 boolean tick 				= true;				//flag de activar tick
-boolean play				= true;				//flag de activar metronomo
-boolean equalTicks			= false;			//flag de mismo sonido para todos los ticks
+boolean play				= false;			//flag de activar metronomo
+byte equalTicks			    = ALL_TICKS;		//tipo de tick: todos, tick fuerte, debil
 byte actualNumSong			= 0;				//cancion actual del repertorio
 byte actualPlayListNum      = 0;				//numero de repetorio actual
 boolean stopTimer           = false;			//flag de temporizador parar metronomo
@@ -338,8 +338,8 @@ void sendMidiClock()
 		{
 			//guardamos tiempo inicio tick
 			clickLastTime = millis();
-			//sonido del tick según si es el primer tiempo del compás y no está configurado ticks iguales
-			PORTB |= ((tickSound*2)+2) + (actualTick == 0 && !equalTicks);	
+			//sonido del tick según si es el primer tiempo del compás y está configurado para sonar ese tiempo
+			PORTB |= ((tickSound*2)+2) + ((actualTick == 0 || equalTicks == STRONG_TICK) && equalTicks != WEAK_TICK);	
 			//encendemos led (11 es PB3)
 			PORTB |= 1 << 3;
 		}
@@ -1625,7 +1625,7 @@ void loadConfig()
 	data >= METRONOME_MODE && data <= LIVE_MODE ? mode =data : mode = mode;
 	
 	data = EEPROM.read(EEPROM_CONFIG_EQUAL_TICKS);
-	data >= 0 && data <= 1 ? equalTicks =data : equalTicks = equalTicks;
+	data >= 0 && data <= 2 ? equalTicks =data : equalTicks = equalTicks;
 	
 	data = EEPROM.read(EEPROM_CONFIG_MIDI_CLOCK);
 	data >= 0 && data <= 1 ? midiClock =data : midiClock = midiClock;

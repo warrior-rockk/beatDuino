@@ -66,6 +66,11 @@
 #define SND_2 			1
 #define SND_3 			2
 
+//tipo de tick
+#define ALL_TICKS       0
+#define STRONG_TICK     1
+#define WEAK_TICK       2
+
 //defines del display
 #define END_OF_LINE		128
 #define LAST_LINE		7

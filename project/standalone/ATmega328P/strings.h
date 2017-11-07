@@ -53,9 +53,9 @@ const char str22[] PROGMEM = "16";
 const char* const noteDivisionStr[] PROGMEM = {str20, str21, str22};
 
 const char str23[] PROGMEM 	= "Modo";
-const char str24[] PROGMEM 	= "Ticks iguales";
+const char str24[] PROGMEM 	= "Tiempos audibles";
 const char str25[] PROGMEM 	= "Sonido Tick";
-const char str25_1[] PROGMEM 	= "Temporizador";
+const char str25_1[] PROGMEM = "Temporizador";
 const char str26[] PROGMEM 	= "Midi Clock";
 const char str26_1[] PROGMEM= "Reset Fabrica";
 
@@ -72,15 +72,21 @@ const char str31[] PROGMEM = "Sonido 3";
 
 const char* const soundsStr[] PROGMEM = {str29, str30, str31};
 
+const char str32[] PROGMEM = "Todos";
+const char str33[] PROGMEM = "Tiempo fuerte";
+const char str34[] PROGMEM = "Tiempo debil";
+
+const char* const equalTicksStr[] PROGMEM = {str32, str33, str34};
+
 //Opciones toolbar
 const char stopOpt[] PROGMEM = "STOP";
 const char playOpt[] PROGMEM = "PLAY";
 const char menuOpt[] PROGMEM = "MENU";
-const char delOpt[] PROGMEM = "DEL";
-const char saveOpt[] PROGMEM = "SAVE";
-const char backOpt[] PROGMEM = "BACK";
+const char delOpt[] PROGMEM = "BORRA";
+const char saveOpt[] PROGMEM = "SALV";
+const char backOpt[] PROGMEM = "ATRAS";
 const char resetOpt[] PROGMEM = "RESET";
-const char firstOpt[] PROGMEM = "FIRST";
-const char lastOpt[] PROGMEM = "LAST";
+const char firstOpt[] PROGMEM = "PRIM";
+const char lastOpt[] PROGMEM = "ULTI";
 const char timerOnOpt[] PROGMEM = "T ON ";
 const char timerOffOpt[] PROGMEM = "T OFF";
