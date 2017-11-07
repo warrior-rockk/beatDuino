@@ -231,4 +231,4 @@ El tempo midi es un mensaje midi llamado midi clock que es enviar 0xF8. La parti
 
 Consumos
 --------
-Pantalla LCD: mostrando pantalla repertorio: 100mA
+Pantalla LCD: máximo consumo programa actual: 197mA / Consumo toda la pantalla encendida: 350mA

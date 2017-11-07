@@ -1725,7 +1725,7 @@ void wellcomeTest()
 	display.set1X();
 	display.setBlackText(false);
     
-    display.setCursor(0,0);
+    //display.setCursor(0,0);
     for (unsigned int i=0;i<sizeof(welcome);i++)
 	{
 		display.print(char(welcome[i]));
