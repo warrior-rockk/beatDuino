@@ -21,7 +21,11 @@
 //definiciones globales
 #include <defines.h>
 //textos
+#ifndef ENG
 #include <strings.h>
+#else
+#include <stringsENG.h>
+#endif
 //funciones datos
 #include <dataManagement.h>
 //midi
@@ -1141,7 +1145,9 @@ void refreshLCD()
 				case PLAYLIST_CHANGE_PAGE:
 					{
 					display.setBlackText(false);
-					display.println(F("Elige repertorio:"));
+					char buf[30];
+					strcpy_P(buf,strPlaylistChange);
+					display.println(buf);
 					display.clear(0,END_OF_LINE,1,1);
 					for (int i=0;i<MAX_PLAYLISTS;i++)
 					{
@@ -1159,7 +1165,9 @@ void refreshLCD()
 				case PLAYLIST_NAME_PAGE:
 					{
 					display.setBlackText(false);
-					display.println(F("Nombre repertorio:"));
+					char buf[30];
+					strcpy_P(buf,strPlaylistName);
+					display.println(buf);
 					display.clear(0,END_OF_LINE,1,1);
 					//cambio de caracter con encoder
 					if (deltaEnc > 0)
@@ -1217,7 +1225,9 @@ void refreshLCD()
 				//cambio de cancion (elegimos la cancion)
 				case CHANGE_ORDER_PAGE_2:
 					{
-					display.println(F("Posicion a editar:"));
+					char buf[30];
+					strcpy_P(buf,strChangeOrder);
+					display.println(buf);
 					//leemos el titulo de la cancion de la posicion de edicion
 					char * title = readSongTitle(getSongNum(actualPlayListNum,editData));
 					//lo mostramos
@@ -1225,7 +1235,8 @@ void refreshLCD()
 					display.print(".");
 					display.println(title);
 					display.println("\n");
-					display.println(F("Elige la cancion:"));
+					strcpy_P(buf,strChangeOrder2);
+					display.println(buf);
 					display.clear(0,END_OF_LINE,5,6);
 					free(title);
 					
@@ -1265,7 +1276,9 @@ void refreshLCD()
 				//insertar cancion (elegimos la cancion)
 				case INSERT_SONG_PAGE_2:
 					{
-					display.println(F("Insertar tras:"));
+					char buf[30];
+					strcpy_P(buf,strInsertSong);
+					display.println(buf);
 					//leemos el titulo de la cancion de la posicion de edicion
 					char * title = readSongTitle(getSongNum(actualPlayListNum,editData));
 					//lo mostramos
@@ -1273,7 +1286,8 @@ void refreshLCD()
 					display.print(".");
 					display.println(title);
 					display.println("\n");
-					display.println(F("Elige la cancion:"));
+					strcpy_P(buf,strChangeOrder2);
+					display.println(buf);
 					display.clear(0,END_OF_LINE,5,6);
 					free(title);
 					
@@ -1314,7 +1328,9 @@ void refreshLCD()
 				case PLAYLIST_COPY_PAGE:
 					{
 					display.setBlackText(false);
-					display.println(F("Copiar actual en:"));
+					char buf[30];
+					strcpy_P(buf,strPlaylistCopy);
+					display.println(buf);
 					display.clear(0,END_OF_LINE,1,1);
 					for (int i=0;i<MAX_PLAYLISTS;i++)
 					{
@@ -1356,7 +1372,9 @@ void refreshLCD()
 				case CHANGE_SONG_NAME_PAGE:
 					{
 					display.setBlackText(false);
-					display.println(F("Nombre cancion:"));
+					char buf[30];
+					strcpy_P(buf,strSongName);
+					display.println(buf);
 					display.clear(0,END_OF_LINE,1,1);
 					//cambio de caracter con encoder
 					if (deltaEnc > 0)
@@ -1390,7 +1408,9 @@ void refreshLCD()
 				case CHANGE_SONG_TEMPO_PAGE:
 					{
 					display.setBlackText(false);
-					display.println(F("Elige el tempo:"));
+					char buf[30];
+					strcpy_P(buf,strChooseTempo);
+					display.println(buf);
 					display.println("\n");
 					display.clear(0,END_OF_LINE,3,4);
 					display.print(actualMenuOption);
@@ -1402,7 +1422,9 @@ void refreshLCD()
 				case CHANGE_SONG_BEAT_PAGE:
 					{
 					display.setBlackText(false);
-					display.println(F("Tipo Compas:"));
+					char buf[30];
+					strcpy_P(buf,strBarType);
+					display.println(buf);
 					display.println("\n");
 					display.clear(0,END_OF_LINE,3,4);
 					display.println(actualMenuOption+2);
@@ -1438,7 +1460,9 @@ void refreshLCD()
 				case STOP_TIMER_PAGE:
 					{
 					display.setBlackText(false);
-					display.println(F("Tiempo para parar:"));
+					char buf[30];
+					strcpy_P(buf,strTimeToStop);
+					display.println(buf);
 					display.println("\n");
 					display.clear(0,END_OF_LINE,3,4);
 					display.print(actualMenuOption);
@@ -1652,7 +1676,9 @@ void resetDefault()
 	EEPROM.update(EEPROM_CONFIG_STOP_TIMER,timeStopTimer);
 	//reiniciamos
 	display.clear();
-	display.print(F("Reiniciando..."));
+	char buf[30];
+	strcpy_P(buf,strResetting);
+	display.println(buf);
 	while(true)
 	{}
 }
@@ -1662,7 +1688,9 @@ void importEeprom()
 {
 	#ifdef INITIALIZE
 	display.clear();
-	display.print(F("Importando EEPROM..."));
+	char buf[30];
+	strcpy_P(buf,strImportEEPROM);
+	display.println(buf);
 	//recorremos el array de importacion
 	for (unsigned int i = 0; i < EEPROM_CONFIG_MODE; i++)
 		{
@@ -1676,7 +1704,9 @@ void importEeprom()
 void dumpEepromData()
 {
 	display.clear();
-	display.print(F("Exportando EEPROM..."));
+	char buf[30];
+	strcpy_P(buf,strExportEEPROM);
+	display.println(buf);
 	for (unsigned int i = EEPROM_SONGS_POS; i<EEPROM_CONFIG_MODE;i++) 
 		Serial.write(EEPROM.read(i));		
 }

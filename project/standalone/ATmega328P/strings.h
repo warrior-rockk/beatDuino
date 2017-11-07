@@ -90,3 +90,18 @@ const char firstOpt[] PROGMEM = "PRIM";
 const char lastOpt[] PROGMEM = "ULTI";
 const char timerOnOpt[] PROGMEM = "T ON ";
 const char timerOffOpt[] PROGMEM = "T OFF";
+
+//textos pantallas
+const char strPlaylistChange[] PROGMEM = "Elige Repertorio:";
+const char strPlaylistName[] PROGMEM = "Nombre Repertorio:";
+const char strChangeOrder[] PROGMEM = "Posicion a editar:";
+const char strChangeOrder2[] PROGMEM = "Elige la cancion:";
+const char strInsertSong[] PROGMEM = "Insertar tras:";
+const char strPlaylistCopy[] PROGMEM = "Copiar actual en:";
+const char strSongName[] PROGMEM = "Nombre cancion:";
+const char strChooseTempo[] PROGMEM = "Elige el tiempo:";
+const char strBarType[] PROGMEM = "Tipo Compas:";
+const char strTimeToStop[] PROGMEM = "Tiempo para parar:";
+const char strResetting[] PROGMEM = "Reiniciando...";
+const char strImportEEPROM[] PROGMEM = "Importando EEPROM...";
+const char strExportEEPROM[] PROGMEM = "Exportando EEPROM...";
