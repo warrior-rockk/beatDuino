@@ -1,4 +1,4 @@
--Comprobar si los componentes caben en la nueva version del PCB
+-Comprobar si los componentes caben en la nueva version del PCB: SI
 -Medir distancia y diametro tornillos base PCB de mis cajas para ponerlo en consecuencia. Igual me cambia el 
 tamaño de la placa.. (diametro=3mm Distancia entre centros: 5mm x 93mm)
 -Comprobar que me van a caber los componentes de las placas laterales para dar por buena la distribucion 
