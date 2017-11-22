@@ -8,6 +8,7 @@
 
  TO-DO:
 	-Grabar Sonido metronomo Pau
+	-Opcion de primero y ultimo en lista repertorio?
 			
  v1.0	-	Release Inicial
  
