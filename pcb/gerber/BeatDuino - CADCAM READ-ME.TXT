@@ -4,7 +4,7 @@ LABCENTER PROTEUS TOOL INFORMATION FILE
 In case of difficulty, please e-mail support@labcenter.co.uk
 
 Tool set up for Proteus layout 'BeatDuino.pdsprj'.
-CADCAM generated at 10:40:38 on lunes, 27 de noviembre de 2017.
+CADCAM generated at 8:18:50 on viernes, 01 de diciembre de 2017.
 
 File List
 ---------
@@ -30,13 +30,14 @@ D15	SQUARE  S=50th                                                            FL
 D16	CIRCLE  D=50th                                                            FLASH
 D17	CIRCLE  D=80th                                                            FLASH
 D18	CIRCLE  D=70th                                                            FLASH
-D19	CIRCLE  D=10th                                                            DRAW
-D70	CIRCLE  D=2.5th                                                           DRAW
-D71	CIRCLE  D=40th                                                            FLASH
-D20	CIRCLE  D=2.4th                                                           DRAW
-D21	CIRCLE  D=130th                                                           FLASH
-D22	CIRCLE  D=60th                                                            FLASH
-D23	CIRCLE  D=90th                                                            FLASH
+D19	CIRCLE  D=8th                                                             DRAW
+D70	CIRCLE  D=10th                                                            DRAW
+D71	CIRCLE  D=2.5th                                                           DRAW
+D20	CIRCLE  D=40th                                                            FLASH
+D21	CIRCLE  D=2.4th                                                           DRAW
+D22	CIRCLE  D=130th                                                           FLASH
+D23	CIRCLE  D=60th                                                            FLASH
+D24	CIRCLE  D=90th                                                            FLASH
 
 NC Drill Setup
 --------------
