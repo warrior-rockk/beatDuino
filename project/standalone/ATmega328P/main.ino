@@ -11,6 +11,7 @@
 	-Opcion de primero y ultimo en lista repertorio?
 			
  v1.0	-	Release Inicial
+ v1.1   - 	Añadimos entrada configurable trigger
  
  */
 #include <avr/wdt.h> 
@@ -50,7 +51,7 @@ struct button_
    unsigned int timerOn;
    unsigned int timerOff;
    unsigned int timerLong;
-}button[4];
+}button[NUM_BUTTONS];
 
 //tipo de estructura de una cancion (13 bytes por cancion)
 struct song_
@@ -73,7 +74,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[31] = {	4,MAIN_PAGE,mainStr,
+} menuPage[33] = {	4,MAIN_PAGE,mainStr,
 					4,MAIN_PAGE,playListStr,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -96,13 +97,15 @@ const struct {
 					6,EDIT_SONG_PAGE,NULL,
 					MAX_SONGS,SONG_PAGE,NULL,
 					2,SONG_PAGE,confirmStr,
-					6,MAIN_PAGE,settingsStr,
+					7,MAIN_PAGE,settingsStr,
 					2,SETTINGS_PAGE,modeStr,
 					3,SETTINGS_PAGE,equalTicksStr,
 					3,SETTINGS_PAGE,soundsStr,
 					255,SETTINGS_PAGE,NULL,
+					2,SETTINGS_PAGE,confirmStr,
 					2,SETTINGS_PAGE,confirmStr,					
-					2,SETTINGS_PAGE,confirmStr,					
+					1,SETTINGS_PAGE,triggerStr,
+					1,TRIGGER_PAGE,triggerFuncStr,
 					0,MAIN_PAGE,NULL,
 				};
 
@@ -154,6 +157,8 @@ char * editString;								//cadena a editar
 byte editData				= 0;				//dato a editar
 unsigned int editDataInt	= 0;				//dato a editar entero
 byte editSelection			= 0;				//seleccion a editar
+//trigger
+byte triggerFunction		= START_STOP_FUNC;	//Funcion del trigger externo
 //debug
 unsigned long startTime     = 0;				//tiempo de inicio de ejecucion ciclo para medir rendimiento
 unsigned long lastCycleTime = 0;				//tiempo que tardo el ultimo ciclo
@@ -175,6 +180,7 @@ void setup()
 	pinMode(MENU_PIN,INPUT_PULLUP);
 	pinMode(ENTER_PIN,INPUT_PULLUP);
 	pinMode(FUNCTION_PIN,INPUT_PULLUP);
+	pinMode(TRIGGER_PIN,INPUT_PULLUP);
 	
 	pinMode(BEAT1_CLICK,OUTPUT);
 	pinMode(SND0_CLICK,OUTPUT);
@@ -249,6 +255,7 @@ void loop()
 	processButton(MENU_PIN,MENU_BT);
 	processButton(ENTER_PIN,ENTER_BT);
 	processButton(FUNCTION_PIN,FUNCTION_BT);
+	processButton(TRIGGER_PIN,TRIGGER_BT);
 	
 	//si pulsamos boton menu/cancelar-atras
 	if (button[MENU_BT].pEdgePress)
@@ -266,6 +273,12 @@ void loop()
 	if (button[START_STOP_BT].pEdgePress)
 	{
 		doStartStopButton();
+	}
+	
+	//si pulsamos el trigger externo
+	if (button[TRIGGER_BT].pEdgePress)
+	{
+		doTriggerButton();
 	}
 	
 	//comprobamos estado
@@ -479,6 +492,19 @@ void doStartStopButton()
 					editString[editCursor] = 32;				
 					break;
 			}		
+			break;
+	}
+	
+	refresh = true;
+}
+
+//funcion del trigger externo
+void doTriggerButton()
+{
+	switch(triggerFunction)
+	{
+		case START_STOP_FUNC: //funcion de play/stop
+			play = !play;
 			break;
 	}
 	
@@ -979,6 +1005,10 @@ void doMenuState()
 						editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
 						actualMenuPage = MIDI_CLOCK_PAGE;
 						break;	
+					case TRIGGER_OPTION:
+						actualMenuPage = TRIGGER_PAGE;
+						actualMenuOption = 0;
+						break;
 					case RESET_FABRIC_OPTION:
 						actualMenuPage = RESET_FABRIC_PAGE;
 						actualMenuOption = 0;
@@ -1037,6 +1067,17 @@ void doMenuState()
 				
 				actualMenuOption = 0;
 				actualMenuPage = menuPage[actualMenuPage].prevPage;
+				break;
+			}
+			case TRIGGER_PAGE:
+			{
+				switch (actualMenuOption)
+				{
+					case TRIGGER_FUNC_OPTION:
+						actualMenuPage = TRIGGER_FUNC_PAGE;
+						actualMenuOption = 0;
+						break;
+				}
 				break;
 			}
 			case RESET_FABRIC_PAGE:
@@ -1660,6 +1701,9 @@ void loadConfig()
 	
 	data = EEPROM.read(EEPROM_CONFIG_STOP_TIMER);
 	data >= 0 && data <= 255 ? timeStopTimer =data : timeStopTimer = timeStopTimer;
+	
+	data = EEPROM.read(EEPROM_CONFIG_TRIGGER_FUNC);
+	data >= 0 && data <= 0 ? triggerFunction =data : triggerFunction = triggerFunction;
 }
 
 //funcion para inicializar la EEPROM por defecto
@@ -1675,6 +1719,7 @@ void resetDefault()
 	EEPROM.update(EEPROM_CONFIG_MIDI_CLOCK,(byte)0xFF);
 	EEPROM.update(EEPROM_CONFIG_TICK_SOUND,(byte)SND_1);
 	EEPROM.update(EEPROM_CONFIG_STOP_TIMER,timeStopTimer);
+	EEPROM.update(EEPROM_CONFIG_TRIGGER_FUNC,triggerFunction);
 	//reiniciamos
 	display.clear();
 	char buf[30];

@@ -19,6 +19,7 @@ const unsigned int EEPROM_CONFIG_EQUAL_TICKS	= EEPROM_CONFIG_MODE+1;								//Po
 const unsigned int EEPROM_CONFIG_MIDI_CLOCK		= EEPROM_CONFIG_EQUAL_TICKS+1;						//Posicion Inicio Configuracion Midi Clock
 const unsigned int EEPROM_CONFIG_TICK_SOUND		= EEPROM_CONFIG_MIDI_CLOCK+1;						//Posicion Inicio Configuracion Sonido Ticks
 const unsigned int EEPROM_CONFIG_STOP_TIMER		= EEPROM_CONFIG_TICK_SOUND+1;						//Posicion Inicio Configuracion Tiempo Temporizador Parada
+const unsigned int EEPROM_CONFIG_TRIGGER_FUNC	= EEPROM_CONFIG_STOP_TIMER+1;						//Posicion Inicio Configuracion Funcion de entrada Trigger
 
 //textos por defecto
 const char emptyPlayListStr[] PROGMEM = "VACIO  ";

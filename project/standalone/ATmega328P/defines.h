@@ -12,7 +12,7 @@
 
 //version
 #define majorVersion 1
-#define minorVersion 0
+#define minorVersion 1
 
 //pines IO
 #define MIDI_RX			0 
@@ -28,12 +28,16 @@
 #define SND0_CLICK 		9		
 #define SND1_CLICK 		10		
 #define LED_CLICK   	11
+#define TRIGGER_PIN     12
 
 //botones
+#define NUM_BUTTONS		5
+
 #define START_STOP_BT 	0
 #define MENU_BT 		1
 #define ENTER_BT		2
 #define FUNCTION_BT		3
+#define TRIGGER_BT      4
 
 //comandos midi
 #define MIDI_CLOCK_MSG		0xF8
@@ -77,6 +81,11 @@
 #define LAST_MENU_LINE  6
 #define LAST_CHAR       21
 
+//tipos de funcion del trigger
+#define START_STOP_FUNC	0
+#define NEXT_FUNC		1
+#define PREV_FUNC		2
+
 //MENU
 //páginas del menu
 #define MAIN_PAGE 				0
@@ -107,9 +116,11 @@
 		#define EQUAL_TICKS_PAGE			25
 		#define TICK_SOUND_PAGE				26
 		#define STOP_TIMER_PAGE				28		
-		#define MIDI_CLOCK_PAGE				29		
-		#define RESET_FABRIC_PAGE			30
-	#define INFO_PAGE				31
+		#define MIDI_CLOCK_PAGE				29
+		#define TRIGGER_PAGE				30
+			#define TRIGGER_FUNC_PAGE		31
+		#define RESET_FABRIC_PAGE			32
+	#define INFO_PAGE				33
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
@@ -136,7 +147,9 @@
 	#define TICK_SOUND_OPTION			2
 	#define STOP_TIMER_OPTION			3
 	#define MIDI_CLOCK_OPTION			4
-	#define RESET_FABRIC_OPTION			5
+	#define TRIGGER_OPTION				5
+		#define TRIGGER_FUNC_OPTION			0
+	#define RESET_FABRIC_OPTION			6
 #define INFO_OPTION					3
 
 

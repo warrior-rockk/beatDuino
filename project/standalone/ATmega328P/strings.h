@@ -57,9 +57,10 @@ const char str24[] PROGMEM 	= "Tiempos audibles";
 const char str25[] PROGMEM 	= "Sonido Tick";
 const char str25_1[] PROGMEM = "Temporizador";
 const char str26[] PROGMEM 	= "Midi Clock";
-const char str26_1[] PROGMEM= "Reset Fabrica";
+const char str26_1[] PROGMEM 	= "Trigger Externo";
+const char str26_2[] PROGMEM= "Reset Fabrica";
 
-const char* const settingsStr[] PROGMEM = {str23, str24, str25, str25_1, str26, str26_1};
+const char* const settingsStr[] PROGMEM = {str23, str24, str25, str25_1, str26, str26_1, str26_2};
 
 const char str27[] PROGMEM = "Metronomo";
 const char str28[] PROGMEM = "Repertorio";
@@ -77,6 +78,14 @@ const char str33[] PROGMEM = "Tiempo fuerte";
 const char str34[] PROGMEM = "Tiempo debil";
 
 const char* const equalTicksStr[] PROGMEM = {str32, str33, str34};
+
+const char str35[] PROGMEM = "Funcion Trigger";
+
+const char* const triggerStr[] PROGMEM = {str35};
+
+const char str36[] PROGMEM = "Parar y arrancar";
+
+const char* const triggerFuncStr[] PROGMEM = {str36};
 
 //Opciones toolbar
 const char stopOpt[] PROGMEM = "STOP";
