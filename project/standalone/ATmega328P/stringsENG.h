@@ -80,12 +80,20 @@ const char str34[] PROGMEM = "Weak Tick";
 const char* const equalTicksStr[] PROGMEM = {str32, str33, str34};
 
 const char str35[] PROGMEM = "Trigger Function";
+const char str35_1[] PROGMEM = "Trigger Type";
 
-const char* const triggerStr[] PROGMEM = {str35};
+const char* const triggerStr[] PROGMEM = {str35, str35_1};
 
 const char str36[] PROGMEM = "Start and Stop";
+const char str37[] PROGMEM = "Next";
+const char str38[] PROGMEM = "Previous";
 
-const char* const triggerFuncStr[] PROGMEM = {str36};
+const char* const triggerFuncStr[] PROGMEM = {str36, str37, str38};
+
+const char str39[] PROGMEM = "Pushbutton";
+const char str40[] PROGMEM = "Switch";
+
+const char* const triggerTypeStr[] PROGMEM = {str39, str40};
 
 //Opciones toolbar
 const char stopOpt[] PROGMEM = "STOP";

@@ -86,6 +86,10 @@
 #define NEXT_FUNC		1
 #define PREV_FUNC		2
 
+//tipos de entrada trigger
+#define PUSH_TRIGGER	0
+#define SWITCH_TRIGGER  1
+
 //MENU
 //páginas del menu
 #define MAIN_PAGE 				0
@@ -119,8 +123,9 @@
 		#define MIDI_CLOCK_PAGE				29
 		#define TRIGGER_PAGE				30
 			#define TRIGGER_FUNC_PAGE		31
-		#define RESET_FABRIC_PAGE			32
-	#define INFO_PAGE				33
+			#define TRIGGER_TYPE_PAGE		32
+		#define RESET_FABRIC_PAGE			33
+	#define INFO_PAGE				34
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
@@ -149,6 +154,7 @@
 	#define MIDI_CLOCK_OPTION			4
 	#define TRIGGER_OPTION				5
 		#define TRIGGER_FUNC_OPTION			0
+		#define TRIGGER_TYPE_OPTION			1
 	#define RESET_FABRIC_OPTION			6
 #define INFO_OPTION					3
 

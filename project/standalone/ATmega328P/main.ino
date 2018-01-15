@@ -8,10 +8,9 @@
 
  TO-DO:
 	-Grabar Sonido metronomo Pau
-	-Opcion de primero y ultimo en lista repertorio?
 			
  v1.0	-	Release Inicial
- v1.1   - 	Añadimos entrada configurable trigger
+ v1.1   - 	Añadimos entrada configurable trigger y opciones primero/ultimo en edicion repertorios
  
  */
 #include <avr/wdt.h> 
@@ -74,7 +73,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[33] = {	4,MAIN_PAGE,mainStr,
+} menuPage[34] = {	4,MAIN_PAGE,mainStr,
 					4,MAIN_PAGE,playListStr,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -104,8 +103,9 @@ const struct {
 					255,SETTINGS_PAGE,NULL,
 					2,SETTINGS_PAGE,confirmStr,
 					2,SETTINGS_PAGE,confirmStr,					
-					1,SETTINGS_PAGE,triggerStr,
-					1,TRIGGER_PAGE,triggerFuncStr,
+					2,SETTINGS_PAGE,triggerStr,
+					3,TRIGGER_PAGE,triggerFuncStr,
+					2,TRIGGER_PAGE,triggerTypeStr,
 					0,MAIN_PAGE,NULL,
 				};
 
@@ -159,6 +159,8 @@ unsigned int editDataInt	= 0;				//dato a editar entero
 byte editSelection			= 0;				//seleccion a editar
 //trigger
 byte triggerFunction		= START_STOP_FUNC;	//Funcion del trigger externo
+byte triggerType			= PUSH_TRIGGER;		//Tipo de trigger
+boolean memTrigger			= false;			//memoria de switch-trigger
 //debug
 unsigned long startTime     = 0;				//tiempo de inicio de ejecucion ciclo para medir rendimiento
 unsigned long lastCycleTime = 0;				//tiempo que tardo el ultimo ciclo
@@ -275,10 +277,18 @@ void loop()
 		doStartStopButton();
 	}
 	
-	//si pulsamos el trigger externo
+	//si pulsamos el trigger externo (flanco positivo)
 	if (button[TRIGGER_BT].pEdgePress)
-	{
-		doTriggerButton();
+	{		
+		doTriggerButton();					
+	}
+	
+	//si soltamos el trigger externo (flanco negativo)
+	if (button[TRIGGER_BT].nEdgePress)
+	{		
+		//solo para el tipo interruptor
+		if (triggerType == SWITCH_TRIGGER)
+			doTriggerButton();					
 	}
 	
 	//comprobamos estado
@@ -449,6 +459,18 @@ void doFunctionButton()
 				actualMenuOption = MAX_SONGS-1;
 				
 				break;
+			case CHANGE_ORDER_PAGE:	//ir al ultimo
+				actualMenuOption = MAX_SONGS-1;
+				
+				break;
+			case INSERT_SONG_PAGE:	//ir al ultimo
+				actualMenuOption = MAX_SONGS-1;
+				
+				break;
+			case DELETE_SONG_PAGE:	//ir al ultimo
+				actualMenuOption = MAX_SONGS-1;
+				
+				break;
 			case CHANGE_SONG_NAME_PAGE: //SAVE
 				//guardamos el nuevo nombre
 				writeSongTitle(editSelection,editString);
@@ -488,6 +510,15 @@ void doStartStopButton()
 				case SELECT_EDIT_SONG_PAGE: //ir al primero
 					actualMenuOption = 0;
 					break;
+				case CHANGE_ORDER_PAGE:	//ir al primero
+					actualMenuOption = 0;
+					break;
+				case INSERT_SONG_PAGE:	//ir al primero
+					actualMenuOption = 0;
+					break;
+				case DELETE_SONG_PAGE:	//ir al primero
+					actualMenuOption = 0;
+					break;
 				case CHANGE_SONG_NAME_PAGE: //funcion borra caracter
 					editString[editCursor] = 32;				
 					break;
@@ -505,6 +536,53 @@ void doTriggerButton()
 	{
 		case START_STOP_FUNC: //funcion de play/stop
 			play = !play;
+			break;
+		case NEXT_FUNC:	//funcion de siguiente o incrementar bpm
+			switch(mode)
+			{
+				case LIVE_MODE:
+					if (actualNumSong < (MAX_SONGS-1))
+					{
+						//cambio de cancion
+						actualNumSong++;
+						readSongData();	
+						//obtenemos datos tema
+						bpm 			= actualSong.tempo;
+						noteDivision 	= actualSong.noteDivision;
+						barSignature 	= actualSong.barSignature;			
+					}
+					
+					break;
+				case METRONOME_MODE:
+					//cambio tempo
+					if (bpm < 255)
+						bpm++;
+					
+					break;
+			}
+			break;
+		case PREV_FUNC:	//funcion de anterior o decrementar bpm
+			switch(mode)
+			{
+				case LIVE_MODE:
+					if (actualNumSong > 0)
+					{
+						//cambio de cancion
+						actualNumSong--;
+						readSongData();	
+						//obtenemos datos tema
+						bpm 			= actualSong.tempo;
+						noteDivision 	= actualSong.noteDivision;
+						barSignature 	= actualSong.barSignature;			
+					}
+					break;
+				case METRONOME_MODE:
+					//cambio tempo
+					if (bpm > 1)
+						bpm--;
+					
+					break;
+			}
 			break;
 	}
 	
@@ -578,7 +656,7 @@ void doMainState()
 			}
 			if (deltaEnc < 0 )
 			{
-				if (bpm > 0)
+				if (bpm > 1)
 					bpm--;
 				
 				deltaEnc = 0;
@@ -1008,7 +1086,7 @@ void doMenuState()
 					case TRIGGER_OPTION:
 						actualMenuPage = TRIGGER_PAGE;
 						actualMenuOption = 0;
-						break;
+						break;					
 					case RESET_FABRIC_OPTION:
 						actualMenuPage = RESET_FABRIC_PAGE;
 						actualMenuOption = 0;
@@ -1074,10 +1152,42 @@ void doMenuState()
 				switch (actualMenuOption)
 				{
 					case TRIGGER_FUNC_OPTION:
-						actualMenuPage = TRIGGER_FUNC_PAGE;
-						actualMenuOption = 0;
+						//leemos la funcion del trigger
+						editData = EEPROM.read(EEPROM_CONFIG_TRIGGER_FUNC);
+						//si no esta seteado, lo seteamos
+						editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
+						actualMenuPage = TRIGGER_FUNC_PAGE;						
+						break;
+					case TRIGGER_TYPE_OPTION:
+						//leemos el tipo del trigger
+						editData = EEPROM.read(EEPROM_CONFIG_TRIGGER_TYPE);
+						//si no esta seteado, lo seteamos
+						editData != 0xFF ? actualMenuOption = editData : actualMenuOption = 0;
+						actualMenuPage = TRIGGER_TYPE_PAGE;						
 						break;
 				}
+				break;
+			}
+			case TRIGGER_FUNC_PAGE:
+			{
+				//cambiamos la opcion
+				triggerFunction = actualMenuOption;
+				//guardamos en config
+				EEPROM_Write(EEPROM_CONFIG_TRIGGER_FUNC,triggerFunction);
+				
+				actualMenuOption = 0;
+				actualMenuPage = menuPage[actualMenuPage].prevPage;
+				break;
+			}
+			case TRIGGER_TYPE_PAGE:
+			{
+				//cambiamos la opcion
+				triggerType = actualMenuOption;
+				//guardamos en config
+				EEPROM_Write(EEPROM_CONFIG_TRIGGER_TYPE,triggerType);
+				
+				actualMenuOption = 0;
+				actualMenuPage = menuPage[actualMenuPage].prevPage;
 				break;
 			}
 			case RESET_FABRIC_PAGE:
@@ -1261,7 +1371,7 @@ void refreshLCD()
 						free (title);
 					}					
 					//dibujamos opciones barra
-					drawToolbar(NULL,NULL,backOpt);
+					drawToolbar(firstOpt,lastOpt,backOpt);
 					}
 					break;
 				//cambio de cancion (elegimos la cancion)
@@ -1312,7 +1422,7 @@ void refreshLCD()
 						free (title);
 					}					
 					//dibujamos opciones barra
-					drawToolbar(NULL,NULL,backOpt);
+					drawToolbar(firstOpt,lastOpt,backOpt);
 					}
 					break;
 				//insertar cancion (elegimos la cancion)
@@ -1363,7 +1473,7 @@ void refreshLCD()
 						free (title);
 					}					
 					//dibujamos opciones barra
-					drawToolbar(NULL,NULL,backOpt);
+					drawToolbar(firstOpt,lastOpt,backOpt);
 					}
 					break;	
 				//copiar de repertorio
@@ -1703,7 +1813,10 @@ void loadConfig()
 	data >= 0 && data <= 255 ? timeStopTimer =data : timeStopTimer = timeStopTimer;
 	
 	data = EEPROM.read(EEPROM_CONFIG_TRIGGER_FUNC);
-	data >= 0 && data <= 0 ? triggerFunction =data : triggerFunction = triggerFunction;
+	data >= 0 && data <= 2 ? triggerFunction =data : triggerFunction = triggerFunction;
+	
+	data = EEPROM.read(EEPROM_CONFIG_TRIGGER_TYPE);
+	data >= 0 && data <= 1 ? triggerType =data : triggerType = triggerType;
 }
 
 //funcion para inicializar la EEPROM por defecto
@@ -1720,6 +1833,7 @@ void resetDefault()
 	EEPROM.update(EEPROM_CONFIG_TICK_SOUND,(byte)SND_1);
 	EEPROM.update(EEPROM_CONFIG_STOP_TIMER,timeStopTimer);
 	EEPROM.update(EEPROM_CONFIG_TRIGGER_FUNC,triggerFunction);
+	EEPROM.update(EEPROM_CONFIG_TRIGGER_TYPE,triggerType);
 	//reiniciamos
 	display.clear();
 	char buf[30];

@@ -80,12 +80,20 @@ const char str34[] PROGMEM = "Tiempo debil";
 const char* const equalTicksStr[] PROGMEM = {str32, str33, str34};
 
 const char str35[] PROGMEM = "Funcion Trigger";
+const char str35_1[] PROGMEM = "Tipo Trigger";
 
-const char* const triggerStr[] PROGMEM = {str35};
+const char* const triggerStr[] PROGMEM = {str35, str35_1};
 
 const char str36[] PROGMEM = "Parar y arrancar";
+const char str37[] PROGMEM = "Siguiente";
+const char str38[] PROGMEM = "Anterior";
 
-const char* const triggerFuncStr[] PROGMEM = {str36};
+const char* const triggerFuncStr[] PROGMEM = {str36, str37, str38};
+
+const char str39[] PROGMEM = "Pulsador";
+const char str40[] PROGMEM = "Interruptor";
+
+const char* const triggerTypeStr[] PROGMEM = {str39, str40};
 
 //Opciones toolbar
 const char stopOpt[] PROGMEM = "STOP";
