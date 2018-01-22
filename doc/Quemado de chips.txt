@@ -1,0 +1,23 @@
+Quemado de un ATMega328P Nuevo
+------------------------------
+
+Si no lleva bootloader, lo colocaremos en una placa de prototipos con los railes de alimentacion y el cristal con sus condensadores
+y la resistencia de reset y lo cablearemos al arduino de la manera siguiente:
+
+https://www.arduino.cc/en/Tutorial/ArduinoToBreadboard
+
+Previamente, cargaremos en arduino el skeetch de Arduino as ISP. Una vez cargado, como placa elegimos arduino, elegimos la configuracion 
+de cristal real del proyecto y programador: arduino as ISP y escogemos quemar bootloader.
+Una vez hecho, ya podemos programarlo con nuestro cable de programacion
+
+
+Quemado de un ATTiny85 nuevo
+----------------------------
+
+Usamos nuestro attinyProg Shield en arduino. Cargamos el skeetch "Arduino as ISP" en el arduino, montamos el shield y seleccionamos la placa
+de Attiny correspondiente, la configuracion de cristal correspondiente y como programador, Arduino as ISP y le damos a quemar el bootloader.
+Asi configurará los fuses para ese cristal.
+
+Una vez con bootloader, podemos subirle programas desde el ide de arduino o, si hemos compilado en C con Proteus, ejecutar en linea de comandos:
+
+"C:\Archivos de programa\Arduino\hardware\tools\avr/bin/avrdude" -C"C:\Archivos de programa\Arduino\hardware\tools\avr/etc/avrdude.conf" -v -pattiny85 -cstk500v1 -PCOM3 -b19200 -Uflash:w:ATtiny85.hex:i
