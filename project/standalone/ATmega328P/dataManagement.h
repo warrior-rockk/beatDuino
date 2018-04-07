@@ -12,7 +12,7 @@
 
 //definimos la estructura datos EEPROM
 
-const byte EEPROM_SONGS_POS						= 0x00;												//Posicion Inicio Memoria Canciones
+const byte         EEPROM_SONGS_POS				= 0x00;												//Posicion Inicio Memoria Canciones
 const unsigned int EEPROM_PLAYLIST_POS			= ((MAX_SONG_TITLE+3)*MAX_SONGS)+EEPROM_SONGS_POS; 	//Posicion Inicio Memoria Repertorio
 const unsigned int EEPROM_CONFIG_MODE			= ((MAX_PLAYLIST_TITLE+MAX_SONGS)*MAX_PLAYLISTS)+EEPROM_PLAYLIST_POS;//Posicion Inicio Configuracion Modo
 const unsigned int EEPROM_CONFIG_EQUAL_TICKS	= EEPROM_CONFIG_MODE+1;								//Posicion Inicio Configuracion Ticks Iguales
@@ -21,6 +21,9 @@ const unsigned int EEPROM_CONFIG_TICK_SOUND		= EEPROM_CONFIG_MIDI_CLOCK+1;						
 const unsigned int EEPROM_CONFIG_STOP_TIMER		= EEPROM_CONFIG_TICK_SOUND+1;						//Posicion Inicio Configuracion Tiempo Temporizador Parada
 const unsigned int EEPROM_CONFIG_TRIGGER_FUNC	= EEPROM_CONFIG_STOP_TIMER+1;						//Posicion Inicio Configuracion Funcion de entrada Trigger
 const unsigned int EEPROM_CONFIG_TRIGGER_TYPE	= EEPROM_CONFIG_TRIGGER_FUNC+1;						//Posicion Inicio Configuracion Tipo de entrada Trigger
+const unsigned int EEPROM_LAST_TEMPO_USED       = EEPROM_CONFIG_TRIGGER_TYPE+1;						//Posicion Inicio Ultimo Tempo Usado
+const unsigned int EEPROM_LAST_PLAYLIST_USED    = EEPROM_LAST_TEMPO_USED+1;							//Posicion Inicio Ultimo Playlist Usado
+const unsigned int EEPROM_LAST_SONG_USED        = EEPROM_LAST_PLAYLIST_USED+1;						//Posicion Inicio Ultima Cancion Usada
 
 //textos por defecto
 const char emptyPlayListStr[] PROGMEM = "VACIO  ";

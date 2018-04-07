@@ -1,4 +1,2 @@
 -Grabar e importar el sonido de metronomo de Pau.
--Que memorice el ultimo tempo (en modo metronomo) o la ultima cancion/playlist (en modo repertorio). Esto que no lo haga si hacemos en EEPROM IMPORT
--intercambiar estado opciones botones para que indique lo que pasa si lo activas (play/stop), etc..
 

@@ -11,6 +11,8 @@
 			
  v1.0	-	Release Inicial
  v1.1   - 	Añadimos entrada configurable trigger y opciones primero/ultimo en edicion repertorios
+ v1.2   -   Indicamos la accion que hacen los botones en toolbar, no lo que están haciendo
+			Recordamos ultimo tempo en modo metronomo y ultima cancion y repertorio en modo live
  
  */
 #include <avr/wdt.h> 
@@ -603,6 +605,9 @@ void doMainState()
 				actualNumSong++;
 				readSongData();
 				deltaEnc = 0; //para que no se mueva
+				//guardamos la cancion usada
+				EEPROM_Write(EEPROM_LAST_PLAYLIST_USED,actualPlayListNum);
+				EEPROM_Write(EEPROM_LAST_SONG_USED,actualNumSong);
 				refresh = true;
 			}
 			if (deltaEnc < 0 && actualNumSong > 0)
@@ -610,6 +615,9 @@ void doMainState()
 				actualNumSong--;
 				readSongData();
 				deltaEnc = 0; //para que no se mueva
+				//guardamos la cancion usada
+				EEPROM_Write(EEPROM_LAST_PLAYLIST_USED,actualPlayListNum);
+				EEPROM_Write(EEPROM_LAST_SONG_USED,actualNumSong);
 				refresh = true;
 			}
 								
@@ -652,6 +660,8 @@ void doMainState()
 					bpm++;
 				
 				deltaEnc = 0;
+				//guardamos el tempo usado
+				EEPROM_Write(EEPROM_LAST_TEMPO_USED,bpm);				
 				refresh = true;
 			}
 			if (deltaEnc < 0 )
@@ -660,6 +670,8 @@ void doMainState()
 					bpm--;
 				
 				deltaEnc = 0;
+				//guardamos el tempo usado
+				EEPROM_Write(EEPROM_LAST_TEMPO_USED,bpm);
 				refresh = true;
 			}
 			
@@ -1254,9 +1266,9 @@ void refreshLCD()
 					display.print("/");
 					display.print(noteDivision*4);
 					if (play)
-						stopTimer ? drawToolbar(playOpt,timerOnOpt,menuOpt) : drawToolbar(playOpt,timerOffOpt,menuOpt);
+						stopTimer ? drawToolbar(stopOpt,timerOffOpt,menuOpt) : drawToolbar(stopOpt,timerOnOpt,menuOpt);
 					else
-						stopTimer ? drawToolbar(stopOpt,timerOnOpt,menuOpt) : drawToolbar(stopOpt,timerOffOpt,menuOpt);
+						stopTimer ? drawToolbar(playOpt,timerOffOpt,menuOpt) : drawToolbar(playOpt,timerOnOpt,menuOpt);
 					break;
 				//modo metronomo
 				case METRONOME_MODE:
@@ -1817,6 +1829,21 @@ void loadConfig()
 	
 	data = EEPROM.read(EEPROM_CONFIG_TRIGGER_TYPE);
 	data >= 0 && data <= 1 ? triggerType =data : triggerType = triggerType;
+	
+	//si el ultimo modo es metronomo, leemos el ultimo bpm, si no , cancion
+	if (mode == METRONOME_MODE)
+	{
+		data = EEPROM.read(EEPROM_LAST_TEMPO_USED);
+		data >= 0 && data <= 255 ? bpm =data : bpm = bpm;
+	}
+	else
+	{
+		data = EEPROM.read(EEPROM_LAST_PLAYLIST_USED);
+		data >= 0 && data <= MAX_PLAYLISTS-1 ? actualPlayListNum =data : actualPlayListNum = 0;
+		
+		data = EEPROM.read(EEPROM_LAST_SONG_USED);
+		data >= 0 && data <= MAX_SONGS-1 ? actualNumSong =data : actualNumSong = 0;
+	}
 }
 
 //funcion para inicializar la EEPROM por defecto
