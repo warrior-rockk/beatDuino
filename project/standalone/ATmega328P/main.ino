@@ -13,6 +13,8 @@
  v1.1   - 	Añadimos entrada configurable trigger y opciones primero/ultimo en edicion repertorios
  v1.2   -   Indicamos la accion que hacen los botones en toolbar, no lo que están haciendo
 			Recordamos ultimo tempo en modo metronomo y ultima cancion y repertorio en modo live
+ v1.3   -   Bug corregido en desincronizacion con el tempo real. Me comia un tiempo midi de negra antes de hacer el click
+			Añadido sonido metronomo Boss
  
  */
 #include <avr/wdt.h> 
@@ -123,7 +125,7 @@ byte lastState		= 255;						//estado anterior
 boolean refresh		= true;						//refresco LCD
 unsigned int bpm 					= 120;		//tempo general
 unsigned int lastBpm				= 0;		//tempo anterior
-unsigned int clickDuration 			= 50;		//duración pulso click
+unsigned int clickDuration 			= 50000;	//duración pulso click en microsegundos
 unsigned long clickLastTime			= 0;		//cuenta del inicio pulso click
 unsigned int noteDivision			= QUARTER;	//subdivision nota click
 unsigned int barSignature   		= 4;		//tipo compas
@@ -309,7 +311,7 @@ void loop()
 	//si ha cambiado el tempo, recalculamos la interrupcion
 	if (lastBpm != bpm)
 	{
-		midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;
+		midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;		
 		Timer1.setPeriod(midiClockTime); //uSecs
 		lastBpm = bpm;
 	}
@@ -349,7 +351,7 @@ void loop()
 void sendMidiClock()
 {
 	//si se cumple el ancho de pulso del tick
-	if (millis() - clickLastTime > clickDuration)
+	if (micros() - clickLastTime > clickDuration)
 	{
 		//quitamos señales tick
 		PORTB &= 0xF8;
@@ -358,16 +360,17 @@ void sendMidiClock()
 	}
 	
 	//comprobamos iteraccion del midiClock
-	if (midiCounter >= (MIDI_TICKS_BEAT/noteDivision))
+	if (midiCounter >= (MIDI_TICKS_BEAT/noteDivision)-1)
 	{
 		midiCounter = 0;
+		
 		//incrementamos el numero de tick del compas
 		actualTick >= (barSignature-1) ? actualTick = 0 : actualTick++;
 		//si está en reproduccion
 		if (play)
 		{
 			//guardamos tiempo inicio tick
-			clickLastTime = millis();
+			clickLastTime = micros();
 			//sonido del tick según si es el primer tiempo del compás y está configurado para sonar ese tiempo
 			PORTB |= ((tickSound*2)+2) + ((actualTick == 0 || equalTicks == STRONG_TICK) && equalTicks != WEAK_TICK);	
 			//encendemos led (11 es PB3)
