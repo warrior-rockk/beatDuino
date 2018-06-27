@@ -1,0 +1,1 @@
+"C:\Archivos de programa\Arduino\hardware\tools\avr/bin/avrdude" -C"C:\Archivos de programa\Arduino\hardware\tools\avr/etc/avrdude.conf" -v -pattiny85 -cstk500v1 -PCOM3 -b19200 -Uflash:w:ATtiny85.hex:i
