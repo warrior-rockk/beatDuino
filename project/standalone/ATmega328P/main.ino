@@ -15,7 +15,8 @@
 			Recordamos ultimo tempo en modo metronomo y ultima cancion y repertorio en modo live
  v1.3   -   Bug corregido en desincronizacion con el tempo real. Me comia un tiempo midi de negra antes de hacer el click
 			Añadido sonido metronomo Boss
- 
+ v1.4   -   Corregido bug con array paginas menu que impedia subir el tiempo del temporizador
+  
  */
 #include <avr/wdt.h> 
 #include <avr/pgmspace.h>
@@ -106,10 +107,10 @@ const struct {
 					3,SETTINGS_PAGE,soundsStr,
 					255,SETTINGS_PAGE,NULL,
 					2,SETTINGS_PAGE,confirmStr,
-					2,SETTINGS_PAGE,confirmStr,					
 					2,SETTINGS_PAGE,triggerStr,
 					3,TRIGGER_PAGE,triggerFuncStr,
 					2,TRIGGER_PAGE,triggerTypeStr,
+					2,SETTINGS_PAGE,confirmStr,
 					0,MAIN_PAGE,NULL,
 				};
 

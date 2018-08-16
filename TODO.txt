@@ -1,2 +1,2 @@
--Grabar e importar el sonido de metronomo de Pau.
+-Sustituir las opciones de primero/ultimo del editar repertorio para que sean insertar/eliminar y hacer mas facil edicion repertorio
 

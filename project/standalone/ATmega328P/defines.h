@@ -12,7 +12,7 @@
 
 //version
 #define majorVersion 1
-#define minorVersion 3
+#define minorVersion 4
 
 //pines IO
 #define MIDI_RX			0 
@@ -119,13 +119,13 @@
 		#define MODE_PAGE					24
 		#define EQUAL_TICKS_PAGE			25
 		#define TICK_SOUND_PAGE				26
-		#define STOP_TIMER_PAGE				28		
-		#define MIDI_CLOCK_PAGE				29
-		#define TRIGGER_PAGE				30
-			#define TRIGGER_FUNC_PAGE		31
-			#define TRIGGER_TYPE_PAGE		32
-		#define RESET_FABRIC_PAGE			33
-	#define INFO_PAGE				34
+		#define STOP_TIMER_PAGE				27		
+		#define MIDI_CLOCK_PAGE				28
+		#define TRIGGER_PAGE				29
+			#define TRIGGER_FUNC_PAGE		30
+			#define TRIGGER_TYPE_PAGE		31
+		#define RESET_FABRIC_PAGE			32
+	#define INFO_PAGE				33
 	
 //opciones menu
 #define PLAYLIST_OPTION				0
