@@ -16,6 +16,7 @@
  v1.3   -   Bug corregido en desincronizacion con el tempo real. Me comia un tiempo midi de negra antes de hacer el click
 			Añadido sonido metronomo Boss
  v1.4   -   Corregido bug con array paginas menu que impedia subir el tiempo del temporizador
+			Si volvemos a pulsar el temporizador cuando esta en marcha, lo detiene
   
  */
 #include <avr/wdt.h> 
@@ -437,6 +438,7 @@ void doFunctionButton()
 					stopTimer = false;
 					iniStopTimer = 0;
 					countStopTimer = 0;
+					play = false;
 				}
 			break;
 			}
