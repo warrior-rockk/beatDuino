@@ -17,7 +17,8 @@
 			Añadido sonido metronomo Boss
  v1.4   -   Corregido bug con array paginas menu que impedia subir el tiempo del temporizador
 			Si volvemos a pulsar el temporizador cuando esta en marcha, lo detiene
-  
+			En editar canciones del repertorio, las teclas de funcion insertan o borran directamente
+			Cambios textos menu repertorios para ser mas descriptivos
  */
 #include <avr/wdt.h> 
 #include <avr/pgmspace.h>
@@ -467,8 +468,18 @@ void doFunctionButton()
 				actualMenuOption = MAX_SONGS-1;
 				
 				break;
-			case CHANGE_ORDER_PAGE:	//ir al ultimo
-				actualMenuOption = MAX_SONGS-1;
+			case CHANGE_ORDER_PAGE:	//eliminar cancion
+				//borramos la cancion. Movemos el resto de canciones una posicion hasta el final de la lista
+				for (int i=actualMenuOption;i<MAX_SONGS-1;i++)
+				{
+					writePlayListSong(actualPlayListNum,i,getSongNum(actualPlayListNum,i+1));
+				}
+				//la ultima cancion se queda vacía
+				writePlayListSong(actualPlayListNum,MAX_SONGS-1,0);
+				actualMenuOption=actualMenuOption;
+				editData=0;
+				actualMenuPage =  CHANGE_ORDER_PAGE;
+				readSongData();
 				
 				break;
 			case INSERT_SONG_PAGE:	//ir al ultimo
@@ -518,8 +529,17 @@ void doStartStopButton()
 				case SELECT_EDIT_SONG_PAGE: //ir al primero
 					actualMenuOption = 0;
 					break;
-				case CHANGE_ORDER_PAGE:	//ir al primero
-					actualMenuOption = 0;
+				case CHANGE_ORDER_PAGE:	//insertar cancion
+					//comprobamos que no quieras insertar en la ultima cancion (no caben mas)
+					if (actualMenuOption < (MAX_SONGS-1))
+					{
+						//elegimos posicion de la inserccion
+						editData = actualMenuOption;
+						actualMenuOption = 0;
+						actualMenuPage = INSERT_SONG_PAGE_2;
+						//aprovechamos esta variable para que vuelva a esta pagina
+						editDataInt = CHANGE_ORDER_PAGE;
+					}
 					break;
 				case INSERT_SONG_PAGE:	//ir al primero
 					actualMenuOption = 0;
@@ -855,6 +875,8 @@ void doMenuState()
 					editData = actualMenuOption;
 					actualMenuOption = 0;
 					actualMenuPage = INSERT_SONG_PAGE_2;
+					//aprovechamos esta variable para que vuelva a esta pagina
+					editDataInt = INSERT_SONG_PAGE;
 				}
 				
 				break; 
@@ -871,7 +893,7 @@ void doMenuState()
 				
 				actualMenuOption=editData+1;	//marcamos la nueva cancion insertada
 				editData=0;
-				actualMenuPage = INSERT_SONG_PAGE;
+				actualMenuPage = editDataInt;
 				readSongData();
 									
 				break;
@@ -1389,7 +1411,7 @@ void refreshLCD()
 						free (title);
 					}					
 					//dibujamos opciones barra
-					drawToolbar(firstOpt,lastOpt,backOpt);
+					drawToolbar(insertOpt,delOpt,backOpt);
 					}
 					break;
 				//cambio de cancion (elegimos la cancion)

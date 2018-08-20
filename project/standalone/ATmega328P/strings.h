@@ -11,18 +11,18 @@ const char str2[] PROGMEM = "Ajustes";
 const char str2_1[] PROGMEM = "Info";
 const char* const mainStr[] PROGMEM = {str0, str1, str2, str2_1};
 
-const char str3[] PROGMEM = "Cambiar de Repertorio";
-const char str4[] PROGMEM = "Editar Repertorio";
+const char str3[] PROGMEM = "Seleccionar Repertorio";
+const char str4[] PROGMEM = "Modificar Repertorio";
 const char str4_1[] PROGMEM = "Copiar Repertorio";
 const char str5[] PROGMEM = "Eliminar Repertorio";
 const char* const playListStr[] PROGMEM = {str3, str4, str4_1, str5};
 
 const char str6[] PROGMEM = "Cambiar Nombre";
-const char str7[] PROGMEM = "Cambiar Orden";
+const char str7[] PROGMEM = "Editar Repertorio";
 
 const char* const editPlayListStr[] PROGMEM = {str6, str7};
 
-const char str8[] PROGMEM = "Cambiar Orden";
+const char str8[] PROGMEM = "Cambiar Canciones";
 const char str9[] PROGMEM = "Insertar Cancion";
 const char str10[] PROGMEM = "Eliminar Cancion";
 const char str11[] PROGMEM = "Vaciar Orden";
@@ -107,6 +107,7 @@ const char firstOpt[] PROGMEM = "PRIM";
 const char lastOpt[] PROGMEM = "ULTI";
 const char timerOnOpt[] PROGMEM = "T ON ";
 const char timerOffOpt[] PROGMEM = "T OFF";
+const char insertOpt[] PROGMEM = "INS";
 
 //textos pantallas
 const char strPlaylistChange[] PROGMEM = "Elige Repertorio:";
