@@ -120,6 +120,7 @@ const char strPlaylistCopy[] PROGMEM = "Copiar actual en:";
 const char strSongName[] PROGMEM = "Nombre cancion:";
 const char strChooseTempo[] PROGMEM = "Elige el tiempo:";
 const char strBarType[] PROGMEM = "Tipo Compas:";
+const char strNoteDivision[] PROGMEM = "Division de Nota:";
 const char strTimeToStop[] PROGMEM = "Tiempo para parar:";
 const char strResetting[] PROGMEM = "Reiniciando...";
 const char strImportEEPROM[] PROGMEM = "Importando EEPROM...";

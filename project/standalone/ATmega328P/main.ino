@@ -21,6 +21,7 @@
 			Cambios textos menu repertorios para ser mas descriptivos
 			Nueva funcion en modo metronomo para cambiar el compas. No se guarda en EEPROM
 			Se define NO_PAGE para paginas de menu que vuelven directamente al modo principal
+			Se permite poner titulo en las paginas del menu. Se crean los nuevos titulos
  */
 #include <avr/wdt.h> 
 #include <avr/pgmspace.h>
@@ -82,42 +83,43 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[36] = {	4,NO_PAGE,mainStr,
-					4,MAIN_PAGE,playListStr,
-					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
-					2,PLAYLIST_PAGE,editPlayListStr,
-					0,PLAYLIST_EDIT_PAGE,NULL,
-					4,PLAYLIST_PAGE,changeOrderStr,
-					MAX_SONGS,ORDER_PAGE,NULL,
-					MAX_SONGS,ORDER_PAGE,NULL,
-					MAX_SONGS,ORDER_PAGE,NULL, 
-					MAX_SONGS,ORDER_PAGE,NULL,
-					MAX_SONGS,ORDER_PAGE,NULL,
-					2,ORDER_PAGE,confirmStr,
-					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
-					2,PLAYLIST_PAGE,confirmStr,
-					2,MAIN_PAGE,songStr,
-					MAX_SONGS,SONG_PAGE,NULL,
-					4,SELECT_EDIT_SONG_PAGE,editSongStr,
-					0,EDIT_SONG_PAGE,NULL,
-					255,EDIT_SONG_PAGE,NULL,
-					3,EDIT_SONG_PAGE,noteDivisionStr,
-					6,EDIT_SONG_PAGE,NULL,
-					MAX_SONGS,SONG_PAGE,NULL,
-					2,SONG_PAGE,confirmStr,
-					7,MAIN_PAGE,settingsStr,
-					2,SETTINGS_PAGE,modeStr,
-					3,SETTINGS_PAGE,equalTicksStr,
-					3,SETTINGS_PAGE,soundsStr,
-					255,SETTINGS_PAGE,NULL,
-					2,SETTINGS_PAGE,confirmStr,
-					2,SETTINGS_PAGE,triggerStr,
-					3,TRIGGER_PAGE,triggerFuncStr,
-					2,TRIGGER_PAGE,triggerTypeStr,
-					2,SETTINGS_PAGE,confirmStr,
-					0,MAIN_PAGE,NULL,
-					3,NO_PAGE,noteDivisionStr,
-					6,NO_PAGE,NULL,
+	const char* strTitle;
+} menuPage[36] = {	4,NO_PAGE,mainStr,NULL,
+					4,MAIN_PAGE,playListStr,NULL,
+					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,NULL,
+					2,PLAYLIST_PAGE,editPlayListStr,NULL,
+					0,PLAYLIST_EDIT_PAGE,NULL,NULL,
+					4,PLAYLIST_PAGE,changeOrderStr,NULL,
+					MAX_SONGS,ORDER_PAGE,NULL,NULL,
+					MAX_SONGS,ORDER_PAGE,NULL,NULL,
+					MAX_SONGS,ORDER_PAGE,NULL,NULL,
+					MAX_SONGS,ORDER_PAGE,NULL,NULL,
+					MAX_SONGS,ORDER_PAGE,NULL,NULL,
+					2,ORDER_PAGE,confirmStr,str11,
+					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,NULL,
+					2,PLAYLIST_PAGE,confirmStr,str5,
+					2,MAIN_PAGE,songStr,NULL,
+					MAX_SONGS,SONG_PAGE,NULL,NULL,
+					4,SELECT_EDIT_SONG_PAGE,editSongStr,NULL,
+					0,EDIT_SONG_PAGE,NULL,NULL,
+					255,EDIT_SONG_PAGE,NULL,NULL,
+					3,EDIT_SONG_PAGE,noteDivisionStr,strNoteDivision,
+					6,EDIT_SONG_PAGE,NULL,NULL,
+					MAX_SONGS,SONG_PAGE,NULL,NULL,
+					2,SONG_PAGE,confirmStr,str15,
+					7,MAIN_PAGE,settingsStr,NULL,
+					2,SETTINGS_PAGE,modeStr,str23,
+					3,SETTINGS_PAGE,equalTicksStr,str24,
+					3,SETTINGS_PAGE,soundsStr,str25,
+					255,SETTINGS_PAGE,NULL,NULL,
+					2,SETTINGS_PAGE,confirmStr,str26,
+					2,SETTINGS_PAGE,triggerStr,NULL,
+					3,TRIGGER_PAGE,triggerFuncStr,str35,
+					2,TRIGGER_PAGE,triggerTypeStr,str35_1,
+					2,SETTINGS_PAGE,confirmStr,str26_2,
+					0,MAIN_PAGE,NULL,NULL,
+					3,NO_PAGE,noteDivisionStr,strNoteDivision,
+					6,NO_PAGE,NULL,NULL,
 				};
 
 const unsigned int buttonDelay    	= 5;				//Tiempo antirebote (*10ms)
@@ -1762,6 +1764,13 @@ void refreshLCD()
 				default:
 					{
 					char buffer[30];
+					//escribimos titulo si lo lleva
+					if (menuPage[actualMenuPage].strTitle != NULL)
+					{	
+						strcpy_P(buffer, (char*)(menuPage[actualMenuPage].strTitle));
+						display.println(buffer);
+						display.println("");
+					}
 					for (int i=0;i<menuPage[actualMenuPage].numOptions;i++)
 					{
 						actualMenuOption == i ? display.setBlackText(true) : display.setBlackText(false);
