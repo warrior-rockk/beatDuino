@@ -108,6 +108,7 @@ const char lastOpt[] PROGMEM = "ULTI";
 const char timerOnOpt[] PROGMEM = "T ON ";
 const char timerOffOpt[] PROGMEM = "T OFF";
 const char insertOpt[] PROGMEM = "INS";
+const char beatOpt[] PROGMEM = "COMPAS";
 
 //textos pantallas
 const char strPlaylistChange[] PROGMEM = "Elige Repertorio:";

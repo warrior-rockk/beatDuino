@@ -1,3 +1,3 @@
--Opcion function buttons en modo metronomo para cambiar la metrica
 -COnfirmacion eliminacion cosas?
 -Pasar la opcion de cambiar titulo repertorio al menu general de editar repertorio?
+-titulos texto en menus de opciones genericos....?

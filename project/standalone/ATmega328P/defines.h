@@ -126,7 +126,9 @@
 			#define TRIGGER_TYPE_PAGE		31
 		#define RESET_FABRIC_PAGE			32
 	#define INFO_PAGE				33
-	
+#define CHANGE_METRONOME_NOTE_PAGE	34
+#define CHANGE_METRONOME_BEAT_PAGE	35
+
 //opciones menu
 #define PLAYLIST_OPTION				0
 	#define CHANGE_PLAYLIST_OPTION		0

@@ -19,6 +19,7 @@
 			Si volvemos a pulsar el temporizador cuando esta en marcha, lo detiene
 			En editar canciones del repertorio, las teclas de funcion insertan o borran directamente
 			Cambios textos menu repertorios para ser mas descriptivos
+			Nueva funcion en modo metronomo para cambiar el compas. No se guarda en EEPROM
  */
 #include <avr/wdt.h> 
 #include <avr/pgmspace.h>
@@ -80,7 +81,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[34] = {	4,MAIN_PAGE,mainStr,
+} menuPage[36] = {	4,MAIN_PAGE,mainStr,
 					4,MAIN_PAGE,playListStr,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -114,6 +115,8 @@ const struct {
 					2,TRIGGER_PAGE,triggerTypeStr,
 					2,SETTINGS_PAGE,confirmStr,
 					0,MAIN_PAGE,NULL,
+					3,MAIN_PAGE,noteDivisionStr,
+					6,MAIN_PAGE,NULL,
 				};
 
 const unsigned int buttonDelay    	= 5;				//Tiempo antirebote (*10ms)
@@ -396,8 +399,8 @@ void doMenuButton()
 	{
 		//si está en el menu
 		case MENU_STATE:
-			//si esta en la pagina inicial, sale del menu
-			if (actualMenuPage == MAIN_PAGE)
+			//si esta en la pagina inicial o edicion de ritmo del moetronomo, sale del menu
+			if (actualMenuPage == MAIN_PAGE || actualMenuPage == CHANGE_METRONOME_NOTE_PAGE || actualMenuPage == CHANGE_METRONOME_BEAT_PAGE)
 			{
 				state = MAIN_STATE;					
 			}
@@ -429,7 +432,15 @@ void doFunctionButton()
 		case MAIN_STATE:
 			switch(mode)
 			{
-			//si esta en modo repertorio
+			//si esta en modo metronomo: edita el compas
+			case METRONOME_MODE:
+				state = MENU_STATE;
+				actualMenuPage = CHANGE_METRONOME_BEAT_PAGE;
+				editData = barSignature;
+				actualMenuOption = editData-2;
+				
+				break;			
+			//si esta en modo repertorio, reproduce/para
 			case LIVE_MODE:
 				if (!stopTimer){
 					stopTimer = true;
@@ -441,7 +452,7 @@ void doFunctionButton()
 					countStopTimer = 0;
 					play = false;
 				}
-			break;
+				break;
 			}
 			break;
 		//si está en el menu
@@ -1142,6 +1153,8 @@ void doMenuState()
 				
 				actualMenuOption = 0;
 				actualMenuPage = menuPage[actualMenuPage].prevPage;
+				noteDivision =  QUARTER;
+				barSignature = 4;	
 				break;
 			}
 			case EQUAL_TICKS_PAGE:
@@ -1240,6 +1253,48 @@ void doMenuState()
 				actualMenuPage = menuPage[actualMenuPage].prevPage;
 				break;
 			}
+			case CHANGE_METRONOME_NOTE_PAGE:
+			{
+				switch (actualMenuOption)
+					{
+						case 0:
+							noteDivision = QUARTER;
+							break;
+						case 1:
+							noteDivision = EIGHTH;
+							break;
+						case 2:
+							noteDivision = SIXTEENTH;
+							break;
+					}
+					editData = 0;
+					actualMenuOption=0;
+					actualMenuPage = 0;
+					state = MAIN_STATE;
+					
+					break;	
+			}
+			case CHANGE_METRONOME_BEAT_PAGE:
+			{
+				barSignature = actualMenuOption+2;
+				//saltamos a editar la division de nota				
+				actualMenuPage = CHANGE_METRONOME_NOTE_PAGE;
+				editData = noteDivision;
+				switch (editData)
+				{
+					case QUARTER:
+						actualMenuOption = 0;								
+						break;
+					case EIGHTH:
+						actualMenuOption = 1;						
+						break;
+					case SIXTEENTH:
+						actualMenuOption = 2;						
+						break;
+				};
+				
+				break;
+			}
 			break;
 		}						
 		
@@ -1316,7 +1371,7 @@ void refreshLCD()
 					display.print("/");
 					display.print(noteDivision*4);
 					//dibujamos opciones barra
-					play ? drawToolbar(playOpt,NULL,menuOpt) : drawToolbar(stopOpt,NULL,menuOpt); 
+					play ? drawToolbar(playOpt,beatOpt,menuOpt) : drawToolbar(stopOpt,beatOpt,menuOpt); 
 									
 					break;
 			}
@@ -1688,7 +1743,20 @@ void refreshLCD()
 					//dibujamos opciones barra
 					drawToolbar(NULL,resetOpt,backOpt);
 					}
-					break;				
+					break;	
+				case CHANGE_METRONOME_BEAT_PAGE:
+					{
+					display.setBlackText(false);
+					char buf[30];
+					strcpy_P(buf,strBarType);
+					display.println(buf);
+					display.println("\n");
+					display.clear(0,END_OF_LINE,3,4);
+					display.println(actualMenuOption+2);
+					//dibujamos opciones barra
+					drawToolbar(NULL,NULL,backOpt);					
+					}
+					break;
 				//cualquier pagina de menu que solo muestra opciones
 				default:
 					{
