@@ -128,6 +128,7 @@
 	#define INFO_PAGE				33
 #define CHANGE_METRONOME_NOTE_PAGE	34
 #define CHANGE_METRONOME_BEAT_PAGE	35
+#define NO_PAGE					255
 
 //opciones menu
 #define PLAYLIST_OPTION				0

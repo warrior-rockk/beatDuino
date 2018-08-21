@@ -20,6 +20,7 @@
 			En editar canciones del repertorio, las teclas de funcion insertan o borran directamente
 			Cambios textos menu repertorios para ser mas descriptivos
 			Nueva funcion en modo metronomo para cambiar el compas. No se guarda en EEPROM
+			Se define NO_PAGE para paginas de menu que vuelven directamente al modo principal
  */
 #include <avr/wdt.h> 
 #include <avr/pgmspace.h>
@@ -81,7 +82,7 @@ const struct {
 	byte numOptions;
 	byte prevPage;
     const char* const* strTable;
-} menuPage[36] = {	4,MAIN_PAGE,mainStr,
+} menuPage[36] = {	4,NO_PAGE,mainStr,
 					4,MAIN_PAGE,playListStr,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,
 					2,PLAYLIST_PAGE,editPlayListStr,
@@ -115,8 +116,8 @@ const struct {
 					2,TRIGGER_PAGE,triggerTypeStr,
 					2,SETTINGS_PAGE,confirmStr,
 					0,MAIN_PAGE,NULL,
-					3,MAIN_PAGE,noteDivisionStr,
-					6,MAIN_PAGE,NULL,
+					3,NO_PAGE,noteDivisionStr,
+					6,NO_PAGE,NULL,
 				};
 
 const unsigned int buttonDelay    	= 5;				//Tiempo antirebote (*10ms)
@@ -399,15 +400,15 @@ void doMenuButton()
 	{
 		//si está en el menu
 		case MENU_STATE:
-			//si esta en la pagina inicial o edicion de ritmo del moetronomo, sale del menu
-			if (actualMenuPage == MAIN_PAGE || actualMenuPage == CHANGE_METRONOME_NOTE_PAGE || actualMenuPage == CHANGE_METRONOME_BEAT_PAGE)
+			//si no hay pagina previa, sale del menu
+			if (menuPage[actualMenuPage].prevPage == NO_PAGE)
 			{
 				state = MAIN_STATE;					
 			}
 			else //si no, va a la pagina previa
 			{
 				actualMenuPage = menuPage[actualMenuPage].prevPage;
-				actualMenuOption = 0;
+				actualMenuOption = 0;				
 			}
 			break;
 		//si no esta en el menu, salta al menu
