@@ -1,2 +1,1 @@
--COnfirmacion eliminacion cosas?
--Pasar la opcion de cambiar titulo repertorio al menu general de editar repertorio?
+-COnfirmacion eliminacion canciones del repertorio?

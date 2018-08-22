@@ -18,16 +18,12 @@ const char str5[] PROGMEM = "Delete Setlist";
 const char* const playListStr[] PROGMEM = {str3, str4, str4_1, str5};
 
 const char str6[] PROGMEM = "Change Name";
-const char str7[] PROGMEM = "Edit Setlist";
-
-const char* const editPlayListStr[] PROGMEM = {str6, str7};
-
 const char str8[] PROGMEM = "Change Songs";
 const char str9[] PROGMEM = "Insert Song";
 const char str10[] PROGMEM = "Remove Song";
 const char str11[] PROGMEM = "Empty Setlist";
 
-const char* const changeOrderStr[] PROGMEM = {str8, str9, str10, str11};
+const char* const editPlayListStr[] PROGMEM = {str6, str8, str9, str10, str11};
 
 const char str12[] PROGMEM = "NO";
 const char str13[] PROGMEM = "YES";

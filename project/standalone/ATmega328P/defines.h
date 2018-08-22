@@ -97,49 +97,47 @@
 		#define PLAYLIST_CHANGE_PAGE	2
 		#define PLAYLIST_EDIT_PAGE		3
 			#define PLAYLIST_NAME_PAGE	4
-			#define ORDER_PAGE			5
-				#define CHANGE_ORDER_PAGE	6
-				#define CHANGE_ORDER_PAGE_2	7
-				#define INSERT_SONG_PAGE	8
-				#define INSERT_SONG_PAGE_2	9
-				#define DELETE_SONG_PAGE	10
-				#define EMPTY_ORDER_PAGE	11
-		#define PLAYLIST_COPY_PAGE      12
-		#define PLAYLIST_DELETE_PAGE    13
-	#define SONG_PAGE				14	
-		#define SELECT_EDIT_SONG_PAGE			15
-			#define EDIT_SONG_PAGE                  16
-				#define CHANGE_SONG_NAME_PAGE			17
-				#define CHANGE_SONG_TEMPO_PAGE         	18
-				#define CHANGE_SONG_NOTE_PAGE          	19
-				#define CHANGE_SONG_BEAT_PAGE          	20
-		#define SELECT_EMPTY_SONG_PAGE			21		
-			#define EMPTY_SONG_PAGE				22
-	#define SETTINGS_PAGE			23
-		#define MODE_PAGE					24
-		#define EQUAL_TICKS_PAGE			25
-		#define TICK_SOUND_PAGE				26
-		#define STOP_TIMER_PAGE				27		
-		#define MIDI_CLOCK_PAGE				28
-		#define TRIGGER_PAGE				29
-			#define TRIGGER_FUNC_PAGE		30
-			#define TRIGGER_TYPE_PAGE		31
-		#define RESET_FABRIC_PAGE			32
-	#define INFO_PAGE				33
-#define CHANGE_METRONOME_NOTE_PAGE	34
-#define CHANGE_METRONOME_BEAT_PAGE	35
+			#define CHANGE_ORDER_PAGE	5
+			#define CHANGE_ORDER_PAGE_2	6
+			#define INSERT_SONG_PAGE	7
+			#define INSERT_SONG_PAGE_2	8
+			#define DELETE_SONG_PAGE	9
+			#define EMPTY_ORDER_PAGE	10
+		#define PLAYLIST_COPY_PAGE      11
+		#define PLAYLIST_DELETE_PAGE    12
+	#define SONG_PAGE				13
+		#define SELECT_EDIT_SONG_PAGE			14
+			#define EDIT_SONG_PAGE                  15
+				#define CHANGE_SONG_NAME_PAGE			16
+				#define CHANGE_SONG_TEMPO_PAGE         	17
+				#define CHANGE_SONG_NOTE_PAGE          	18
+				#define CHANGE_SONG_BEAT_PAGE          	19
+		#define SELECT_EMPTY_SONG_PAGE			20		
+			#define EMPTY_SONG_PAGE				21
+	#define SETTINGS_PAGE			22
+		#define MODE_PAGE					23
+		#define EQUAL_TICKS_PAGE			24
+		#define TICK_SOUND_PAGE				25
+		#define STOP_TIMER_PAGE				26		
+		#define MIDI_CLOCK_PAGE				27
+		#define TRIGGER_PAGE				28
+			#define TRIGGER_FUNC_PAGE		29
+			#define TRIGGER_TYPE_PAGE		30
+		#define RESET_FABRIC_PAGE			31
+	#define INFO_PAGE				32
+#define CHANGE_METRONOME_NOTE_PAGE	33
+#define CHANGE_METRONOME_BEAT_PAGE	34
 #define NO_PAGE					255
 
 //opciones menu
 #define PLAYLIST_OPTION				0
 	#define CHANGE_PLAYLIST_OPTION		0
 	#define EDIT_PLAYLIST_OPTION		1
-		#define NAME_PLAYLIST_OPTION		0
-		#define ORDER_OPTION                1
-			#define CHANGE_ORDER_OPTION			0
-			#define INSERT_SONG_OPTION          1
-			#define DELETE_SONG_OPTION			2
-			#define EMPTY_ORDER_OPTION			3
+		#define NAME_PLAYLIST_OPTION		0	
+		#define CHANGE_ORDER_OPTION			1
+		#define INSERT_SONG_OPTION          2
+		#define DELETE_SONG_OPTION			3
+		#define EMPTY_ORDER_OPTION			4
 	#define COPY_PLAYLIST_OPTION        2
 	#define DELETE_PLAYLIST_OPTION		3
 #define SONG_OPTION					1

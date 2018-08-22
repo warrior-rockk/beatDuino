@@ -23,6 +23,7 @@
 			Se define NO_PAGE para paginas de menu que vuelven directamente al modo principal
 			Se permite poner titulo en las paginas del menu. Se crean los nuevos titulos
 			Se añade funcion de subrayado en la libreria de textos y se escriben los titulos del menu con subrayado
+			Pasamos la opcion de cambiar titulo repertorio al menu general de editar repertorio
  */
 #include <avr/wdt.h> 
 #include <avr/pgmspace.h>
@@ -85,18 +86,17 @@ const struct {
 	byte prevPage;
     const char* const* strTable;
 	const char* strTitle;
-} menuPage[36] = {	4,NO_PAGE,mainStr,NULL,
+} menuPage[35] = {	4,NO_PAGE,mainStr,NULL,
 					4,MAIN_PAGE,playListStr,NULL,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,NULL,
-					2,PLAYLIST_PAGE,editPlayListStr,NULL,
+					5,PLAYLIST_PAGE,editPlayListStr,NULL,
 					0,PLAYLIST_EDIT_PAGE,NULL,NULL,
-					4,PLAYLIST_PAGE,changeOrderStr,NULL,
-					MAX_SONGS,ORDER_PAGE,NULL,NULL,
-					MAX_SONGS,ORDER_PAGE,NULL,NULL,
-					MAX_SONGS,ORDER_PAGE,NULL,NULL,
-					MAX_SONGS,ORDER_PAGE,NULL,NULL,
-					MAX_SONGS,ORDER_PAGE,NULL,NULL,
-					2,ORDER_PAGE,confirmStr,str11,
+					MAX_SONGS,PLAYLIST_EDIT_PAGE,NULL,NULL,
+					MAX_SONGS,PLAYLIST_EDIT_PAGE,NULL,NULL,
+					MAX_SONGS,PLAYLIST_EDIT_PAGE,NULL,NULL,
+					MAX_SONGS,PLAYLIST_EDIT_PAGE,NULL,NULL,
+					MAX_SONGS,PLAYLIST_EDIT_PAGE,NULL,NULL,
+					2,PLAYLIST_EDIT_PAGE,confirmStr,str11,
 					MAX_PLAYLISTS,PLAYLIST_PAGE,NULL,NULL,
 					2,PLAYLIST_PAGE,confirmStr,str5,
 					2,MAIN_PAGE,songStr,NULL,
@@ -822,22 +822,6 @@ void doMenuState()
 						editString = readPlayListTitle(actualPlayListNum);
 						editCursor = 0;								
 						break;
-					//cambio ordenes
-					case ORDER_OPTION:
-						actualMenuOption = 0;
-						actualMenuPage = ORDER_PAGE;
-						
-						break;
-				}
-				break;
-			case PLAYLIST_NAME_PAGE:
-				//avanzamos el cursor de edicion de nombre
-				editCursor < MAX_PLAYLIST_TITLE-2 ? editCursor++ : editCursor = 0;							
-				
-				break;
-			case ORDER_PAGE:
-				switch (actualMenuOption)
-				{
 					//cambiar el orden
 					case CHANGE_ORDER_OPTION:
 						actualMenuOption = 0;
@@ -867,6 +851,11 @@ void doMenuState()
 						break;
 				}
 				break;
+			case PLAYLIST_NAME_PAGE:
+				//avanzamos el cursor de edicion de nombre
+				editCursor < MAX_PLAYLIST_TITLE-2 ? editCursor++ : editCursor = 0;							
+				
+				break;			
 			case CHANGE_ORDER_PAGE:  //elegimos posicion del orden
 				editData = actualMenuOption;
 				actualMenuOption = 0;
