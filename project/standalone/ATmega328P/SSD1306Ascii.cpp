@@ -147,6 +147,9 @@ GLCDFONTDECL(scaledNibble) = {
   0XF0, 0XF3, 0XFC, 0XFF
 };
 //------------------------------------------------------------------------------
+//Variable s: numero de lineas de espacio entre letras
+//Variable c: lineas por caracter
+//Variable m: numeros de caracter para caracter grande (magnification)
 size_t SSD1306Ascii::write(uint8_t ch) {
   const uint8_t* base = m_font;
   if (!base) return 0;
@@ -213,27 +216,60 @@ size_t SSD1306Ascii::write(uint8_t ch) {
         if (thieleShift && (r + 1) == nr) {
           b >>= thieleShift;
         }
-        if (m_magFactor == 2) {
+        if (m_magFactor == 2) { //escribimos el caracter grande
            b = m ?  b >> 4 : b & 0XF;
            b = readFontByte(scaledNibble + b);
            //si no esta el texto en negro
-		   if (!m_blackText)
-			ssd1306WriteRamBuf(b);
-		   else
-			ssd1306WriteRamBuf(~b);
+		   if (!m_blackText){
+				//si esta activado el subrayado y estamos haciendo la segunda parte del caracter grande
+			   if (m_underLine && m == 1)
+					//pintamos el ultimo pixel del caracter para hacer la linea de subrayado
+					b |= 1UL << 7;   
+				ssd1306WriteRamBuf(b);
+		   }
+		   else{
+			   //si esta activado el subrayado y estamos haciendo la segunda parte del caracter grande
+			   if (m_underLine && m == 1)
+					//limpiamos el ultimo pixel del caracter para hacer la linea de subrayado
+					b &= ~(1UL << 7);
+				ssd1306WriteRamBuf(~b);
+		   }
         }
+		
 		//si no esta el texto en negro
-		if (!m_blackText)
+		if (!m_blackText){
+			//si esta activado el subrayado y no es caracter grande
+			if (m_underLine && m_magFactor != 2)
+				//pintamos el ultimo pixel del caracter para hacer la linea de subrayado
+				b |= 1UL << 7;
 			ssd1306WriteRamBuf(b);
-        else
+        }
+		else{
+			//si esta activado el subrayado y no es caracter grande
+			if (m_underLine && m_magFactor != 2)
+				//limpiamos el ultimo pixel del caracter para hacer la linea de subrayado
+				b &= ~(1UL << 7);
 			ssd1306WriteRamBuf(~b);
+		}
       }
+	  //espacio entre letras
       for (uint8_t i = 0; i < s; i++) {
         //si no esta el texto en negro
-		if (!m_blackText)
-			ssd1306WriteRamBuf(0);
+		if (!m_blackText){
+			//si esta activado el subrayado y no es caracter grande o es la segunda parte del caracter grande
+			if (m_underLine && (m_magFactor != 2 || m == 1))
+				//pintamos un pixel abajo que seria la linea
+				ssd1306WriteRamBuf(0x80);
+			else	
+				ssd1306WriteRamBuf(0);
+		}
 		else
-			ssd1306WriteRamBuf(0xFF);
+			//si esta activado el subrayado y no es caracter grande o es la segunda parte del caracter grande
+			if (m_underLine && (m_magFactor != 2 || m == 1))
+				//limpiamos un pixel abajo que seria la linea
+				ssd1306WriteRamBuf(0x7F);
+			else
+				ssd1306WriteRamBuf(0xFF);
       }
     }
   }

@@ -165,6 +165,10 @@ class SSD1306Ascii : public Print {
    */
   void setBlackText(uint8_t blackText) {m_blackText = blackText;}
   /**
+   * @brief Subraya el texto (by Warrior)
+   */
+  void setUnderLine(uint8_t underLine) {m_underLine = underLine;}
+  /**
    * @brief Set the current column number.
    *
    * @param[in] col The desired column number in pixels.
@@ -253,6 +257,7 @@ class SSD1306Ascii : public Print {
   uint8_t m_colOffset;      // Column offset RAM to SEG
   uint8_t m_magFactor;      // Magnification factor.
   uint8_t m_blackText;		// Para invertir el color del texto (by Warrior)
+  uint8_t m_underLine;		// Para subrayar el texto (by Warrior)
  
 #if INCLUDE_SCROLLING    
   uint8_t m_scroll;          // Scroll mode 

@@ -22,6 +22,7 @@
 			Nueva funcion en modo metronomo para cambiar el compas. No se guarda en EEPROM
 			Se define NO_PAGE para paginas de menu que vuelven directamente al modo principal
 			Se permite poner titulo en las paginas del menu. Se crean los nuevos titulos
+			Se añade funcion de subrayado en la libreria de textos y se escriben los titulos del menu con subrayado
  */
 #include <avr/wdt.h> 
 #include <avr/pgmspace.h>
@@ -1767,8 +1768,10 @@ void refreshLCD()
 					//escribimos titulo si lo lleva
 					if (menuPage[actualMenuPage].strTitle != NULL)
 					{	
+						display.setUnderLine(true);
 						strcpy_P(buffer, (char*)(menuPage[actualMenuPage].strTitle));
 						display.println(buffer);
+						display.setUnderLine(false);
 						display.println("");
 					}
 					for (int i=0;i<menuPage[actualMenuPage].numOptions;i++)
