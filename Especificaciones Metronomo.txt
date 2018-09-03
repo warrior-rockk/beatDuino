@@ -210,7 +210,7 @@ CS - no tiene relevancia. No hace falta conectarlo
 
 EN cuanto a librerias para controlarlo, la de Adafruit permite imagenes, pero trabaja volcando todo el buffer (todos los pixeles) de la pantalla a la vez. Esto me da un retardo de ciclo de, en ocasiones, 180ms, siendo un problema con la interrupcion del midi clock. Se queda colgado arduino por ese retardo de ciclo.
 Se encuentra una librería sólo texto para el OLed que, ademas, en vez de utilizar la libreria Wire de Arduino para la comunicacion i2c, utilzia las funciones avri2c genericas que son mas rapidas.
-Se modiifca la libreria para permitir poner texto de color inverso (para las selecciones de menu)
+Se modiifca la libreria para permitir poner texto de color inverso (para las selecciones de menu) y tambien para poder subrayar texto.
 Con esta libreria, la señal de reset no se usa por programa y se cablea a +VCC
 
 Interfaz física
@@ -221,13 +221,15 @@ Es importante poner unos condensadores para filtrar los ruidos y rebotes de la c
 
 El knob del encoder rotativo en forma de rueda se llama scrubber
 Dudas:
-	-CUando cambias de tema, se para el metronomo?
-	-Hay que aceptar el cambio de metronomo con el botón?
+	-CUando cambias de tema, se para el metronomo? NO
+	-Hay que aceptar el cambio de metronomo con el botón? NO
 	
 Parte Midi
 ----------
 Se va a usar salida midi para enviar la claqueta a cualquier dispositivo que lo necesite (como mi multiefectos :) ).
 El tempo midi es un mensaje midi llamado midi clock que es enviar 0xF8. La particularidad de ese mensaje es que hay que enviarlo 24 veces por negra (quarter). Tengo que probar si es necesario hacerlo con una interrupcion de Timer o se puede hacer por codigo, aunque son muchas llamadas. Si se hace por interrupcion, quizas interesaría pasar todos los eventos de claqueta a TImer y que desde ahí envie el tono de audio, el parpadeo de led y el midi clock.
+Al final se hace con timer. El timer se ajusta al tiempo mas rapido necesario, es decir, al tempo del tema x 24 (para envios midi clock). En esa interrupcion se comprueba cada 24 veces, que le toca enviar un beat de audio y parpadeo de led. En principio, 
+si desactivamos el midi clock, sigue configurando la interrupcion como si la necesitara. No creo que ahorremos nada por poner la interrupcion mas lenta..... probar??
 
 Consumos
 --------
