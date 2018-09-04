@@ -1,8 +1,8 @@
 -Parece ser que el metronomo en algunos momentos deja de sonar, pero siguen funcionando el resto de funciones. Lo apagas y lo enciendes y va.
 Podría ser que el Attiny se cuelga y no se autoresetea. Si se cuelga, lo mas normal que sea en la interrupcion de reproduccion. Cosas que podrían provocar el cuelgue:
-	1. que la comparacion para salir de la interrupcion sea >= a sound_len, no solo == por si acaso y provocaria que nunca salga y no reproduzca nada
-	2. poner un default en el case de sonido para que salga automaticamente. Por si entra cuando no debe o sin sonido asignado
-	3. reiniciar a 0 el sound_len y el sound_index al salir de la interrupcion
+	1. que la comparacion para salir de la interrupcion sea >= a sound_len, no solo == por si acaso y provocaria que nunca salga y no reproduzca nada (HECHO)
+	2. poner un default en el case de sonido para que salga automaticamente. Por si entra cuando no debe o sin sonido asignado (HECHO)
+	3. reiniciar a 0 el sound_len y el sound_index al salir de la interrupcion (HECHO)
 	4. activar el watchdog del Attiny. No sé si por defecto está activado. Es posible que la interrupcion nunca acabe pero el funcionamiento normal del bucle principal se da, con lo que no saltaria el watchdog....
 	
 -mejorar el comportamiento del encoder? que sea mas preciso?

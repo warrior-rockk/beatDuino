@@ -24,6 +24,7 @@
 			Se permite poner titulo en las paginas del menu. Se crean los nuevos titulos
 			Se añade funcion de subrayado en la libreria de textos y se escriben los titulos del menu con subrayado
 			Pasamos la opcion de cambiar titulo repertorio al menu general de editar repertorio
+			Si pulsamos play en modo repertorio, resetea el temporizador
  */
 #include <avr/wdt.h> 
 #include <avr/pgmspace.h>
@@ -533,6 +534,13 @@ void doStartStopButton()
 		//modo principal: para y arranca el metronomo
 		case MAIN_STATE:
 			play = !play;
+			//en modo live, resetea el temporizador
+			if (mode == LIVE_MODE)
+			{
+					stopTimer = false;
+					iniStopTimer = 0;
+					countStopTimer = 0;
+			}
 			break;
 		//modo menu: segun la pantalla
 		case MENU_STATE:

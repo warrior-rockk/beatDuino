@@ -81,7 +81,10 @@ ISR(TIMER0_COMPA_vect) {
 				#ifndef DEBUG 
 					sound_len = snd3_beat_len;
 				#endif
-			}break;		
+			}break;	
+		default:
+				sample_index = sound_len;
+				break;
 	}
 	//debug
 	#ifdef DEBUG
@@ -92,11 +95,14 @@ ISR(TIMER0_COMPA_vect) {
 	//seteamos valor PMW invertido de la salida B (asi no hace falta condensador de acoplamiento AC)
 	OCR1B = sample ^ 255;
 	//si hemos llegado al final del sample
-	if (sample_index == sound_len) {
+	if (sample_index >= sound_len) {
 		//bajamos flag reproduccion
 		is_playing = false;
 		//desactivamos la interrupcion
 		TIMSK = 0;    
+		//reinciamos datos
+		sound_len = 0;
+		sample_index = 0;
 	}
 }
 
