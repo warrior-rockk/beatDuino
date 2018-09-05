@@ -9,7 +9,7 @@
 1	0	0	tone2 	
 1	0	1	tone2 beat 1	
 1	1	0	tone3 	
-1	1	4	tone3 beat 1	
+1	1	1	tone3 beat 1	
 */
 const unsigned char snd1_beat[] PROGMEM = 
 {

@@ -1,3 +1,14 @@
+/*
+ BeatDuino
+
+ Microprocesador Attiny85 encargado de reproducir los sonidos WAV a través de entradas digitales
+
+ created 1 Agosto 2017
+ by Warrior / Warcom Ing.
+
+ v1.4 -	Se realizan modificaciones en el Attiny85 para evitar cuelgues
+ */
+ 
 #include <inttypes.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>

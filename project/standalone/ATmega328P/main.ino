@@ -7,7 +7,7 @@
  by Warrior / Warcom Ing.
 
  TO-DO:
-	-Grabar Sonido metronomo Pau
+	
 			
  v1.0	-	Release Inicial
  v1.1   - 	Añadimos entrada configurable trigger y opciones primero/ultimo en edicion repertorios
@@ -25,6 +25,7 @@
 			Se añade funcion de subrayado en la libreria de textos y se escriben los titulos del menu con subrayado
 			Pasamos la opcion de cambiar titulo repertorio al menu general de editar repertorio
 			Si pulsamos play en modo repertorio, resetea el temporizador
+			Se realizan modificaciones en el Attiny85 para evitar cuelgues
  */
 #include <avr/wdt.h> 
 #include <avr/pgmspace.h>
