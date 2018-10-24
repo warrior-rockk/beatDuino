@@ -26,6 +26,7 @@
 			Pasamos la opcion de cambiar titulo repertorio al menu general de editar repertorio
 			Si pulsamos play en modo repertorio, resetea el temporizador
 			Se realizan modificaciones en el Attiny85 para evitar cuelgues
+ v1.5	-	Mejoramos la programacion del encoder
  */
 #include <avr/wdt.h> 
 #include <avr/pgmspace.h>
@@ -160,6 +161,7 @@ volatile byte midiCounter	= 0;				//contador clocks midi
 SSD1306AsciiAvrI2c display;
 //interfaz
 volatile signed int deltaEnc		= 0;				//incremento o decremento del encoder
+signed int deltaCurrent				= 0;				//incremento o decremento del encoder en el ciclo actual
 volatile unsigned int deltaCount	= 0;				//contador pulsos para el encoder
 unsigned long countClockTime		= 0;				//contador de tiempo para las bases 10ms
 boolean clock10ms					= false;			//flanco de 10ms
@@ -265,6 +267,11 @@ void setup()
 
 void loop()
 { 
+	//leemos el valor de delta encoder actual
+	deltaCurrent = deltaEnc;
+	//reseteamos el leído
+	deltaEnc = 0;
+	
 	//inciio ejecucion
 	startTime = micros();
 		
@@ -350,10 +357,9 @@ void loop()
 	if (lastCycleTime < minCycleTime)
 		minCycleTime = lastCycleTime;
 
-	//resetemos valor encoder
-	if (digitalRead(ENC_B) == digitalRead(ENC_A))
-		deltaEnc = 0;
-		
+	//resetemos valor encoder actual
+	deltaCurrent = 0;	
+	
 	//reseteamos el watchdog
 	wdt_reset();
  
@@ -650,21 +656,21 @@ void doMainState()
 		//modo directo. Eliges un repetorio y con la ruleta subes y bajas de tema.
 		case LIVE_MODE:
 			//cambio de cancion
-			if (deltaEnc > 0 && actualNumSong < (MAX_SONGS-1))
+			if (deltaCurrent > 0 && actualNumSong < (MAX_SONGS-1))
 			{
 				actualNumSong++;
 				readSongData();
-				deltaEnc = 0; //para que no se mueva
+				//deltaEnc = 0; //para que no se mueva
 				//guardamos la cancion usada
 				EEPROM_Write(EEPROM_LAST_PLAYLIST_USED,actualPlayListNum);
 				EEPROM_Write(EEPROM_LAST_SONG_USED,actualNumSong);
 				refresh = true;
 			}
-			if (deltaEnc < 0 && actualNumSong > 0)
+			if (deltaCurrent < 0 && actualNumSong > 0)
 			{
 				actualNumSong--;
 				readSongData();
-				deltaEnc = 0; //para que no se mueva
+				//deltaEnc = 0; //para que no se mueva
 				//guardamos la cancion usada
 				EEPROM_Write(EEPROM_LAST_PLAYLIST_USED,actualPlayListNum);
 				EEPROM_Write(EEPROM_LAST_SONG_USED,actualNumSong);
@@ -704,22 +710,22 @@ void doMainState()
 		//modo metronomo normal. Con la ruleta cambias el tempo.
 		case METRONOME_MODE:
 			//cambio tempo
-			if (deltaEnc > 0 )
+			if (deltaCurrent > 0 )
 			{
 				if (bpm < 255)
 					bpm++;
 				
-				deltaEnc = 0;
+				//deltaEnc = 0;
 				//guardamos el tempo usado
 				EEPROM_Write(EEPROM_LAST_TEMPO_USED,bpm);				
 				refresh = true;
 			}
-			if (deltaEnc < 0 )
+			if (deltaCurrent < 0 )
 			{
 				if (bpm > 1)
 					bpm--;
 				
-				deltaEnc = 0;
+				//deltaEnc = 0;
 				//guardamos el tempo usado
 				EEPROM_Write(EEPROM_LAST_TEMPO_USED,bpm);
 				refresh = true;
@@ -736,22 +742,22 @@ void doMainState()
 void doMenuState()
 {
 	//cambio de opcion
-	if (deltaEnc > 0 )
+	if (deltaCurrent > 0 )
 	{
 		//actualMenuOption < menuPage[actualMenuPage].numOptions-1 ? actualMenuOption++ : actualMenuOption=0;
 		if (actualMenuOption < menuPage[actualMenuPage].numOptions-1) actualMenuOption++;
 		//si tiene el numero de opciones definido, reseteamos el encoder
 		if (menuPage[actualMenuPage].numOptions != 0)
-			deltaEnc = 0; //para que no se mueva						
+			//deltaEnc = 0; //para que no se mueva						
 		refresh = true;
 	}
-	if (deltaEnc < 0 )
+	if (deltaCurrent < 0 )
 	{
 		//actualMenuOption > 0 ? actualMenuOption-- : actualMenuOption = menuPage[actualMenuPage].numOptions-1;
 		if (actualMenuOption > 0)  actualMenuOption-- ;
 		//si tiene el numero de opciones definido, reseteamos el encoder
 		if (menuPage[actualMenuPage].numOptions != 0)
-			deltaEnc = 0; //para que no se mueva						
+			//deltaEnc = 0; //para que no se mueva						
 		refresh = true;				
 	}
 
@@ -1419,7 +1425,7 @@ void refreshLCD()
 					display.println(buf);
 					display.clear(0,END_OF_LINE,1,1);
 					//cambio de caracter con encoder
-					if (deltaEnc > 0)
+					if (deltaCurrent > 0)
 					{
 						if ((byte)editString[editCursor] < 32) 
 							editString[editCursor] = 32; //'space'
@@ -1428,14 +1434,14 @@ void refreshLCD()
 						else if ((byte)editString[editCursor] < 'z') 
 							editString[editCursor] = editString[editCursor]+1;						
 						
-						deltaEnc = 0; //para que no se mueva
+						//deltaEnc = 0; //para que no se mueva
 					}
-					if (deltaEnc < 0)
+					if (deltaCurrent < 0)
 					{
 						if ((byte)editString[editCursor] > 'A')
 							editString[editCursor] = editString[editCursor]-1;
 						
-						deltaEnc = 0; //para que no se mueva						
+						//deltaEnc = 0; //para que no se mueva						
 					}	
 					//mostramos la cadena
 					display.println(editString);
@@ -1626,7 +1632,7 @@ void refreshLCD()
 					display.println(buf);
 					display.clear(0,END_OF_LINE,1,1);
 					//cambio de caracter con encoder
-					if (deltaEnc > 0)
+					if (deltaCurrent > 0)
 					{
 						if ((byte)editString[editCursor] < 32) 
 							editString[editCursor] = 32; //'space'
@@ -1635,14 +1641,14 @@ void refreshLCD()
 						else if ((byte)editString[editCursor] < 'z') 
 							editString[editCursor] = editString[editCursor]+1;						
 						
-						deltaEnc = 0; //para que no se mueva
+						//deltaEnc = 0; //para que no se mueva
 					}
-					if (deltaEnc < 0)
+					if (deltaCurrent < 0)
 					{
 						if ((byte)editString[editCursor] > 'A')
 							editString[editCursor] = editString[editCursor]-1;
 						
-						deltaEnc = 0; //para que no se mueva						
+						//deltaEnc = 0; //para que no se mueva						
 					}	
 					//mostramos la cadena
 					display.println(editString);

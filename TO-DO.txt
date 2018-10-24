@@ -5,7 +5,8 @@ Podría ser que el Attiny se cuelga y no se autoresetea. Si se cuelga, lo mas nor
 	3. reiniciar a 0 el sound_len y el sound_index al salir de la interrupcion (HECHO)
 	4. activar el watchdog del Attiny. No sé si por defecto está activado. Es posible que la interrupcion nunca acabe pero el funcionamiento normal del bucle principal se da, con lo que no saltaria el watchdog....
 	
--mejorar el comportamiento del encoder? que sea mas preciso?
+	
+-(REALIZADO)mejorar el comportamiento del encoder? que sea mas preciso?
 	Idea: la interrupcion escribe en deltaEnc pero la aplicacion usa variable nueva delta.
 		Al inicio del ciclo de programa, se iguala delta = deltaEnc; y se reseta deltaEnc = 0.
 		Al final del ciclo del programa, se resetea delta = 0;
