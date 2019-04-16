@@ -6,7 +6,7 @@
  created 1 Agosto 2017
  by Warrior / Warcom Ing.
 
- TO-DO:
+ TO-DO:		-Limitar los accesos a la EEPROM a las zonas concretas para evitar escribir donde no se debe
 	
 			
  v1.0	-	Release Inicial
@@ -27,6 +27,8 @@
 			Si pulsamos play en modo repertorio, resetea el temporizador
 			Se realizan modificaciones en el Attiny85 para evitar cuelgues
  v1.5	-	Mejoramos la programacion del encoder
+ v1.6   -   Si el tempo de una cancion es 0 bpm, el metronomo no sonara
+ 
  */
 #include <avr/wdt.h> 
 #include <avr/pgmspace.h>
@@ -137,7 +139,7 @@ byte state         	= MAIN_STATE;				//estado general
 byte lastState		= 255;						//estado anterior
 boolean refresh		= true;						//refresco LCD
 unsigned int bpm 					= 120;		//tempo general
-unsigned int lastBpm				= 0;		//tempo anterior
+unsigned int lastBpm				= 999;		//tempo anterior
 unsigned long clickDuration			= 100000;	//duración pulso click en microsegundos
 unsigned long clickLastTime			= 0;		//cuenta del inicio pulso click
 unsigned int noteDivision			= QUARTER;	//subdivision nota click
@@ -330,8 +332,12 @@ void loop()
 	//si ha cambiado el tempo, recalculamos la interrupcion
 	if (lastBpm != bpm)
 	{
-		midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;		
-		Timer1.setPeriod(midiClockTime); //uSecs
+		//nunca puede ser bpm = 0
+		if (bpm > 0)
+		{
+			midiClockTime = (float)((float)(60000/bpm)/MIDI_TICKS_BEAT)*1000;		
+			Timer1.setPeriod(midiClockTime); //uSecs
+		}
 		lastBpm = bpm;
 	}
 	
@@ -377,30 +383,34 @@ void sendMidiClock()
 		PORTB &= ~(1<<3);
 	}
 	
-	//comprobamos iteraccion del midiClock
-	if (midiCounter >= (MIDI_TICKS_BEAT/noteDivision)-1)
+	//con bpm a 0, no marcamos ningun tempo
+	if (bpm > 0 ) 
 	{
-		midiCounter = 0;
-		
-		//incrementamos el numero de tick del compas
-		actualTick >= (barSignature-1) ? actualTick = 0 : actualTick++;
-		//si está en reproduccion
-		if (play)
+		//comprobamos iteraccion del midiClock
+		if (midiCounter >= (MIDI_TICKS_BEAT/noteDivision)-1)
 		{
-			//guardamos tiempo inicio tick
-			clickLastTime = micros();
-			//sonido del tick según si es el primer tiempo del compás y está configurado para sonar ese tiempo
-			PORTB |= ((tickSound*2)+2) + ((actualTick == 0 || equalTicks == STRONG_TICK) && equalTicks != WEAK_TICK);	
-			//encendemos led (11 es PB3)
-			PORTB |= 1 << 3;
+			midiCounter = 0;
+			
+			//incrementamos el numero de tick del compas
+			actualTick >= (barSignature-1) ? actualTick = 0 : actualTick++;
+			//si está en reproduccion
+			if (play)
+			{
+				//guardamos tiempo inicio tick
+				clickLastTime = micros();
+				//sonido del tick según si es el primer tiempo del compás y está configurado para sonar ese tiempo
+				PORTB |= ((tickSound*2)+2) + ((actualTick == 0 || equalTicks == STRONG_TICK) && equalTicks != WEAK_TICK);	
+				//encendemos led (11 es PB3)
+				PORTB |= 1 << 3;
+			}
 		}
+		else
+			midiCounter++;
+		
+		//Enviamos un midi clock cada 24 veces por negra)
+		if (midiClock)
+			Serial.write(MIDI_CLOCK_MSG);	
 	}
-	else
-		midiCounter++;
-	
-	//Enviamos un midi clock cada 24 veces por negra)
-	if (midiClock)
-		Serial.write(MIDI_CLOCK_MSG);	
 }
 
 //acciones del botón de menu/atras

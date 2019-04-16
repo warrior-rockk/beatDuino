@@ -12,7 +12,7 @@
 
 //version
 #define majorVersion 1
-#define minorVersion 5
+#define minorVersion 6
 
 //pines IO
 #define MIDI_RX			0 
