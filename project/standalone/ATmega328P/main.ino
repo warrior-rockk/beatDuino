@@ -28,6 +28,7 @@
 			Se realizan modificaciones en el Attiny85 para evitar cuelgues
  v1.5	-	Mejoramos la programacion del encoder
  v1.6   -   Si el tempo de una cancion es 0 bpm, el metronomo no sonara
+			La importacion EEPROM la hace si pulsas function al encender
  
  */
 #include <avr/wdt.h> 
@@ -256,7 +257,12 @@ void setup()
 	
 	//si hemos compilado como INITIALIZE, escribimos la EEPROM
 	#ifdef INITIALIZE
-		importEeprom();
+		//si se enciende con la tecla funcion pulsada
+		if (digitalRead(FUNCTION_PIN) == LOW)
+		{
+			//enviamos el contenido del EEPROM por serie
+			importEeprom();		
+		}
 	#endif
 	
 	//leemos los datos actuales
