@@ -28,7 +28,7 @@
 			Se realizan modificaciones en el Attiny85 para evitar cuelgues
  v1.5	-	Mejoramos la programacion del encoder
  v1.6   -   Si el tempo de una cancion es 0 bpm, el metronomo no sonara
-			La importacion EEPROM la hace si pulsas function al encender
+		-	Corregido bug en edicion de nombres canciones/repertorios tras v1.5
  
  */
 #include <avr/wdt.h> 
@@ -187,7 +187,7 @@ unsigned long startTime     = 0;				//tiempo de inicio de ejecucion ciclo para m
 unsigned long lastCycleTime = 0;				//tiempo que tardo el ultimo ciclo
 unsigned long minCycleTime  = 2000000;			//tiempo de ciclo minimo
 unsigned long maxCycleTime  = 0;				//tiempo de ciclo maximo
-int general;
+int debugVar;
 
 //================================
 
@@ -763,7 +763,7 @@ void doMenuState()
 		//actualMenuOption < menuPage[actualMenuPage].numOptions-1 ? actualMenuOption++ : actualMenuOption=0;
 		if (actualMenuOption < menuPage[actualMenuPage].numOptions-1) actualMenuOption++;
 		//si tiene el numero de opciones definido, reseteamos el encoder
-		if (menuPage[actualMenuPage].numOptions != 0)
+		//if (menuPage[actualMenuPage].numOptions != 0)
 			//deltaEnc = 0; //para que no se mueva						
 		refresh = true;
 	}
@@ -772,7 +772,7 @@ void doMenuState()
 		//actualMenuOption > 0 ? actualMenuOption-- : actualMenuOption = menuPage[actualMenuPage].numOptions-1;
 		if (actualMenuOption > 0)  actualMenuOption-- ;
 		//si tiene el numero de opciones definido, reseteamos el encoder
-		if (menuPage[actualMenuPage].numOptions != 0)
+		//if (menuPage[actualMenuPage].numOptions != 0)
 			//deltaEnc = 0; //para que no se mueva						
 		refresh = true;				
 	}
