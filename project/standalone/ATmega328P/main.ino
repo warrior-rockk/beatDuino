@@ -28,6 +28,7 @@
 			Se realizan modificaciones en el Attiny85 para evitar cuelgues
  v1.5	-	Mejoramos la programacion del encoder
  v1.6   -   Si el tempo de una cancion es 0 bpm, el metronomo no sonara
+		-	La funcion import la hace manteniendo pulsado el boton de FUNCTION en el arranque
 		-	Corregido bug en edicion de nombres canciones/repertorios tras v1.5
  
  */
