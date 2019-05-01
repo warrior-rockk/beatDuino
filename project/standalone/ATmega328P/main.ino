@@ -30,6 +30,7 @@
  v1.6   -   Si el tempo de una cancion es 0 bpm, el metronomo no sonara
 		-	La funcion import la hace manteniendo pulsado el boton de FUNCTION en el arranque
 		-	Corregido bug en edicion de nombres canciones/repertorios tras v1.5
+		- 	Añadimos caracteres numericos en la edicion de nombres
  
  */
 #include <avr/wdt.h> 
@@ -1447,7 +1448,7 @@ void refreshLCD()
 						if ((byte)editString[editCursor] < 32) 
 							editString[editCursor] = 32; //'space'
 						else if ((byte)editString[editCursor] == 32) //'space'
-							editString[editCursor] = 'A'; 
+							editString[editCursor] = '0'; 
 						else if ((byte)editString[editCursor] < 'z') 
 							editString[editCursor] = editString[editCursor]+1;						
 						
@@ -1455,7 +1456,7 @@ void refreshLCD()
 					}
 					if (deltaCurrent < 0)
 					{
-						if ((byte)editString[editCursor] > 'A')
+						if ((byte)editString[editCursor] > '0')
 							editString[editCursor] = editString[editCursor]-1;
 						
 						//deltaEnc = 0; //para que no se mueva						
@@ -1654,7 +1655,7 @@ void refreshLCD()
 						if ((byte)editString[editCursor] < 32) 
 							editString[editCursor] = 32; //'space'
 						else if ((byte)editString[editCursor] == 32) //'space'
-							editString[editCursor] = 'A'; 
+							editString[editCursor] = '0'; 
 						else if ((byte)editString[editCursor] < 'z') 
 							editString[editCursor] = editString[editCursor]+1;						
 						
@@ -1662,7 +1663,7 @@ void refreshLCD()
 					}
 					if (deltaCurrent < 0)
 					{
-						if ((byte)editString[editCursor] > 'A')
+						if ((byte)editString[editCursor] > '0')
 							editString[editCursor] = editString[editCursor]-1;
 						
 						//deltaEnc = 0; //para que no se mueva						
