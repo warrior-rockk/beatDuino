@@ -1,0 +1,7 @@
+Cable fino que tengo:
+--------------------
+0,02 inch -> AWG24 (o 23) - > 0,5mm
+
+Cable mas gordo de jumpers:
+---------------------------
+0,05 inch -> AWG16 -> 1,29 mm
