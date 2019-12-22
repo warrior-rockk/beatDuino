@@ -240,7 +240,12 @@ Errores aprendidos
 ------------------
 
 -Tenia mucho ruido en la salida de línea: esto era debido a un error en el diseño del esquema que ponia el gnd de la línea a gnd general y no es asi. Tiene que ir a la señal complementaria del PMW de audio del Attiny.
+
 -He tenido un error de diseño en los esquemas respecto a los pines de los conectores. La simulacion fisica del circuito iba bien, pero como los pines para los conectores están asociados a etiquetas de puertos de entrada, estos pueden estar mal asociados y no darte cuenta hasta que montas el PCB y no va!! Revisar bien las etiquetas de los pines y donde llevan.
+
 -Tenía reseteos espóradicos cuando usaba la interfaz, me movía por los menús y, casi siempre, era usando el encoder (concretamente pulsando el botón del encoder). Después de descartar por código fallos de watchdog por ciclos de carga altos, errores de memoria indirecta, etc.. descubro que el problema en si es al usar el botón del encoder. Al final el problema es mecánico. La longitud de los botones de start/function/menu hace que al pulsar el botón del encoder y deformar la caja del metronomo, vencen un poquito y algún pin de alguno de los pulsadores toca algún pin del atmega328. De momento lo he solucionado aislado los pines con cinta aislante pero tengo unos pulsadores mas cortos mas adecuados.
+Al final conseguí interruptores mas cortos pero los errores persistían. Despues de probar varias cosas, parece que el problema es con el cable de la comunicación I2C de la pantalla OLED. O bien la sección de los cables es demasiado pequeña, o bien el conector hecho por mi no esta del todo bien soldado y se suelta. El perder la comunicación i2c no solo afecta a tener "artifacts" en la pantalla, también puede provocar bucles de comunicación por no recibir respuesta i2c. De momento lo pruebo con un latiguillo preparado de sección 0,05inch.
+
+-El conector de alimentación pequeñito no es muy fiable. Al atornillar ya se apreciaba que el plastico se movía de lado a lado pero es que es tocarlo levemente y pierde alimentación. Esto no es viable para un cacharro que va a estar de viaje y que hay vibraciones en el escenario al tocar... Sustituirlo por uno de mas calidad.
 
 
